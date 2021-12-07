@@ -1,0 +1,203 @@
+---
+title: "Pyromania"
+author: "C Wall"
+date: "12/7/2021"
+output:
+  html_document:
+    code_folding: hide
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+---
+
+```{r setup chunk, setup, include = FALSE, cache=FALSE, message=FALSE, warning=FALSE}
+if (!require('knitr')) install.packages('knitr'); library('knitr')
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
+
+# load packages
+if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
+
+# use pacman to load all the packages you are missing!
+pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'magrittr', 'effects', 'plyr', 'dplyr', 
+               'plotrix', 'car',"gridExtra", "cowplot")
+
+
+```
+
+
+```{r}
+#load YSI data
+YSI<-read.csv("data/Pyro_YSI.csv")
+
+# fix date
+YSI$Date<-as.character(YSI$Date)
+YSI$Date<-as.POSIXct(YSI$Date, format="%m/%d/%y")
+YSI$Date<-as.Date(YSI$Date, format="%m/%d/%y")
+
+
+####### Time 1 change in O2 ################
+
+#separate time points
+YSI.T1<- YSI[(YSI$Time.point=="T1"),]
+
+#calculate NEP for T1
+T1.Prod<-YSI.T1[(YSI.T1$Date == "2021-11-15"),] # dawn and dusk for 12h period
+T1.Dawn1<-T1.Prod[(T1.Prod$Dawn..Dusk == "dawn"),] # dawn-1 measurements
+T1.Dusk<-T1.Prod[(T1.Prod$Dawn..Dusk == "dusk"),] # dusk measurements
+
+T1.Dawn2<-YSI.T1[(YSI.T1$Date == "2021-11-16"),] # dawn-2 measurements, following AM
+
+# make new dataframe
+T1.O2<-(T1.Dawn1[,c(2,4:6)]) 
+T1.O2$dawn1<-T1.Dawn1$DO.percent
+T1.O2$dusk1<-T1.Dusk$DO.percent
+T1.O2$dawn2<-T1.Dawn2$DO.percent
+
+# NEC = dusk - dawn (PM to AM, O2 change of day 1)
+# NEP = dusk - dawn (PM to AM, O2 change of day 2)
+
+T1.O2<- mutate(T1.O2, 
+                NEP=dusk1 - dawn1,
+                NEC=dawn2 - dusk1) 
+
+#sort
+T1.O2<-T1.O2 %>% 
+  arrange(Treatment, plant.mass..g) 
+
+
+################ ################ ################
+####### Time 2 change in O2 ################
+
+#separate time points
+YSI.T2<- YSI[(YSI$Time.point=="T2"),]
+
+#calculate NEP for T2
+T2.Prod<-YSI.T2[(YSI.T2$Date == "2021-12-05"),] # dawn and dusk for 12h period
+T2.Dawn1<-T2.Prod[(T2.Prod$Dawn..Dusk == "dawn"),] # dawn-1 measurements
+T2.Dusk<-T2.Prod[(T2.Prod$Dawn..Dusk == "dusk"),] # dusk measurements
+
+T2.Dawn2<-YSI.T2[(YSI.T2$Date == "2021-12-06"),] # dawn-2 measurements, following AM
+
+# make new dataframe
+T2.O2<-(T2.Dawn1[,c(2,4:6)]) 
+T2.O2$dawn1<-T2.Dawn1$DO.percent
+T2.O2$dusk1<-T2.Dusk$DO.percent
+T2.O2$dawn2<-T2.Dawn2$DO.percent
+
+T2.O2<- mutate(T2.O2, 
+                NEP=dusk1 - dawn1,
+                NEC=dawn2 - dusk1) 
+
+#sort
+T2.O2<-T2.O2 %>% 
+  arrange(Treatment, plant.mass..g) 
+
+################ ################ ################
+# combine T1 and T2 timepoints
+################ ################ ################
+O2.tanks<-rbind(T1.O2,T2.O2)
+
+
+########## 
+Fig.formatting<-(theme_classic()) +
+  theme(text=element_text(size=10),
+        axis.line=element_blank(),
+        legend.text.align = 0,
+        legend.text=element_text(size=10),
+        #legend.title = element_blank(),
+        panel.border = element_rect(fill=NA, colour = "black", size=1),
+        aspect.ratio=1, 
+        axis.ticks.length=unit(0.25, "cm"),
+        axis.text.y=element_text(
+          margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=10), 
+        axis.text.x=element_text(
+          margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=8)) +
+  theme(legend.key.size = unit(0.4, "cm")) +
+  theme(aspect.ratio=1.3) +
+  theme(panel.spacing=unit(c(0, 0, 0, 0), "cm"))
+
+
+#Time 1 NEP
+NEP.T1<-ggplot(T1.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  xlab("plant material (g)")+
+  Fig.formatting
+
+#Time 1 NEC
+NEC.T1<-ggplot(T1.O2, aes(x=plant.mass..g, y=NEC, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+extract.legend <- get_legend(
+  # create some space to the left of the legend
+  NEP.T1 + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+O2.change.T1<-plot_grid(
+  NEP.T1+ theme(legend.position = "none"), 
+  NEC.T1+ theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,3), ncol=3)
+
+ggsave("figures/O2.change.T1.pdf", height=5, width=8)
+
+
+###################
+#Time 2 NEP
+NEP.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+#Time 1 NEC
+NEC.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NEC, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment),alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+O2.change.T2<-plot_grid(
+  NEP.T2+ theme(legend.position = "none"), 
+  NEC.T2+ theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,3), ncol=3)
+
+ggsave("figures/O2.change.T2.pdf", height=5, width=8)
+
+
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
