@@ -56,12 +56,12 @@ T1.O2$dawn1<-T1.Dawn1$DO.percent
 T1.O2$dusk1<-T1.Dusk$DO.percent
 T1.O2$dawn2<-T1.Dawn2$DO.percent
 
-# NEC = dusk - dawn (PM to AM, O2 change of day 1)
+# NER = dusk - dawn (PM to AM, O2 change of day 1)
 # NEP = dusk - dawn (PM to AM, O2 change of day 2)
 
 T1.O2<- mutate(T1.O2, 
                 NEP=dusk1 - dawn1,
-                NEC=dawn2 - dusk1) 
+                NER=dawn2 - dusk1) 
 
 #sort
 T1.O2<-T1.O2 %>% 
@@ -89,7 +89,7 @@ T2.O2$dawn2<-T2.Dawn2$DO.percent
 
 T2.O2<- mutate(T2.O2, 
                 NEP=dusk1 - dawn1,
-                NEC=dawn2 - dusk1) 
+                NER=dawn2 - dusk1) 
 
 #sort
 T2.O2<-T2.O2 %>% 
@@ -119,6 +119,58 @@ Fig.formatting<-(theme_classic()) +
   theme(aspect.ratio=1.3) +
   theme(panel.spacing=unit(c(0, 0, 0, 0), "cm"))
 
+#########################################################
+############################################################################
+###############################################################################################
+###################
+
+# total oxygen % plot for the 3 time points (dawn-dusk-dawn)
+
+T1.AM1<-ggplot(T1.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T1.dawn1")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T1.PM1<-ggplot(T1.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T1.dusk1")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T1.AM2<-ggplot(T1.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T1.dawn2")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+O2.T1<-plot_grid(
+  T1.AM1+ theme(legend.position = "none"), 
+  T1.PM1+ theme(legend.position = "none"), 
+  T1.AM2+ theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,8,3), ncol=4)
+
+ggsave("figures/O2.T1.pdf", height=5, width=9)
+
+#################################
+############################################
+# net ecosystem production and respiration
 
 #Time 1 NEP
 NEP.T1<-ggplot(T1.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) + 
@@ -130,8 +182,8 @@ NEP.T1<-ggplot(T1.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
   xlab("plant material (g)")+
   Fig.formatting
 
-#Time 1 NEC
-NEC.T1<-ggplot(T1.O2, aes(x=plant.mass..g, y=NEC, color=Treatment)) + 
+#Time 1 NER
+NER.T1<-ggplot(T1.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
@@ -146,14 +198,68 @@ extract.legend <- get_legend(
 
 O2.change.T1<-plot_grid(
   NEP.T1+ theme(legend.position = "none"), 
-  NEC.T1+ theme(legend.position = "none"),
+  NER.T1+ theme(legend.position = "none"),
   extract.legend, 
   rel_widths = c(8,8,3), ncol=3)
 
 ggsave("figures/O2.change.T1.pdf", height=5, width=8)
 
 
+
+############################################################
+##############################################################################
+#############################################################################################
 ###################
+
+# total oxygen % plot for the 3 time points (dawn-dusk-dawn)
+
+T2.AM1<-ggplot(T2.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T2.dawn1")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T2.PM1<-ggplot(T2.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T2.dusk1")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T2.AM2<-ggplot(T2.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T2.dawn2")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+O2.T2<-plot_grid(
+  T2.AM1+ theme(legend.position = "none"), 
+  T2.PM1+ theme(legend.position = "none"), 
+  T2.AM2+ theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,8,3), ncol=4)
+
+ggsave("figures/O2.T2.pdf", height=5, width=9)
+
+
+############################################################
+##############################################################################################
+# net ecosystem production and respiration
+
 #Time 2 NEP
 NEP.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) + 
   geom_point() +
@@ -164,8 +270,8 @@ NEP.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
   xlab("plant material (g)") +
   Fig.formatting
 
-#Time 1 NEC
-NEC.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NEC, color=Treatment)) + 
+#Time 1 NER
+NER.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=lm, aes(fill=Treatment),alpha=0.1) +
@@ -176,11 +282,13 @@ NEC.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NEC, color=Treatment)) +
 
 O2.change.T2<-plot_grid(
   NEP.T2+ theme(legend.position = "none"), 
-  NEC.T2+ theme(legend.position = "none"),
+  NER.T2+ theme(legend.position = "none"),
   extract.legend, 
   rel_widths = c(8,8,3), ncol=3)
 
 ggsave("figures/O2.change.T2.pdf", height=5, width=8)
+
+
 
 
 
