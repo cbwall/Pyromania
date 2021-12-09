@@ -376,7 +376,7 @@ NPOC.plots<-plot_grid(
   rel_widths = c(8,8,3), ncol=3)
 
 ggsave("figures/NPOC.pdf", height=5, width=8)
-
+ 
 
 ```
 
