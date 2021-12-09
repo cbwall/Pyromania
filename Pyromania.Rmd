@@ -75,11 +75,11 @@ T1.O2<-T1.O2 %>%
 YSI.T2<- YSI[(YSI$Time.point=="T2"),]
 
 #calculate NEP for T2
-T2.Prod<-YSI.T2[(YSI.T2$Date == "2021-12-05"),] # dawn and dusk for 12h period
+T2.Prod<-YSI.T2[(YSI.T2$Date == "2021-12-06"),] # dawn and dusk for 12h period
 T2.Dawn1<-T2.Prod[(T2.Prod$Dawn..Dusk == "dawn"),] # dawn-1 measurements
 T2.Dusk<-T2.Prod[(T2.Prod$Dawn..Dusk == "dusk"),] # dusk measurements
 
-T2.Dawn2<-YSI.T2[(YSI.T2$Date == "2021-12-06"),] # dawn-2 measurements, following AM
+T2.Dawn2<-YSI.T2[(YSI.T2$Date == "2021-12-07"),] # dawn-2 measurements, following AM
 
 # make new dataframe
 T2.O2<-(T2.Dawn1[,c(2,4:6)]) 
@@ -197,8 +197,8 @@ extract.legend <- get_legend(
   NEP.T1 + theme(legend.box.margin = margin(0, 0, 0, 10)))
 
 O2.change.T1<-plot_grid(
-  NEP.T1+ theme(legend.position = "none"), 
-  NER.T1+ theme(legend.position = "none"),
+  NEP.T1+ theme(legend.position = "none") + ggtitle("Time 1"), 
+  NER.T1+ theme(legend.position = "none") + ggtitle(""),
   extract.legend, 
   rel_widths = c(8,8,3), ncol=3)
 
@@ -248,7 +248,7 @@ T2.AM2<-ggplot(T2.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) +
 
 O2.T2<-plot_grid(
   T2.AM1+ theme(legend.position = "none"), 
-  T2.PM1+ theme(legend.position = "none"), 
+  T2.PM1+ theme(legend.position = "none"),
   T2.AM2+ theme(legend.position = "none"),
   extract.legend, 
   rel_widths = c(8,8,8,3), ncol=4)
@@ -281,8 +281,8 @@ NER.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) +
   Fig.formatting
 
 O2.change.T2<-plot_grid(
-  NEP.T2+ theme(legend.position = "none"), 
-  NER.T2+ theme(legend.position = "none"),
+  NEP.T2+ theme(legend.position = "none") + ggtitle("Time 2"),
+  NER.T2+ theme(legend.position = "none") + ggtitle(""),
   extract.legend, 
   rel_widths = c(8,8,3), ncol=3)
 
