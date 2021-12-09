@@ -22,12 +22,14 @@ if (!require("pacman")) install.packages("pacman") # for rapid install if not in
 
 # use pacman to load all the packages you are missing!
 pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'magrittr', 'effects', 'plyr', 'dplyr', 
-               'plotrix', 'car',"gridExtra", "cowplot")
+               'plotrix', 'car',"gridExtra", "cowplot", "tools")
 
 
 ```
 
 
+###YSI  
+Time 1 and Time 2: import YSI data and prduce plots of changes in O2% and net ecosystem productivity (NEP) and net ecosystem respiration (NER)  
 ```{r}
 #load YSI data
 YSI<-read.csv("data/Pyro_YSI.csv")
@@ -99,8 +101,11 @@ T2.O2<-T2.O2 %>%
 # combine T1 and T2 timepoints
 ################ ################ ################
 O2.tanks<-rbind(T1.O2,T2.O2)
-
-
+```
+  
+TIME POINT 1: Change in O2% and NEP and NER --   
+make figures of the data for timepoint 1  
+```{r}
 ########## 
 Fig.formatting<-(theme_classic()) +
   theme(text=element_text(size=10),
@@ -203,9 +208,11 @@ O2.change.T1<-plot_grid(
   rel_widths = c(8,8,3), ncol=3)
 
 ggsave("figures/O2.change.T1.pdf", height=5, width=8)
-
-
-
+```
+  
+TIME POINT 2: Change in O2% and NEP and NER --
+make figures of the data for timepoint 2
+```{r}
 ############################################################
 ##############################################################################
 #############################################################################################
@@ -289,23 +296,118 @@ O2.change.T2<-plot_grid(
 ggsave("figures/O2.change.T2.pdf", height=5, width=8)
 
 
+```
 
+###DOC  
+import and do a loop to clean up all files and make stacked data in single df
+```{r}
+## import treatment IDs
+IDs<-read.csv("data/treatment.IDs.csv")
+
+##### grab files in a list
+Total.DOC.files <- list.files(path="data/DOC", pattern = "csv$", full.names = T)
+Total.DOC.files
+
+##### what are the file names, sans extensions using package 'tools'
+file.names<-file_path_sans_ext(list.files(path="data/DOC", pattern = "csv$", full.names = F))
+
+############ formatting all data in for loop
+  for(i in 1:length(Total.DOC.files))
+    {
+  data<-read.csv(Total.DOC.files[i], sep=",")
+  data<-data[,c(1,3,5)] # removed columns we don't need
+  data$File<-Total.DOC.files[i]
+  colnames(data)<-c("Tank", "NPOC..mg.L", "TN..mg.L", "File")
+  data$Tank<-as.numeric(as.character(data$Tank)) # make the column of samples all numeric
+  data <- data[!is.na(as.numeric(as.character(data$Tank))),] # remove all rows that aren't numeric/tanks
+  data$Treatment<-IDs$Treatment
+  data$plant.mass..g<-IDs$plant.mass..g
+  make.names(assign(paste(file.names[i], sep=""), data)) # make the file name the name of new df for loop df
+  }
+########## this is the end of the loop
+
+
+ls() #see all dfs you've made, the above will be df matching their file names
+
+#Combine files from loop to single df
+DOC.df<-rbind(DOC_T0_11052021, DOC_T1_11172021)
+
+# remove the 9 letters ('^.) at start 
+# remove the 4 letters ('^.) at end
+DOC.df$File<-gsub('^.........|....$', '', DOC.df$File) 
+
+# if equals DOC_T0_11052021 then, T0, if not then T1
+DOC.df$Time.point<- as.factor(ifelse(
+  DOC.df$File=="DOC_T0_11052021", "T0", "T1"))
+
+#rearrange
+DOC.df<- DOC.df %>% 
+  select(File, Time.point, Treatment, Tank, plant.mass..g, NPOC..mg.L, TN..mg.L) 
+
+```
+
+DOC plots
+```{r}
+NPOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 5)) +
+  ggtitle("Time-0") +
+  ylab("NPOC (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+NPOC.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-1") +
+  ylab("NPOC (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+  
+NPOC.plots<-plot_grid(
+  NPOC.T0+ theme(legend.position = "none"),
+  NPOC.T1+ theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,3), ncol=3)
+
+ggsave("figures/NPOC.pdf", height=5, width=8)
 
 
 ```
 
-
+Total N plots
 ```{r}
+TN.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 2)) +
+  ggtitle("Time-0") +
+  ylab("TN (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
 
-```
+TN.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 2)) +
+  ggtitle("Time-1") +
+  ylab("TN (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+  
+TN.plots<-plot_grid(
+  TN.T0+ theme(legend.position = "none"),
+  TN.T1+ theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,3), ncol=3)
 
-
-```{r}
-
-```
-
-
-```{r}
+ggsave("figures/TN.pdf", height=5, width=8)
 
 ```
 
