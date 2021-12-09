@@ -334,7 +334,7 @@ ls() #see all dfs you've made, the above will be df matching their file names
 DOC.df<-rbind(DOC_T0_11052021, DOC_T1_11172021)
 
 # remove the 9 letters ('^.) at start 
-# remove the 4 letters ('^.) at end
+# remove the 4 letters ('.$) at end
 DOC.df$File<-gsub('^.........|....$', '', DOC.df$File) 
 
 # if equals DOC_T0_11052021 then, T0, if not then T1
