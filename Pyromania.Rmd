@@ -164,6 +164,10 @@ T1.AM2<-ggplot(T1.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) +
   xlab("plant material (g)") +
   Fig.formatting
 
+extract.legend <- get_legend(
+  # create some space to the left of the legend
+  T1.AM1 + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
 O2.T1<-plot_grid(
   T1.AM1+ theme(legend.position = "none"), 
   T1.PM1+ theme(legend.position = "none"), 
@@ -197,9 +201,6 @@ NER.T1<-ggplot(T1.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) +
   xlab("plant material (g)") +
   Fig.formatting
 
-extract.legend <- get_legend(
-  # create some space to the left of the legend
-  NEP.T1 + theme(legend.box.margin = margin(0, 0, 0, 10)))
 
 O2.change.T1<-plot_grid(
   NEP.T1+ theme(legend.position = "none") + ggtitle("Time 1"), 
