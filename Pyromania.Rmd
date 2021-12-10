@@ -333,7 +333,7 @@ ls() #see all dfs you've made, the above will be df matching their file names
 #Combine files from loop to single df
 DOC.df<-rbind(DOC_T0_11052021, DOC_T1_11172021)
 
-DOC.df$File1<-substr(DOC.df$File, 10, 24) #give the 10th-24th character of the file name, removing the rest
+DOC.df$File<-substr(DOC.df$File, 10, 24) #give the 10th-24th character of the file name, removing the rest
 #alternatively
 # remove the 9 letters ('^.) at start 
 # remove the 4 letters (.$') at end
@@ -444,7 +444,7 @@ file.names<-file_path_sans_ext(list.files(path="data/UVBIO", pattern = "csv$", f
 ls() #see all dfs you've made, the above will be df matching their file names
 
 #Combine files from loop to single df
-UVBIO.df<-rbind(DOC_NoUV_T0_111721, DOC_UV_T0_111721)
+UVBIO.df<-rbind(DOC_NoUV_T1_111721, DOC_UV_T1_111721)
 
 # make new factors for filtered (F/NF) and UV (+/-)
 # ** caution! Make sure this matches sheet layout after the loop!
@@ -462,15 +462,92 @@ UVBIO.df$Tank[UVBIO.df$Tank == "NO UV F1" |
 UVBIO.df$File<-gsub('^...........|....$', '', UVBIO.df$File) 
 
 # add a time point
-# if equals DOC_UV_T0_111721 then, T0, if not then T1
+# if equals DOC_UV_T1_111721 then, T1, if not then "nothing"
 UVBIO.df$Time.point<- as.factor(
-  ifelse(UVBIO.df$File=="DOC_UV_T0_111721", "T0",
-  ifelse(UVBIO.df$File=="DOC_NoUV_T0_111721", "T0", 
-         "T1")))
+  ifelse(UVBIO.df$File=="DOC_UV_T1_111721", "T1",
+  ifelse(UVBIO.df$File=="DOC_NoUV_T1_111721", "T1", 
+         "")))
 
 #rearrange
 UVBIO.df<- UVBIO.df %>% 
   select(File, Time.point, Treatment, Filter.Trt, UV.Trt, Tank, plant.mass..g, NPOC..mg.L, TN..mg.L) 
 
+```
+
+plot UV Bio
+
+```{r}
+UVBIO.df$Burn.Filt.UV<-interaction(UVBIO.df$Treatment, UVBIO.df$Filter.Trt, UVBIO.df$UV.Trt)
+
+# make a dataframe of only the NPOC start data
+T1.DOC<-DOC.df[(DOC.df$Time.point=="T1"),] #T1 start NPOC
+
+# repeat the T1 start NPOC 4x for the 2 treatments, 30 tanks
+UVBIO.df$start.NPOC<- rep(T1.DOC$NPOC..mg.L, times=4) 
+
+# change in NPOC over the 7d incubation
+UVBIO.df$change.NPOC<-UVBIO.df$start.NPOC - UVBIO.df$NPOC..mg.L
+
+#make some plotting datafames
+Filt.UV <-UVBIO.df[UVBIO.df$Filter.Trt=="Filtered" & UVBIO.df$UV.Trt=="UV",]
+Filt.NoUV<-UVBIO.df[(UVBIO.df$Filter.Trt=="Filtered" & UVBIO.df$UV.Trt=="NoUV"),]
+
+NFilt.UV <-UVBIO.df[UVBIO.df$Filter.Trt=="Unfiltered" & UVBIO.df$UV.Trt=="UV",]
+NFilt.NoUV <-UVBIO.df[UVBIO.df$Filter.Trt=="Unfiltered" & UVBIO.df$UV.Trt=="NoUV",]
+
+
+
+# filtered UV plot
+Filt.UV.fig<-ggplot(Filt.UV, aes(x=plant.mass..g, y=change.NPOC, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("T1: Filt:UV") +
+  ylab(expression(paste(Delta, " NPOC mg/L"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+# filtered NoUV plot
+F.NoUV.fig<-ggplot(Filt.NoUV, aes(x=plant.mass..g, y=change.NPOC, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("T1: Filt:NoUV") +
+  ylab(expression(paste(Delta, " NPOC mg/L"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+ 
+# nofiltered UV plot
+NFilt.UV.fig<-ggplot(NFilt.UV, aes(x=plant.mass..g, y=change.NPOC, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("T1: NoFilt:UV") +
+  ylab(expression(paste(Delta, " NPOC mg/L"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+# nofiltered NoUV plot
+NFilt.NoUV.fig<-ggplot(NFilt.NoUV, aes(x=plant.mass..g, y=change.NPOC, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("T1: NoFilt:NoUV") +
+  ylab(expression(paste(Delta, " NPOC mg/L"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+##### combine
+UVBio.plots<-plot_grid(
+  Filt.UV.fig + theme(legend.position = "none"),
+  F.NoUV.fig + theme(legend.position = "none"),
+  NFilt.UV.fig + theme(legend.position = "none"),
+  NFilt.NoUV.fig + theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,8,8,3), ncol=5)
+
+ggsave("figures/UVBio.plots.pdf", height=4, width=11)
 ```
 
