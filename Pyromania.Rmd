@@ -29,7 +29,7 @@ pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'magrittr', 'effects', 
 
 
 ###YSI  
-Time 1 and Time 2: import YSI data and prduce plots of changes in O2% and net ecosystem productivity (NEP) and net ecosystem respiration (NER)  
+Time 1 and Time 2: import YSI data and produce plots of changes in O2% and net ecosystem productivity (NEP) and net ecosystem respiration (NER)  
 ```{r}
 #load YSI data
 YSI<-read.csv("data/Pyro_YSI.csv")
@@ -389,8 +389,6 @@ NPOC.plots<-plot_grid(
   NPOC.T2+ theme(legend.position = "none"),
   extract.legend, 
   rel_widths = c(8,8,3), ncol=2)
-
-NPOC.plots
 
 ggsave("figures/NPOC.pdf", height=5, width=8)
  
