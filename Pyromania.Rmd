@@ -387,9 +387,9 @@ NPOC.plots<-plot_grid(
   NPOC.T1+ theme(legend.position = "none"),
   NPOC.T2+ theme(legend.position = "none"),
   extract.legend, 
-  rel_widths = c(8,8,3), ncol=2)
+  rel_widths = c(8,8,8,3), ncol=4)
 
-ggsave("figures/NPOC.pdf", height=5, width=8)
+ggsave("figures/NPOC.pdf", height=5, width=12)
  
 
 ```
@@ -572,6 +572,19 @@ collab started
 
 
 ```{r}
+
+####Read the file
+Dilute<-read.csv("data/DOC.Dilutions/T2_120821.csv")
+
+#Summarize relationship between DOC and TN
+model1 = lm(DOC ~ TN, data = Dilute, na.action="na.omit")
+summary(model1)
+
+#Graphing regression of DOC and TN
+plot(DOC ~ TN, main="DOC vs. TN", data=Dilute,
+     xlab="TN (mg/L)", ylab="DOC (mg/L)", pch=19)
+abline(lm(DOC ~ TN, data = Dilute, na.action="na.omit"))
+
 
 ```
 
