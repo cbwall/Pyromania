@@ -310,7 +310,7 @@ Total.DOC.files <- list.files(path="data/DOC.TN", pattern = "csv$", full.names =
 Total.DOC.files
 
 ##### what are the file names, sans extensions using package 'tools'
-file.names<-file_path_sans_ext(list.files(path="data/DOC", pattern = "csv$", full.names = F))
+file.names<-file_path_sans_ext(list.files(path="data/DOC.TN", pattern = "csv$", full.names = F))
 
 ############ formatting all data in for loop
   for(i in 1:length(Total.DOC.files))
@@ -331,9 +331,9 @@ file.names<-file_path_sans_ext(list.files(path="data/DOC", pattern = "csv$", ful
 ls() #see all dfs you've made, the above will be df matching their file names
 
 #Combine files from loop to single df
-DOC.df<-rbind(DOC_T0_11052021, DOC_T1_11172021)
+DOC.df<-rbind(DOC_T0_11052021, DOC_T1_11172021, DOC_T2_12082021)
 
-DOC.df$File<-substr(DOC.df$File, 10, 24) #give the 10th-24th character of the file name, removing the rest
+DOC.df$File<-substr(DOC.df$File, 13, 27) #give the 10th-24th character of the file name, removing the rest
 #alternatively
 # remove the 9 letters ('^.) at start 
 # remove the 4 letters (.$') at end
@@ -343,6 +343,8 @@ DOC.df$File<-substr(DOC.df$File, 10, 24) #give the 10th-24th character of the fi
 DOC.df$Time.point<- as.factor(ifelse(
   DOC.df$File=="DOC_T0_11052021", "T0", "T1"))
 
+DOC.df$Time.point<- as.factor(ifelse(DOC.df$File=="DOC_T0_11052021", "T0", ifelse(DOC.df$File=="DOC_T1_11172021", "T1", "T2")))
+  
 #rearrange
 DOC.df<- DOC.df %>% 
   select(File, Time.point, Treatment, Tank, plant.mass..g, NPOC..mg.L, TN..mg.L) 
@@ -371,11 +373,24 @@ NPOC.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=NPOC.
   xlab("plant material (g)") +
   Fig.formatting
   
+NPOC.T2<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-2") +
+  ylab("NPOC (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
 NPOC.plots<-plot_grid(
   NPOC.T0+ theme(legend.position = "none"),
   NPOC.T1+ theme(legend.position = "none"),
+  NPOC.T2+ theme(legend.position = "none"),
   extract.legend, 
-  rel_widths = c(8,8,3), ncol=3)
+  rel_widths = c(8,8,3), ncol=2)
+
+NPOC.plots
 
 ggsave("figures/NPOC.pdf", height=5, width=8)
  
