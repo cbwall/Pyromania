@@ -340,10 +340,9 @@ DOC.df$File<-substr(DOC.df$File, 13, 27) #give the 10th-24th character of the fi
 #DOC.df$File<-gsub('^.........|....$', '', DOC.df$File) 
 
 # if equals DOC_T0_11052021 then, T0, if not then T1
-DOC.df$Time.point<- as.factor(ifelse(
-  DOC.df$File=="DOC_T0_11052021", "T0", "T1"))
-
-DOC.df$Time.point<- as.factor(ifelse(DOC.df$File=="DOC_T0_11052021", "T0", ifelse(DOC.df$File=="DOC_T1_11172021", "T1", "T2")))
+DOC.df$Time.point<- as.factor(ifelse(DOC.df$File=="DOC_T0_11052021", "T0", 
+                              ifelse(DOC.df$File=="DOC_T1_11172021", "T1", 
+                                     "T2")))
   
 #rearrange
 DOC.df<- DOC.df %>% 
