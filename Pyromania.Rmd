@@ -499,31 +499,118 @@ UVBIO.df$Time.point<- as.factor(
 UVBIO.df<- UVBIO.df %>% 
   select(File, Time.point, Treatment, Filter.Trt, UV.Trt, Tank, plant.mass..g, NPOC..mg.L, TN..mg.L) 
 
-```
-
-plot UV Bio
-
-```{r}
+# make levels for plotting and stats
 UVBIO.df$Burn.Filt.UV<-interaction(UVBIO.df$Treatment, UVBIO.df$Filter.Trt, UVBIO.df$UV.Trt)
+UVBIO.df$Filt.UV<-interaction(UVBIO.df$Filter.Trt, UVBIO.df$UV.Trt)
 
+# correct to make factor levels
+UVBIO.df$Filter.Trt<-as.factor(UVBIO.df$Filter.Trt)
+UVBIO.df$UV.Trt <-as.factor(UVBIO.df$UV.Trt)
+UVBIO.df$Tank <-as.factor(UVBIO.df$Tank)
+
+###############################################
 # make a dataframe of only the NPOC start data
 T1.DOC<-DOC.df[(DOC.df$Time.point=="T1"),] #T1 start NPOC
 
 # repeat the T1 start NPOC 4x for the 2 treatments, 30 tanks
 UVBIO.df$start.NPOC<- rep(T1.DOC$NPOC..mg.L, times=4) 
 
-# change in NPOC over the 7d incubation
+# make new variables
+# (1) change in NPOC over the 7d incubation
 UVBIO.df$change.NPOC<-UVBIO.df$start.NPOC - UVBIO.df$NPOC..mg.L
+
+# (1) % change in NPOC over the 7d incubation
 UVBIO.df<-mutate (UVBIO.df, percent.change.NPOC=(change.NPOC/start.NPOC)*100)
 
-#make some plotting datafames
+# make some plotting datafames
+# these are all separated by the 4 incubation treatment levels
 Filt.UV <-UVBIO.df[UVBIO.df$Filter.Trt=="Filtered" & UVBIO.df$UV.Trt=="UV",]
 Filt.NoUV<-UVBIO.df[(UVBIO.df$Filter.Trt=="Filtered" & UVBIO.df$UV.Trt=="NoUV"),]
 
 NFilt.UV <-UVBIO.df[UVBIO.df$Filter.Trt=="Unfiltered" & UVBIO.df$UV.Trt=="UV",]
 NFilt.NoUV <-UVBIO.df[UVBIO.df$Filter.Trt=="Unfiltered" & UVBIO.df$UV.Trt=="NoUV",]
 
+```
+  
+- plots of 2: % change of DOC
+```{r}
+UV.TRT.plot<-ggplot(UVBIO.df, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  scale_linetype_manual(values=c("solid", "twodash")) +
+  geom_smooth(method=loess, aes(fill=Treatment, linetype=UV.Trt), alpha=0.1) +
+  ggtitle("No-UV vs. UV") +
+  coord_cartesian(ylim=c(-5, 40)) +
+  ylab(expression(paste("% ", Delta, " NPOC mg/L"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
 
+FILTER.TRT.plot<-ggplot(UVBIO.df, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  scale_linetype_manual(values=c("solid", "twodash")) +
+  geom_smooth(method=loess, aes(fill=Treatment, linetype=Filter.Trt), alpha=0.1) +
+  ggtitle("Filtered vs. Unfiltered") +
+  coord_cartesian(ylim=c(-5, 40)) +
+  ylab(expression(paste("% ", Delta, " NPOC mg/L"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+##### combine
+UVBio.plots2<-plot_grid(
+  UV.TRT.plot,
+  FILTER.TRT.plot,  ncol=2)
+
+ggsave("figures/UVBio.plots.percent2.pdf", height=5, width=9)
+
+```
+
+- another take on the UV-BIO separated by burning treatment
+```{r}
+UV.TRT.B.plot<-ggplot(UVBIO.df[(UVBIO.df$Treatment=="burned"),], 
+                       aes(x=plant.mass..g, y=percent.change.NPOC, color=Filt.UV)) + 
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("coral", "yellowgreen", "peru", "seagreen")) + 
+  scale_fill_manual(values = c("coral", "yellowgreen", "peru", "seagreen")) +
+  geom_smooth(method=loess, aes(fill=Filt.UV), alpha=0.1) +
+  ggtitle("Unburned") +
+  coord_cartesian(ylim=c(-5, 40)) +
+  ylab(expression(paste("% ", Delta, " NPOC mg/L"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+UV.TRT.UB.plot<-ggplot(UVBIO.df[(UVBIO.df$Treatment=="unburned"),], 
+                       aes(x=plant.mass..g, y=percent.change.NPOC, color=Filt.UV)) + 
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("coral", "yellowgreen", "peru", "seagreen")) + 
+  scale_fill_manual(values = c("coral", "yellowgreen", "peru", "seagreen")) +
+  geom_smooth(method=loess, aes(fill=Filt.UV), alpha=0.1) +
+  ggtitle("Burned") +
+  coord_cartesian(ylim=c(-5, 40)) +
+  ylab(expression(paste("% ", Delta, " NPOC mg/L"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+extract.legend2 <- get_legend(
+  # create some space to the left of the legend
+  UV.TRT.UB.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+##### combine
+UVBio.plots3<-plot_grid(
+  UV.TRT.B.plot + theme(legend.position = "none"),
+  UV.TRT.UB.plot + theme(legend.position = "none"),
+  extract.legend2,
+  rel_widths = c(8,8,3), ncol=3)
+
+ggsave("figures/UVBio.plots.percent3.pdf", height=5, width=9)
+
+```
+
+- plot of 4: UV-BIO as % change in DOC
+```{r}
+################## plots for % Change in DOC over incubation
 # filtered UV plot
 Filt.UV.fig<-ggplot(Filt.UV, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
   geom_point() +
@@ -546,8 +633,6 @@ F.NoUV.fig<-ggplot(Filt.NoUV, aes(x=plant.mass..g, y=percent.change.NPOC, color=
   xlab("plant material (g)") +
   Fig.formatting
 
-
- 
 # nofiltered UV plot
 NFilt.UV.fig<-ggplot(NFilt.UV, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
   geom_point() +
@@ -580,12 +665,5 @@ UVBio.plots<-plot_grid(
   rel_widths = c(8,8,8,8,3), ncol=5)
 
 ggsave("figures/UVBio.plots.percent.pdf", height=4, width=11)
-```
-
-collab started
-
-
-```{r}
-
 ```
 
