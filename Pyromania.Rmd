@@ -352,11 +352,11 @@ DOC.df<- DOC.df %>%
 
 DOC plots
 ```{r}
-NPOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) + 
+NPOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) +
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 5)) +
+  coord_cartesian(ylim=c(0, 60)) +
   ggtitle("Time-0") +
   ylab("NPOC (mg/L)") +
   xlab("plant material (g)") +
@@ -387,9 +387,11 @@ NPOC.plots<-plot_grid(
   NPOC.T1+ theme(legend.position = "none"),
   NPOC.T2+ theme(legend.position = "none"),
   extract.legend, 
-  rel_widths = c(8,8,3), ncol=2)
+  rel_widths = c(8,8,8,3), ncol=4)
 
-ggsave("figures/NPOC.pdf", height=5, width=8)
+NPOC.plots
+
+ggsave("figures/NPOC.pdf", height=4, width=9)
  
 
 ```
@@ -415,14 +417,27 @@ TN.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=TN..mg.
   ylab("TN (mg/L)") +
   xlab("plant material (g)") +
   Fig.formatting
+
+TN.T2<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 2)) +
+  ggtitle("Time-2") +
+  ylab("TN (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
   
 TN.plots<-plot_grid(
   TN.T0+ theme(legend.position = "none"),
   TN.T1+ theme(legend.position = "none"),
+  TN.T2+ theme(legend.position = "none"),
   extract.legend, 
-  rel_widths = c(8,8,3), ncol=3)
+  rel_widths = c(8,8,8,3), ncol=4)
 
-ggsave("figures/TN.pdf", height=5, width=8)
+TN.plots
+
+ggsave("figures/TN.pdf", height=4, width=9)
 
 ```
 
@@ -507,7 +522,6 @@ Filt.NoUV<-UVBIO.df[(UVBIO.df$Filter.Trt=="Filtered" & UVBIO.df$UV.Trt=="NoUV"),
 
 NFilt.UV <-UVBIO.df[UVBIO.df$Filter.Trt=="Unfiltered" & UVBIO.df$UV.Trt=="UV",]
 NFilt.NoUV <-UVBIO.df[UVBIO.df$Filter.Trt=="Unfiltered" & UVBIO.df$UV.Trt=="NoUV",]
-
 
 
 # filtered UV plot
