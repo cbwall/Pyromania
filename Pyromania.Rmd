@@ -592,60 +592,53 @@ abline(lm(DOC ~ TN, data = Dilute, na.action="na.omit"))
 Kruskal-Wallis Test: by rank is a non-parametric alternative to one-way ANOVA test, which extends the two-samples Wilcoxon test in the situation where there are more than two groups. It’s recommended when the assumptions of one-way ANOVA test are not met.
 
 ```{r}
-#Read file name into R
-Ktest<- read.csv("data/Ktest.csv")
 
-#Make "Group" column into factor
-Ktest$Group <- as.factor(as.character(Ktest$Group))
-class(Ktest$Group)
+#Read file name into R
+Ktest<- read.csv("data/Ktests/Ktest.csv")
+
+#Change data from 'DOC' into '% change DOC' 
+Ktest$DOC=paste(UVBIO.df$percent.change.NPOC)
+
+#Now we'll add plant quantity
+Ktest$plant.mass..g=paste(UVBIO.df$plant.mass..g)
+
+#Rename 'Group' as treatment
+names(Ktest)[1] <- "Treatment"
+
+#MChange class of each column 
+Ktest$Treatment <- as.factor(as.character(Ktest$Treatment))
+Ktest$DOC <- as.numeric(as.character(Ktest$DOC))
+Ktest$plant.mass..g <- as.numeric(as.character(Ktest$plant.mass..g))
 
 #Show the group levels
-levels(Ktest$Group)
+levels(Ktest$Treatment)
 
-#Load package
-library(dplyr)
-library(ggpubr)
+#Verify the covariate and the treatment are independent
+model <- aov(plant.mass..g ~ DOC, data = Ktest)
+summary(model)
 
-#Compute stats by groups
-group_by(Ktest, Group) %>%
-    dplyr::summarize(count = n(),
-    mean = mean(DOC, na.rm = TRUE),
-    sd = sd(DOC, na.rm = TRUE),
-    median = median(DOC, na.rm = TRUE),
-    IQR = IQR(DOC, na.rm = TRUE)
-  )
+#Homogeneity of variance, returns insignificant so we accept the null (not homogeneous)
+library(car)
+leveneTest(DOC~Treatment, data = Ktest)
 
-#Visualize with box plots
-Ktest.box=ggboxplot(Ktest, x = "Group", y = "DOC", 
-          color = "Group", palette = c("#f5f242", "#f5d142", "#82b6ed", "#3f8b9e"),
-          order = c("UV/F", "UV/NF", "NU/F","NU/NF"),
-          ylab = "DOC (mg/L)", xlab = "Treatment")
+#Fit analysis of covariance model ANCOVA, Response: DOC.
+#From this result, we can see that while controlling plant mass, treatment is statistically significant. It indicates that the treatment variable has significantly contributed to the model.
+ancova_model <- aov(DOC ~ Treatment + plant.mass..g, data = Ktest)
+Anova(ancova_model, type="III")
 
-# Mean plots
-# ++++++++++++++++++++
-# Plot weight by group
-# Add error bars: mean_se
-# (other values include: mean_sd, mean_ci, median_iqr, ....)
-
-Ktest.mean=ggline(Ktest, x = "Group", y = "DOC", 
-       add = c("mean_se", "jitter"), 
-       order = c("UV/F", "UV/NF", "NU/F", "NU/NF"),
-       ylab = "DOC (mg/L)", xlab = "Treatment")
+#Now we want to know which techniques are different from each other.
+install.packages("multcomp")
+library(multcomp)
+ancova_model <- aov(DOC ~ Treatment + plant.mass..g, data = Ktest)
+postHocs <- glht(ancova_model, linfct = mcp(Treatment = "Tukey"))
+summary(postHocs)
 
 
-Ktest.plots <- plot_grid(
- Ktest.box, Ktest.mean,
-  rel_widths = c(8,8,8,8,3), ncol=2)
 
-ggsave("figures/Ktest.plots.pdf", height=4, width=11)
-
-###Perform Ktest
-kruskal.test(DOC ~ Group, data = Ktest)
-
-#Multiple pairwise-comparison between groups
-pairwise.wilcox.test(Ktest$DOC, Ktest$Group,
-                 p.adjust.method = "BH")
 
 ```
+
+
+
 
 
