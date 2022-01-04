@@ -406,7 +406,7 @@ NER.T3<-ggplot(T3.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) +
   Fig.formatting
 
 O2.change.T3<-plot_grid(
-  NEP.T3+ theme(legend.position = "none") + ggtitle("Time 2"),
+  NEP.T3+ theme(legend.position = "none") + ggtitle("Time 3"),
   NER.T3+ theme(legend.position = "none") + ggtitle(""),
   extract.legend, 
   rel_widths = c(8,8,3), ncol=3)
