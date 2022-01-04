@@ -36,8 +36,8 @@ YSI<-read.csv("data/Pyro_YSI.csv")
 
 # fix date
 YSI$Date<-as.character(YSI$Date)
-YSI$Date<-as.POSIXct(YSI$Date, format="%m/%d/%y")
-YSI$Date<-as.Date(YSI$Date, format="%m/%d/%y")
+YSI$Date<-as.POSIXct(YSI$Date, format="%m/%d/%Y")
+YSI$Date<-as.Date(YSI$Date, format="%m/%d/%Y")
 
 
 ####### Time 1 change in O2 ################
@@ -97,10 +97,39 @@ T2.O2<- mutate(T2.O2,
 T2.O2<-T2.O2 %>% 
   arrange(Treatment, plant.mass..g) 
 
+
 ################ ################ ################
-# combine T1 and T2 timepoints
+####### Time 3 change in O2 ################
+
+#separate time points
+YSI.T3<- YSI[(YSI$Time.point=="T3"),]
+
+#calculate NEP for T3
+T3.Prod<-YSI.T3[(YSI.T3$Date == "2022-01-03"),] # dawn and dusk for 12h period
+T3.Dawn1<-T3.Prod[(T3.Prod$Dawn..Dusk == "dawn"),] # dawn-1 measurements
+T3.Dusk<-T3.Prod[(T3.Prod$Dawn..Dusk == "dusk"),] # dusk measurements
+
+T3.Dawn2<-YSI.T3[(YSI.T3$Date == "2022-01-04"),] # dawn-2 measurements, following AM
+
+# make new dataframe
+T3.O2<-(T3.Dawn1[,c(2,4:6)]) 
+T3.O2$dawn1<-T3.Dawn1$DO.percent
+T3.O2$dusk1<-T3.Dusk$DO.percent
+T3.O2$dawn2<-T3.Dawn2$DO.percent
+
+T3.O2<- mutate(T3.O2, 
+                NEP=dusk1 - dawn1,
+                NER=dawn2 - dusk1) 
+
+#sort
+T3.O2<-T3.O2 %>% 
+  arrange(Treatment, plant.mass..g) 
+
+
 ################ ################ ################
-O2.tanks<-rbind(T1.O2,T2.O2)
+# combine T1  T2 and T3 timepoints
+################ ################ ################
+O2.tanks<-rbind(T1.O2,T2.O2, T3.O2)
 ```
   
 TIME POINT 1: Change in O2% and NEP and NER --   
@@ -278,7 +307,7 @@ NEP.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
   xlab("plant material (g)") +
   Fig.formatting
 
-#Time 1 NER
+#Time 2 NER
 NER.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
@@ -298,6 +327,95 @@ ggsave("figures/O2.change.T2.pdf", height=5, width=8)
 
 
 ```
+
+TIME POINT 3: Change in O2% and NEP and NER --
+make figures of the data for timepoint 3
+```{r}
+############################################################
+##############################################################################
+#############################################################################################
+###################
+
+# total oxygen % plot for the 3 time points (dawn-dusk-dawn)
+
+T3.AM1<-ggplot(T3.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T3.dawn1")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T3.PM1<-ggplot(T3.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T3.dusk1")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T3.AM2<-ggplot(T3.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T3.dawn2")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+O2.T3<-plot_grid(
+  T3.AM1+ theme(legend.position = "none"), 
+  T3.PM1+ theme(legend.position = "none"),
+  T3.AM2+ theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,8,3), ncol=4)
+
+ggsave("figures/O2.T3.pdf", height=5, width=9)
+
+
+############################################################
+##############################################################################################
+# net ecosystem production and respiration
+
+#Time 3 NEP
+NEP.T3<-ggplot(T3.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+#Time 3 NER
+NER.T3<-ggplot(T3.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment),alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+O2.change.T3<-plot_grid(
+  NEP.T3+ theme(legend.position = "none") + ggtitle("Time 2"),
+  NER.T3+ theme(legend.position = "none") + ggtitle(""),
+  extract.legend, 
+  rel_widths = c(8,8,3), ncol=3)
+
+ggsave("figures/O2.change.T3.pdf", height=5, width=8)
+
+
+```
+
 
 ###DOC  
 import and do a loop to clean up all files and make stacked data in single df
