@@ -388,10 +388,15 @@ NPOC.plots<-plot_grid(
   NPOC.T2+ theme(legend.position = "none"),
   extract.legend, 
   rel_widths = c(8,8,8,3), ncol=4)
+<<<<<<< HEAD
 
 NPOC.plots
 
 ggsave("figures/NPOC.pdf", height=4, width=9)
+=======
+
+ggsave("figures/NPOC.pdf", height=5, width=12)
+>>>>>>> b6158fcf2e2472b87495731fecd1a168138b3aa5
  
 
 ```
@@ -667,3 +672,80 @@ UVBio.plots<-plot_grid(
 ggsave("figures/UVBio.plots.percent.pdf", height=4, width=11)
 ```
 
+<<<<<<< HEAD
+=======
+collab started
+
+This chunk looks at different statistics:
+
+```{r}
+
+##### Looking at the relationship between DOC vs TN
+# Read the file
+Dilute<-read.csv("data/DOC.Dilutions/T2_120821.csv")
+
+# Summarize relationship between DOC and TN
+model1 = lm(DOC ~ TN, data = Dilute, na.action="na.omit")
+summary(model1)
+
+# Graphing regression of DOC and TN
+plot(DOC ~ TN, main="DOC vs. TN", data=Dilute,
+     xlab="TN (mg/L)", ylab="DOC (mg/L)", pch=19)
+abline(lm(DOC ~ TN, data = Dilute, na.action="na.omit"))
+```
+
+
+Kruskal-Wallis Test: by rank is a non-parametric alternative to one-way ANOVA test, which extends the two-samples Wilcoxon test in the situation where there are more than two groups. It’s recommended when the assumptions of one-way ANOVA test are not met.
+
+```{r}
+
+#Read file name into R
+Ktest<- read.csv("data/Ktests/Ktest.csv")
+
+#Change data from 'DOC' into '% change DOC' 
+Ktest$DOC=paste(UVBIO.df$percent.change.NPOC)
+
+#Now we'll add plant quantity
+Ktest$plant.mass..g=paste(UVBIO.df$plant.mass..g)
+
+#Rename 'Group' as treatment
+names(Ktest)[1] <- "Treatment"
+
+#MChange class of each column 
+Ktest$Treatment <- as.factor(as.character(Ktest$Treatment))
+Ktest$DOC <- as.numeric(as.character(Ktest$DOC))
+Ktest$plant.mass..g <- as.numeric(as.character(Ktest$plant.mass..g))
+
+#Show the group levels
+levels(Ktest$Treatment)
+
+#Verify the covariate and the treatment are independent
+model <- aov(plant.mass..g ~ DOC, data = Ktest)
+summary(model)
+
+#Homogeneity of variance, returns insignificant so we accept the null (not homogeneous)
+library(car)
+leveneTest(DOC~Treatment, data = Ktest)
+
+#Fit analysis of covariance model ANCOVA, Response: DOC.
+#From this result, we can see that while controlling plant mass, treatment is statistically significant. It indicates that the treatment variable has significantly contributed to the model.
+ancova_model <- aov(DOC ~ Treatment + plant.mass..g, data = Ktest)
+Anova(ancova_model, type="III")
+
+#Now we want to know which techniques are different from each other.
+install.packages("multcomp")
+library(multcomp)
+ancova_model <- aov(DOC ~ Treatment + plant.mass..g, data = Ktest)
+postHocs <- glht(ancova_model, linfct = mcp(Treatment = "Tukey"))
+summary(postHocs)
+
+
+
+
+```
+
+
+
+
+
+>>>>>>> b6158fcf2e2472b87495731fecd1a168138b3aa5
