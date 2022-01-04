@@ -1,7 +1,7 @@
 ---
 title: "Pyromania"
 author: "C Wall"
-date: "12/7/2021"
+date: "1/4/2021"
 output:
   html_document:
     code_folding: hide
@@ -388,16 +388,11 @@ NPOC.plots<-plot_grid(
   NPOC.T2+ theme(legend.position = "none"),
   extract.legend, 
   rel_widths = c(8,8,8,3), ncol=4)
-<<<<<<< HEAD
+
 
 NPOC.plots
 
-ggsave("figures/NPOC.pdf", height=4, width=9)
-=======
-
 ggsave("figures/NPOC.pdf", height=5, width=12)
->>>>>>> b6158fcf2e2472b87495731fecd1a168138b3aa5
- 
 
 ```
 
@@ -673,9 +668,6 @@ UVBio.plots<-plot_grid(
 ggsave("figures/UVBio.plots.percent.pdf", height=4, width=11)
 ```
 
-<<<<<<< HEAD
-=======
-collab started
 
 This chunk looks at different statistics:
 
@@ -746,7 +738,3 @@ summary(postHocs)
 ```
 
 
-
-
-
->>>>>>> b6158fcf2e2472b87495731fecd1a168138b3aa5
