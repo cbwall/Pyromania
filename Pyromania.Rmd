@@ -537,9 +537,12 @@ TN.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=TN..mg.
   Fig.formatting
 
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
 
 =======
 >>>>>>> 09c4b3b9988b8f155f0f7b0939fecee2c3847c2c
+>>>>>>> main
 TN.T2<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
@@ -556,6 +559,10 @@ TN.plots<-plot_grid(
   TN.T2+ theme(legend.position = "none"),
   extract.legend, 
   rel_widths = c(8,8,8,3), ncol=4)
+<<<<<<< HEAD
+
+ggsave("figures/TN.pdf", height=5, width=15)
+=======
 
 <<<<<<< HEAD
 TN.plots
@@ -564,6 +571,7 @@ ggsave("figures/TN.pdf", height=4, width=9)
 =======
 ggsave("figures/TN.pdf", height=5, width=15)
 >>>>>>> 09c4b3b9988b8f155f0f7b0939fecee2c3847c2c
+>>>>>>> main
 
 ```
 
@@ -741,7 +749,10 @@ ggsave("figures/UVBio.percent.plots.T1_T2.pdf", height = 6, width = 11)
 
               ######################### END MESS #####################
 
+<<<<<<< HEAD
+=======
 >>>>>>> 09c4b3b9988b8f155f0f7b0939fecee2c3847c2c
+>>>>>>> main
 UVBIO.df$Burn.Filt.UV<-interaction(UVBIO.df$Treatment, UVBIO.df$Filter.Trt, UVBIO.df$UV.Trt)
 UVBIO.df$Filt.UV<-interaction(UVBIO.df$Filter.Trt, UVBIO.df$UV.Trt)
 
@@ -772,6 +783,10 @@ Filt.UV <-UVBIO.df[UVBIO.df$Filter.Trt=="Filtered" & UVBIO.df$UV.Trt=="UV",]
 Filt.NoUV<-UVBIO.df[(UVBIO.df$Filter.Trt=="Filtered" & UVBIO.df$UV.Trt=="NoUV"),]
 
 NFilt.UV <-UVBIO.df[UVBIO.df$Filter.Trt=="Unfiltered" & UVBIO.df$UV.Trt=="UV",]
+<<<<<<< HEAD
+
+NFilt.NoUV <-UVBIO.df[UVBIO.df$Filter.Trt=="Unfiltered" & UVBIO.df$UV.Trt=="NoUV",]
+=======
 
 <<<<<<< HEAD
 ```
@@ -853,15 +868,20 @@ UVBio.plots3<-plot_grid(
 
 <<<<<<< HEAD
 ggsave("figures/UVBio.plots.percent3.pdf", height=5, width=9)
+>>>>>>> main
 
 ```
 
+<<<<<<< HEAD
+ 
+=======
 - plot of 4: UV-BIO as % change in DOC
 ```{r}
 ################## plots for % Change in DOC over incubation
 =======
  
 >>>>>>> 09c4b3b9988b8f155f0f7b0939fecee2c3847c2c
+>>>>>>> main
 # filtered UV plot
 Filt.UV.fig<-ggplot(Filt.UV, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
   geom_point() +
