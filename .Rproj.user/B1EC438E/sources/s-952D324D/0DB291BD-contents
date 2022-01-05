@@ -1,0 +1,191 @@
+# This tutorial was developed by Jon Shurin for use with R studio, 
+# It is based on water quality data collected by USGS
+
+#setwd('~/Desktop')  ##MAC
+setwd('C:/Users/jshur/OneDrive/Desktop/BIEB 135 2021/USGS')  #FOR PCs
+
+# note, if you want to use R on your PC you'd use this syntax instead, note that your PC defaults to "\" but R needs "/":
+# The part inside the apostrophes is the directory extension of the folder where you will save your data and code
+
+# Load your packages per usual
+
+library(lattice)
+library(Hmisc)
+library(ggplot2)
+library(sciplot)
+library(reshape2)
+library (doBy)
+library (car)
+library(maps)
+library(mapdata)
+library(vegan)
+library(scales)
+
+rm(list=ls())
+
+d<-read.csv("Tuolumne River2.csv")
+
+# This is data from the Tuolumne River, to see what it looks like go here
+ #https://en.wikipedia.org/wiki/Tuolumne_River
+# Here we have DO, Temperature and pH just like last time, but we also have Discharge, 
+# which is the volume of water flowing through the river in cubic feet per second.  
+#
+
+d$dt<-as.POSIXct(paste(d$date, d$time))
+str(d)
+
+d<-orderBy(~ dt, data=d )
+# First let's plot the time series of DO (dissolved oxygen),
+# pH and temperature.  We'll reshape the data set long with 
+# all three variables in the same column
+
+e<-melt(d, id=c(1:4,9))
+
+# Make plots of pH,  temperature and DO time series
+
+ggplot(e, aes(as.POSIXct(dt), value)) +
+  geom_line(aes(colour = factor(variable)))  +
+  facet_grid(vars(variable), scales = "free") +
+  scale_x_datetime(breaks=date_breaks("6 month"))
+
+pairs(d[,c(5:7)])
+
+# Well those are pretty weird looking.  Let's see how DO is related to discharge and tempearature
+# We'll make a plot of DO against discharge with the point color determined by temperature
+
+ggplot(d, aes(Discharge_ft3_sec, DO_mgL)) +
+  geom_point(aes(colour = Temp_C), size = 1) +
+  scale_colour_gradient(low = "blue", high = "red")
+
+# NOw let's reverse it, DO against Temperature with point color determined by Discharge.  '
+
+ggplot(d, aes(Temp_C, DO_mgL)) +
+  geom_point(aes(colour = Discharge_ft3_sec), size = 1) +
+  scale_colour_gradient(low = "blue", high = "red")
+
+
+# How would you describe and interpret those graphs?
+
+# Now we're going to calculate DAILY O2 metabolism by finding the 
+# daily minimum and maximum of oxygen
+
+means<-summaryBy(Discharge_ft3_sec + Temp_C + pH + DO_mgL ~ date, data=na.omit(d), FUN=c(max, min, mean), na.rm=TRUE)
+
+
+
+# To calculate the daily range we subtract the minimum from the maximum
+
+means$DOrange<-means$DO_mgL.max-means$DO_mgL.min
+
+# To plot the maximum, minimum, mean and range
+
+f<-melt(means[,c(1,5,9,10,11,13,14)], id=1)
+
+ggplot(f, aes(as.POSIXct(date), value)) +
+  geom_line(aes(colour = factor(variable)))  +
+  facet_grid(vars(variable), scales = "free") +
+  scale_x_datetime(breaks=date_breaks("6 month"))
+
+
+# The daily range in dissolved oxygen is the net ecosystem metabolism,
+# the difference between oxygen produced by photosynthesis during the day
+# and consumed by respiration at night.  If the range changes over time,
+# it implies that both photosynthesis are changing over time.
+# If the mean, maximum or minimum 
+
+# Now to calculate respiration for every day.  We calculate overnight
+# oxygen consumption as the difference between that day's minimum (which
+# usually occurs around dawn when the sun comes up) and the PREVIOUS day's
+# maximum (which usually occurs around dusk when the sun goes down). This value
+# is overnight oxygen consumption or Respiration (R).
+
+# This is a little bit tricky to do because each calendar date is in a row
+# in the table.  To make a variable that is the value for the previous day's 
+# maximum O2 consumption (dusk), we will use a "for" loop.  Real computer
+# programmers look down on these, but they work for our purposes (usually).  
+# for every day (row number) we take the DO.max value from the previous day 
+# one row up. We'll create a variable called "YesterdaysMax" and fill it 
+# with NAs
+
+means$YesterdaysMax<-NA
+
+for (i in 2:dim(means)[1]){
+means$YesterdaysMax[i]<-means$DO_mgL.max[i-1]}
+
+# The difference between the daily minimum (dawn) and the 
+# previous day's maximum is Respiration (R) or Oxygen Consumption
+# We'll calculate that and make a new column called "R"
+
+means$R<-means$DO_mgL.min-means$YesterdaysMax
+
+# Notice this is negative because it's oxygen consumed (a reduction in
+# oxygen concentration).  The change in oxygen for the day is the Range (delta O2)
+# which is equalt to GPP (gross primary production) + R.  We don't know R
+# during the day but we can assume that it was the same as the previous
+# night (assuming respiration is the same at day and nigth and only GPP
+# or photosynthesis changes).  Then GPP is equal to delta O2 plus R (where 
+# R is negative). So we'll make a new column called "GPP"
+
+means$GPP<-means$DOrange + means$R
+
+# Notice that when the daily maximum or minimum are going up,
+# it implies that GPP is positive or more oxygen is being produced
+# than consumed in the ecosystem. This implies that more organic material
+# is being generated than composed, and the system is consuming CO2
+# and producing oxygen.  
+
+# Now we can plot GPP and R over time
+gpp<-means[,c(1,10,11,14,16,17)]
+
+# next rename the daily O2 range as "NPP"
+names(gpp)[4]<-"NPP"
+
+# Notice that NPP + R = GPP so that when the overnight decline is greater than the daily increase
+# in DO is smaller than the overnight decline, GPP is negative.  
+
+# Now we can look at how NPP, GPP and R are related to discharge and temperature and vary over time.
+# First let's plot NPP, GPP and R over time
+
+gppLong<-melt(gpp, id=1)
+
+ggplot(gppLong, aes(as.POSIXct(date), value)) +
+  geom_line(aes(colour = factor(variable)))  +
+  facet_grid(vars(variable), scales = "free") +
+  scale_x_datetime(breaks=date_breaks("2 month"))
+
+# Now let's plot NPP, R, GPP, daily average temperature nad discharge against each other.  First we go back to the "wide" format
+# data in "gpp" and plot columns 2-5 against each other
+
+pairs(gpp[,c(7,3:6)])
+
+# Now let's calculate mean GPP, NPP and R over time
+
+# Notice that Discharge is not normally distributed, there are some very high values.  
+# Let's log transform Discharge to make it easier to interpret
+
+gpp$logDis<-log10(gpp$Discharge_ft3_sec.mean)
+
+# Now make the pairs plot with log of discharge
+
+pairs(gpp[,c(2:6)])
+
+# If we want to know which relationships are significant, we can do a regression using "lm".  
+# For instance, for temperature and NPP we write
+
+summary(lm(NPP~Temp_C.mean, data=gpp))
+
+# For discharge
+
+summary(lm(NPP~logDis, data=gpp))
+
+# To calculate max, min amd mean of these variables for the site
+
+meanGpp<-summaryBy(value ~ variable, data=gppLong, FUN=c(max, min, mean), na.rm=TRUE)
+
+
+# Questions to answer:
+
+#  1.  How are DO, pH and temperature related in Eden Creek?  
+#  2.  How are NPP, R and GPP related to each other and to water temperature?  
+
+

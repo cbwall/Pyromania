@@ -1,0 +1,232 @@
+# This tutorial was adapted by Jon Shurin from material by Elsa Cleland for use with R studio, 
+# some of the introduction was originally written by Daniel Bunker, Columbia University
+# Designed for BIEB 135 to be run on Macs, but see notes for PC users in the annotation
+
+# You should save early and often, and keep all of your code for the quarter.  The desktops
+# on campus computers are wiped daily, so backup your files on your laptop, thumbdrive, or googledrive.
+# When you save this code it will have the extension .R, but that won't save the output, make
+# sure to copy any important output (stats tables, figures) into a google doc.
+
+#  A note about scripting in R
+#  While point and click stats programs might be easier to start, scripts allow us to: 
+#  1) document our analyses
+#  2) repeat our analyses
+#  3) share our methods
+
+# A note about R in general
+# R is a free statistical package, and is incredibly powerful. You could learn to
+# do stats in another point and click software package, but it would cost you perhaps $600 per
+# licence once you leave UCSD. It's much better to learn this great skill now and put it on your resume,
+# it will impress your future employer (and current professor).
+
+# <><><> Getting Help <><><>
+
+# what to do when you get an error
+# 1. check braces (), commas, and other syntax for errors, often R is case sensitive
+# 2. get help directly in R:
+?data.frame  # searches local help for 'data.frame'
+example(data.frame)  # gives example uses 
+
+# by now you will have noticed that R studio uses different colors for text that means
+# different things. Anything after a '#' will be in green and R will not recognize this as code.
+# These notes in green are called "annotation" and are very useful. Text in black is R code. To 
+# run a piece of code you'll highlight it and click "Run" in the upper right of this 
+# window.  It will then appear in the console window below. Terms that have specific meaning for
+# R are often highlighted in blue.
+
+# Every time you start a new R script, you should set your working directory and load any packages you'll need
+# Note that you should also put any files you need in this working directory, otherwise the code below won't work
+# Use getwd() to find out the current directory, and setwd() to change it. Practice running this line below:
+
+#setwd('~/Desktop')  ##MAC
+setwd('C:/Users/Juanlatas/Desktop/BIEB 135 2021')  #FOR PCs
+
+
+# note, if you want to use R on your PC you'd use this syntax instead, note that your PC defaults to "\" but R needs "/":
+# The part inside the apostrophes is the directory extension of the folder where you will save your data and code
+
+# In R Studio, you will see a window with a "Packages" tab in the lower right, you can click the boxes to load
+# packages that are already installed.  You can also just run the code below to load a package to your library.
+# To install a new package click "Install Package" and enter the name of the package you want to load, 
+# you will only need to *install* a package one time this quarter, but will need to *load them into the library*
+# every time you open R. Here are some common ones, you will need them for the tutorial, go ahead and install & then load them now:
+
+library(lattice)
+library(Hmisc)
+library(ggplot2)
+library(sciplot)
+library(reshape)
+library (doBy)
+library (car)
+
+# Note! Often, if a particular package was built under a different version of R you'll get red text in the 
+# console below. Don't worry about it! You can check if a package loaded from the library by clicking on the
+# "Packages" tab in the window on the bottom right. If a package has a checkmark next to it, it's been loaded.
+
+# Now let's do some work. First, we're going to load our data into R.  
+
+# R works best with text files, usually comma separated, which end with .csv
+# If you're starting from an Excel file (.xls or .xlsx), just open it and use "Save As" to save it with the .csv extention
+# for today the dataset is in .csv format, so you won't need to change the extention.
+
+# In the Week 2b module on Canvas you'll find a dataset called "Elliott_worksheet.csv"
+# Download it and save it to the desktop. Then run the following line of code to load the data:
+
+#elliott<- read.csv('~/Desktop/Elliott_worksheet.csv', header=TRUE, check.name=FALSE)
+FoF<- read.csv('FoF.csv', header=TRUE, check.name=FALSE)
+
+# note that the code you last ran will appear blue in the console below, and it will display a ">"
+# which means that the code worked and R is ready for the next command.
+
+# A new dataset should have appeared in the upper right window, including the number of rows (obs) and columns (variables)
+# click on it once and it will open as a spreadsheet and you can look at it. Each row represents a pond. 
+# The spreadsheet contains the data on biomass of different zooplankton and phyhtoplankton that were collected as part
+# of the Fear of Fish experiment.  Our goal was to ask how the effects of fish (trout) on biomass of consumers (zooplankton)
+# and primary producers (phytoplankton) varies between lakes with and without fish.
+# This is a real dataset that was analyzed for publication, it may not be used beyond this lab.
+
+# Close the spreadsheet before continuing by hitting the little "x" next to the tab for data1.
+
+
+# Now, let's start to test hypotheses. For this lab, you're going to ask 3 questions. First, we'll ask whether
+# biomass of phytoplankton is affected by the zooplantkon community (the column "zoop") or the presence of fish or
+# fish smell, and or, whether these treatments interact. The experiment was sampled 4 times (actually 6 but you only
+# got data from 4 dates 2 weeks apart, #1 is the first, #2 the last).  We sample the experiment over time to make sure 
+# there were no differences between treatments before it started.  
+
+day1<-subset(FoF, Dayno == 1)
+
+# hmmm... object 'Dayno' not found.... OH right, R is case sensitive, take a look at the variable name
+# in the FoF spreadsheet, "TDBU" is capitalized. let's try that again:
+
+day1<-subset(FoF, DayNo == 1)
+
+# troubleshooting is easy once you get the hang of it. O.K. we are going to run an ANOVA, note that
+# "~" effectively means the same as "predicted by", and "*" means factorial, all possible combinations
+# of the two factors are predictors in the model: fish, zooplankton community, and the interaction 
+# of the two. Note "NF" means the zooplankton community came from a lake with no fish in it, 
+
+modelchla<- lm(Chla_ugL ~ fish*zoop, data=day1, na.action="na.omit")
+
+# ok... but where's the output?  This is important.  R is "object oriented."  That means you asked
+# R to create an oject called "model1" which contains a ton of information, you now need to ask R
+# to show you that information in a way that's useful to you.
+
+Anova(modelchla)
+
+# make sure you copy and save that output, we'll discuss it. It tells you that the response variable you anayzed
+# was "Chla_ugL" (chlorophyll-a concentration in micrograms/L) and for each of the terms in the model it's given you
+# a sum of squares, the degrees of 
+# freedom for the numerator, the F statistic, and the p value (note the denominator degrees of freedom for
+# this analysis is the df for the residuals.
+
+# Next, you're going to run three separate ANOVA tests to look at three different response variables,
+# the response of Daphnia (a crustacean zooplamkton) abundance, copepod abundance, and all zooplankton together. 
+# This is because we might expect different kinds of zooplankton to respond differently to the presence of fish or
+# the risk of fish predation
+
+modeldaphnia<- lm(Daphnia_noL ~ fish*zoop, data = day1, na.action="na.omit")
+Anova(modeldaphnia)
+modelcopepods<- lm(copepods_noL~fish*zoop, data = day1, na.action="na.omit")
+anova(modelcopepods)
+modelzoops<- lm(all_zoops_noL~fish*zoop, data = day1, na.action="na.omit")
+anova(modelzoops)
+
+
+# Now you have stats output, so you know which factors are significant, but you don't know why.
+# The code below calculates means, standard deviations and number of replicates (length) first, 
+# and then calculates standard errors as a new column in the means dataset.  It does this because R doesn't
+# have a built in function to calculate standard error, so I wrote some code to do that.
+# Note also that the syntax varies among functions (lm uses * to get all possible combinations, summaryBy uses +)
+# This is just the way it goes with R, if you want to try something new just search online, and you'll find example code
+
+means<-summaryBy(Chla_ugL + Daphnia_noL + copepods_noL + all_zoops_noL ~ fish + zoop, data=day1, FUN=c(length, mean, sd))
+means$ChlaSE<-means$Chla_ugL.sd/sqrt(means$Chla_ugL.length)
+means$DaphniaSE<-means$Daphnia_noL.sd/sqrt(means$Daphnia_noL.length)
+means$CopepodSE<-means$copepods_noL.sd/sqrt(means$copepods_noL.length)
+means$ZoopSE<-means$all_zoops_noL.sd/sqrt(means$all_zoops_noL.length)
+
+# At this point you could open the "means" dataset to the right and look at the means, or
+# export the dataset to make a figure in excel if you wanted to (but that would be crazy):
+
+write.csv(means, file = "FoFmeans.csv",row.names=FALSE)
+
+# Look on the desktop, your data should be there.
+
+# But happily, you can make a beautiful figure in R with the following code.
+
+barchart=bargraph.CI(fish, Chla_ugL, group = zoop, data = day1,
+                     xlab = "Fish treatment", ylab = "chlorophyll-a (ug/L)", cex.lab = 1.5, x.leg = 4,
+                     col = "black", angle = 45, cex.names = 1.25,
+                     density = c(0,20), legend = TRUE)
+
+# To check that this looks right, compare the graph with the "means" table of treatment means
+
+means[,c(1,2,7,15)]
+
+#  The table of means adn standard errors appears in the "console" window below.
+# You can see that the the mean of the fish lake zooplankton (F) in the caged fish treatment is almost 8 ug/L, and 
+# the standard error (1.76) is much bigger than in tcontrol with the fish lake zooplankton (0.28), so everything 
+# seems to be in order
+
+# Even though the means appear different and the error bars do not overlap, the ANOVA table tells you that there are 
+# no significant effects of either the zooplankton or fish treatments or their interaction.  
+
+# To visualize the data differently, you can make a boxplot showing the individual data points.  Here's an example with
+# our data.  
+
+
+ggplot(day1, aes(x = factor(fish), y = Chla_ugL, fill = zoop)) +
+  geom_boxplot(outlier.size = 0) + 
+  geom_point(position = position_jitterdodge(jitter.width = 0.1)) +
+  labs(x = "Treatment")
+
+# In a box plot, the line in the middle of the colored box is the median data point, the upeer edge of the box is  
+# the first quartile (where 25% of the points are above the mean), the thin line (whisker) is the next 25%.  In our case
+# since there are 5 data points per treatment, the median line is on the middle data point, the next higher data point
+# is the upper edge of the box, the next lower is the lower edge, and the highest and lowest are the ends of the
+# whiskers.  Outliers that are >2 SD from the mean are plotted outside the lines.  In our case, you can see that 
+# several treatments with outliers. 
+
+# Note that the difference between the fish and no fish zooplankton communities in the caged fish treatment that appeared
+# significant in the bar chart is much less convincing in the box plot.  This is why it's a good idea to examine your data
+# closely.  
+
+##  To make the figures for the exercise, you can use the code above but just change the dependent variable, 
+#   the one on the x-axis.  For instance, to see how copepod abundance varied among the treatments, substitute 
+#  the variable name "copepods_noL" in place of Chla_ugL where it says "y = Chla_ugL" in the code above.  You
+#  can do the same thing for Daphnia and all zooplankton and will produce the four graphs.  The ANOVA models for the 
+#  3 zooplankton groups are on line 128-133 above, these tell you which effects are significant.  
+
+# Now let's try to understand how abundance of producers and consumers are related.  
+# Often we find that forbs decline in abundance under conditions of high
+# productivity, probably because they become light-limited. In the dataset you'll see that 
+# we've entered the data for the light measurements you took, and we can assess the influence
+# of biomass on light at the soil surface using a regression, note this uses all of the data:
+
+model1 = lm(all_zoops_noL ~ Chla_ugL, data = day1, na.action="na.omit")
+summary(model1)
+
+# The output gives you parameter estimates for the intercept and the slope (total-live). The
+# statistics on the intercept are not important for this hypotheses (it just tells you that the mean is not zero), 
+# but the slope is. The p value tells you if the slope is significantly different from zero. You should report 
+# the slope, associated p value, Adjusted R2, F statistic with degrees of freedom and associated p-value.
+
+# think about this result, the total amount of zooplankton is not influenced by the amount of chlorophyll-a,
+# but this is just day one of the experiment and all ponds started out with the same water and different zooplankton
+# treatments
+
+# Often you show the results of a regression with a scatterplot, here's code for one.
+# Go through the code and see what the pieces are doing. xlab and ylab refer to the x and y
+# axis labels. The text in quotes will become labels on the plot. "pch" stands for the size 
+# of the symbols. The abline is the best-fit line through the data.
+
+plot(all_zoops_noL~ Chla_ugL, main="zooplankton vs. phytoplankton", data=day1,
+     xlab="Chlorophyll-a (ug/L)", ylab="Total zooplankton abundance (no/L)", pch=19)
+abline(lm(all_zoops_noL ~ Chla_ugL, data = day1, na.action="na.omit"))
+
+#Again, export that figure to the desktop.
+
+### QUESTIONS FOR EXERCISE 1- Answer the four questions in the R Tutorial_Instructions2021.doc file.  
+
+

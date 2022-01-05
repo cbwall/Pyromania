@@ -1,0 +1,32 @@
+{
+    "id": "4F668CD9",
+    "path": null,
+    "project_path": null,
+    "type": "r_dataframe",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1641344208772.0,
+    "source_on_save": false,
+    "relative_order": 3,
+    "properties": {
+        "expression": "Filt.UV",
+        "caption": "Filt.UV",
+        "totalObservations": 30,
+        "displayedObservations": 30,
+        "variables": 13,
+        "cacheKey": "CBAD2AE8",
+        "object": "Filt.UV",
+        "environment": "",
+        "contentUrl": "grid_resource/gridviewer.html?env=&obj=Filt.UV&cache_key=CBAD2AE8&max_cols=50",
+        "preview": 0
+    },
+    "folds": "",
+    "lastKnownWriteTime": 8030879312480528756,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1641344208772,
+    "read_only": false,
+    "read_only_alternatives": []
+}

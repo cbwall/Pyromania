@@ -1,0 +1,278 @@
+# This tutorial was developed by Jon Shurin for use with R studio, 
+# It is based on data collected by Marika Schulhof for her PhD thesis at UCSD.
+# It should not be shared or used for any other purposes.
+
+#setwd('~/Desktop')  ##MAC
+setwd('C:/Users/jshur/OneDrive/Desktop/BIEB 135 2021/Microbes')  #FOR PCs
+#setwd('C:/Users/jshur/OneDrive/Desktop/')  #FOR PCs
+
+# note, if you want to use R on your PC you'd use this syntax instead, note that your PC defaults to "\" but R needs "/":
+# The part inside the apostrophes is the directory extension of the folder where you will save your data and code
+
+# Load your packages per usual
+
+library(lattice)
+library(Hmisc)
+library(ggplot2)
+library(sciplot)
+library(reshape2)
+library (doBy)
+library (car)
+library(vegan)
+library(stringr)
+
+rm(list=ls())
+# First let's read in the bacteria data table, we'll call it "b" for bacteria
+
+b<-read.csv("bac16s.csv")
+
+# 8810 sequences of 59 samples!  The taxa are in the rows and the samples (lakes) are in columns
+# Columns 1-2 are the codes identifying the sequence and the different taxonomic levels, 
+# 3-10 are identifications to different taxonomic levels based on matches with known sequences in 
+# databases.  97% sequence identity (97% of the base pairs the same) is required to identify an organism
+
+# First, let's look at what taxonomic levels are present
+
+levels(as.factor(b$Domain))
+
+summaryBy(b[13]~Domain, data=b, FUN=length)
+
+# there are 8767 bacteria, 33 Archaea and 10 Eukaryotes.  To make things simpler, let's get rid of the non-bacteria
+# The numbers in the columns indicate the number of reads in the sample that matched to the OTU 
+# (Operational Taxonomic Unit) indicated.  
+
+b<-subset(b, Domain=="Bacteria")
+
+# Now let's see what clades are present.  "Clade" is a non-specific phylogenetic level somewhere between 
+# "Domain" and "Phylum"
+
+summaryBy(b[13]~Clade, data=b, FUN=length)
+
+# there are 37, the most common are Proteobacteria, Bacteriodetes and Actinobacteria.  
+
+# Now let's do the same for Phylum
+
+summaryBy(b[13]~Phylum, data=b, FUN=length)
+ 
+# There are 87 of those, most in the Alpha or Betaproteobacteria, and many uncultured mystery bacteria
+
+# Now let's try Class
+
+summaryBy(b[13]~Class, data=b, FUN=length)
+
+# 142 of those, including 208 with no class assigned, meaning the sequence did not match any known
+# class of bacteria.  As we move down the phylogeny, we get more and more unknowns.  
+
+summaryBy(b[13]~Order, data=b, FUN=length)
+
+# 257 Orders, and 364 reads (sequences) matched no known order.
+
+# OK, since we get tons and tons of taxa at lower phylogenetic levels, let's stick to Clade and Phylum
+
+# First, let's aggregate our data set by adding up all the reads that belong to the same Clade.  
+# We make a table called "Clade" that contains the number of reads belonging to each clade in each sample
+# Each column is a lake, and each row is a "Clade" (a taxonomic level above phylum)
+
+Clade<-summaryBy(b[,c(11:69)]~Clade, data=b, FUN=sum)
+
+# Now we'll reshape the Clade data table as "long" to make figures.  We have to do a little
+# rearranging to get the data in shape for analysis
+
+Clade<-melt(Clade, id="Clade")
+Clade$lake<-gsub("\\..*","",Clade$variable) # removes the junk after period
+Clade$lake<-str_sub(Clade$lake,1,nchar(Clade$lake)-1) # gets rid of the number after the lake
+Clade<-Clade[,-2] # gets rid of the clumn "variable"
+Clade<-summaryBy(value~Clade+lake, data=Clade, FUN=mean) #averages the density in each lake
+
+# now let's plot the relative densities of clades in each lake
+# Each color bar indicates the relative frequency (% of reads) of each "clade"
+
+ggplot(Clade,aes(fill=Clade, y=value.mean, x=lake)) +
+  geom_bar(stat="identity", position="fill", width=4)+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  labs(x = "Sample") 
+
+# And now the same thing by Phylum
+
+Phylum<-summaryBy(b[,c(11:69)]~Phylum, data=b, FUN=sum)
+Phylum<-melt(Phylum, id="Phylum")
+Phylum$lake<-gsub("\\..*","",Phylum$variable) # removes the junk after period
+Phylum$lake<-str_sub(Phylum$lake,1,nchar(Phylum$lake)-1) # gets rid of the number after the lake
+Phylum<-Phylum[,-2] # gets rid of the clumn "variable"
+Phylum<-summaryBy(value~Phylum+lake, data=Phylum, FUN=mean) 
+
+
+ggplot(Phylum,aes(fill=Phylum, y=value.mean, x=lake)) +
+  geom_bar(stat="identity", position="fill", width=4)+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  labs(x = "Sample") + 
+  theme(legend.position="none")
+
+# We had to turn the legend off (the last "theme") to make it visible.
+# The different color patterns show you the differences in composition of the lakes.  
+
+# Now let's do a "Multidimensional scaling" analysis and look at which samples are 
+# most similar.  Multidimensional scaling reduces the number of dimensions to find 
+# a representation of how similar the communities are in different lakes.  We will
+# use it to determine how composition of the community is related to the environment. 
+# First, we'll reshape the "Clade" table as wide with the phyla in the columns and the 
+# lake samples in the rows
+CladeW<-dcast(Clade, lake ~ Clade)
+
+mds1<-metaMDS(as.matrix(CladeW[,c(2:38)]), k=2)
+
+# R will make an "ordination plot" of the two community axes (MDS1 and 2) showing the
+# lakes (circles) and clades (red crosses).  It's not very helpful because we don't know 
+# which lake is which, so we will make our own plots labeling the lakes.  
+ordiplot(mds1)
+
+# The lakes (circles)  that are close together have very similar communities, and the 
+# species that are close to a lake tend to be more abundant in that lake.  Now we want to
+# know if the kinds of bacteria we find are related to aspects of the lake environment.
+# We'll start with elevation and temperature.  We'll merge together the output from the
+# MDS analysis and a data table of environmental features of each lake.  
+
+lakes<-as.data.frame(mds1$points)
+lakes$lake<-CladeW$lake
+
+spp<-as.data.frame(mds1$species)
+spp$Clade<-rownames(spp)
+
+# first let's plot the lakes in the ordination, lakes that
+# are close together have similar kinds of bacteria in them.  This is the same as the 
+# "ordiplot" on Line 127 but with the lake name labeled.  
+ggplot(lakes,aes(y=MDS2, x=MDS1, label=lake))+
+  geom_point(size=1.5)+
+  geom_text()
+
+# Now let's plot the clades, clades that are close together
+# tend to be found together in the same lakes
+ggplot(spp,aes(y=MDS2, x=MDS1, label=Clade))+
+  geom_point(size=1.5)+
+  geom_text()
+
+# Now let's see if the kinds of bacteria are related to 
+# the temperature or elevation of the lake.  We'll make
+# the size and color of the points on the lake plot 
+# depend on elevation/temperature.  First we need to merge
+# the "lakes" data set and the environmental data
+
+env<-read.csv("lakedata.csv")
+
+# Now we merge them together with the lakes data
+
+lakes<-merge(lakes, env, by = "lake")
+
+# Now let's make the size and color of the point depend on elevation
+
+ggplot(lakes,aes(y=MDS2, x=MDS1, label=lake))+
+  geom_point(aes(color=elevation.m, size=elevation.m))+
+  geom_text()
+
+# You can see that the high elevation points tend to be lower on MDS2, 
+# but there are exceptions.  Now let's try with temperature, which is 
+# related to elevation:
+
+ggplot(lakes,aes(y=MDS2, x=MDS1, label=lake))+
+  geom_point(aes(color=temperature.epilimnion, size=temperature.epilimnion))+
+  geom_text()
+
+# some separation, but not very clear
+
+# Now let's see if lakes in different geographic areas have different kinds of
+# bacteria in them.  The column "jurisdiction" tells you whether the lake was in 
+# Yosemite or Sequoia/Kings Canyon National Parks, or Inyo National Forest
+
+ggplot(lakes,aes(y=MDS2, x=MDS1, label=lake))+
+  geom_point(aes(color=factor(jurisdiction), size=factor(jurisdiction)))+
+  geom_text()
+
+# Now we can see some real separation where the Sequoia/Kings Canyon lakes
+# are distinct from the Yosemite and Inyo Lakes, especially on MDS2
+
+# Now let's look at the 18S eukaryote data
+
+euk<-read.csv("phy18S.csv")
+
+levels(as.factor(euk$Phylum))
+
+summaryBy(euk[2]~Phylum, data=euk, FUN=length)
+
+# The most common eukaryotes are Stramenopiles (diatoms), Dinophytes (dinoflagellates),
+# fungi, and chlorophyes (green algae)
+
+# Now let's do the MDS analysis on eukaryotes so we can compare them with bacteria
+
+eukPhy<-summaryBy(euk[,c(11:66)]~Phylum, data=euk, FUN=sum)
+eukPhyL<-melt(eukPhy, id="Phylum")
+eukPhyL$lake<-gsub("\\..*","",eukPhyL$variable) # removes the junk after period
+eukPhyL$lake<-str_sub(eukPhyL$lake,1,nchar(eukPhyL$lake)-1) # gets rid of the number after the lake
+eukPhyL<-eukPhyL[,-2] # gets rid of the clumn "variable"
+eukPhyL<-summaryBy(value~Phylum+lake, data=eukPhyL, FUN=mean) 
+
+# here's the phyla frequencies by lake
+ggplot(eukPhyL,aes(fill=Phylum, y=value.mean, x=lake)) +
+  geom_bar(stat="identity", position="fill", width=4)+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  labs(x = "Sample") + 
+  theme()  #legend.position="none"
+
+# now let's do the MDS analysis, reshaping the data wide with phyla in columns, lakes in rows
+eukPhyW<-dcast(eukPhyL, lake ~ Phylum)
+
+mds2<-metaMDS(as.matrix(eukPhyW[,c(2:17)]), k=2)
+
+
+eukLakes<-as.data.frame(mds2$points)
+eukLakes$lake<-eukPhyW$lake
+
+eukSpp<-as.data.frame(mds2$species)
+eukSpp$Phylum<-rownames(eukSpp)
+
+# first let's plot the lakes in the ordination, lakes that
+# are close together have similar kinds of eukaryotes in them.  
+ggplot(eukLakes,aes(y=MDS2, x=MDS1, label=lake))+
+  geom_point(size=1.5)+
+  geom_text()
+
+# Now let's plot the clades, clades that are close together
+# tend to be found together in the same lakes
+ggplot(eukSpp,aes(y=MDS2, x=MDS1, label=Phylum))+
+  geom_point(size=1.5)+
+  geom_text()
+
+# now let's merge in the environmental data
+names(eukLakes)[1]<-"eukMDS1"; names(eukLakes)[2]<-"eukMDS2"
+lakes<-merge(lakes, eukLakes, by = "lake", all=T)
+
+# Now MDS1 and MDS2 are the community axes for the prokaryotes, and eukMDS1 and EUKMDS2
+# are for the eukaryotes.  Let's see if composition of eukaryotes is related to
+# temperature or elevation.  First we omit the NAs
+
+lakes<-na.omit(lakes)
+
+ggplot(lakes,aes(y=eukMDS2, x=eukMDS1, label=lake))+
+  geom_point(aes(color=temperature.epilimnion, size=elevation.m))+
+  geom_text()
+
+ggplot(lakes,aes(y=eukMDS2, x=eukMDS1, label=lake))+
+  geom_point(aes(color=factor(jurisdiction), size=factor(jurisdiction)))+
+  geom_text()
+
+# MDS1 and 2 are the main axes of variation in communities. We can look at how each 
+# one varies with elevation 
+ggplot(lakes,aes(y=eukMDS2, x=elevation.m, label=lake))+
+  geom_point(aes(size=elevation.m))+
+  geom_text()
+summary(lm(eukMDS2~elevation.m, data=lakes))
+
+# Questions:
+# 1.  What are the 2 most common phyla of bacteria in the lakes?
+# 2.  What are the 3 most common phyla of eukaryotes in the lakes?
+# 3.  How are elevation and temperature related among the lakes?  Illustrate your answer 
+#     with a graph and a regression.  
+# 4.  Which phyla of bacteria are most strongly related to the main axis of community
+#     variation (MDS1)?  Show your answer with a graph.  
+# 5.  How do the first and second axes of community variation for eukaryotes change
+#     with elevation?  Illustrate your answer 
+#     with a graph and a regression.  
