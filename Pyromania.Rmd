@@ -1,7 +1,7 @@
 ---
 title: "Pyromania"
 author: "C Wall"
-date: "12/7/2021"
+date: "1/4/2021"
 output:
   html_document:
     code_folding: hide
@@ -36,8 +36,8 @@ YSI<-read.csv("data/Pyro_YSI.csv")
 
 # fix date
 YSI$Date<-as.character(YSI$Date)
-YSI$Date<-as.POSIXct(YSI$Date, format="%m/%d/%y")
-YSI$Date<-as.Date(YSI$Date, format="%m/%d/%y")
+YSI$Date<-as.POSIXct(YSI$Date, format="%m/%d/%Y")
+YSI$Date<-as.Date(YSI$Date, format="%m/%d/%Y")
 
 
 ####### Time 1 change in O2 ################
@@ -97,10 +97,39 @@ T2.O2<- mutate(T2.O2,
 T2.O2<-T2.O2 %>% 
   arrange(Treatment, plant.mass..g) 
 
+
 ################ ################ ################
-# combine T1 and T2 timepoints
+####### Time 3 change in O2 ################
+
+#separate time points
+YSI.T3<- YSI[(YSI$Time.point=="T3"),]
+
+#calculate NEP for T3
+T3.Prod<-YSI.T3[(YSI.T3$Date == "2022-01-03"),] # dawn and dusk for 12h period
+T3.Dawn1<-T3.Prod[(T3.Prod$Dawn..Dusk == "dawn"),] # dawn-1 measurements
+T3.Dusk<-T3.Prod[(T3.Prod$Dawn..Dusk == "dusk"),] # dusk measurements
+
+T3.Dawn2<-YSI.T3[(YSI.T3$Date == "2022-01-04"),] # dawn-2 measurements, following AM
+
+# make new dataframe
+T3.O2<-(T3.Dawn1[,c(2,4:6)]) 
+T3.O2$dawn1<-T3.Dawn1$DO.percent
+T3.O2$dusk1<-T3.Dusk$DO.percent
+T3.O2$dawn2<-T3.Dawn2$DO.percent
+
+T3.O2<- mutate(T3.O2, 
+                NEP=dusk1 - dawn1,
+                NER=dawn2 - dusk1) 
+
+#sort
+T3.O2<-T3.O2 %>% 
+  arrange(Treatment, plant.mass..g) 
+
+
 ################ ################ ################
-O2.tanks<-rbind(T1.O2,T2.O2)
+# combine T1  T2 and T3 timepoints
+################ ################ ################
+O2.tanks<-rbind(T1.O2,T2.O2, T3.O2)
 ```
   
 TIME POINT 1: Change in O2% and NEP and NER --   
@@ -278,7 +307,7 @@ NEP.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
   xlab("plant material (g)") +
   Fig.formatting
 
-#Time 1 NER
+#Time 2 NER
 NER.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
@@ -298,6 +327,95 @@ ggsave("figures/O2.change.T2.pdf", height=5, width=8)
 
 
 ```
+
+TIME POINT 3: Change in O2% and NEP and NER --
+make figures of the data for timepoint 3
+```{r}
+############################################################
+##############################################################################
+#############################################################################################
+###################
+
+# total oxygen % plot for the 3 time points (dawn-dusk-dawn)
+
+T3.AM1<-ggplot(T3.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T3.dawn1")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T3.PM1<-ggplot(T3.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T3.dusk1")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T3.AM2<-ggplot(T3.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T3.dawn2")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+O2.T3<-plot_grid(
+  T3.AM1+ theme(legend.position = "none"), 
+  T3.PM1+ theme(legend.position = "none"),
+  T3.AM2+ theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,8,3), ncol=4)
+
+ggsave("figures/O2.T3.pdf", height=5, width=9)
+
+
+############################################################
+##############################################################################################
+# net ecosystem production and respiration
+
+#Time 3 NEP
+NEP.T3<-ggplot(T3.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+#Time 3 NER
+NER.T3<-ggplot(T3.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment),alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+O2.change.T3<-plot_grid(
+  NEP.T3+ theme(legend.position = "none") + ggtitle("Time 3"),
+  NER.T3+ theme(legend.position = "none") + ggtitle(""),
+  extract.legend, 
+  rel_widths = c(8,8,3), ncol=3)
+
+ggsave("figures/O2.change.T3.pdf", height=5, width=8)
+
+
+```
+
 
 ###DOC  
 import and do a loop to clean up all files and make stacked data in single df
@@ -352,11 +470,11 @@ DOC.df<- DOC.df %>%
 
 DOC plots
 ```{r}
-NPOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) + 
+NPOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) +
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 5)) +
+  coord_cartesian(ylim=c(0, 60)) +
   ggtitle("Time-0") +
   ylab("NPOC (mg/L)") +
   xlab("plant material (g)") +
@@ -389,8 +507,10 @@ NPOC.plots<-plot_grid(
   extract.legend, 
   rel_widths = c(8,8,8,3), ncol=4)
 
+
+NPOC.plots
+
 ggsave("figures/NPOC.pdf", height=5, width=12)
- 
 
 ```
 
@@ -416,6 +536,13 @@ TN.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=TN..mg.
   xlab("plant material (g)") +
   Fig.formatting
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+
+=======
+>>>>>>> 09c4b3b9988b8f155f0f7b0939fecee2c3847c2c
+>>>>>>> main
 TN.T2<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
@@ -432,8 +559,19 @@ TN.plots<-plot_grid(
   TN.T2+ theme(legend.position = "none"),
   extract.legend, 
   rel_widths = c(8,8,8,3), ncol=4)
+<<<<<<< HEAD
 
 ggsave("figures/TN.pdf", height=5, width=15)
+=======
+
+<<<<<<< HEAD
+TN.plots
+
+ggsave("figures/TN.pdf", height=4, width=9)
+=======
+ggsave("figures/TN.pdf", height=5, width=15)
+>>>>>>> 09c4b3b9988b8f155f0f7b0939fecee2c3847c2c
+>>>>>>> main
 
 ```
 
@@ -500,6 +638,9 @@ UVBIO.df$Time.point<- as.factor(ifelse(UVBIO.df$File=="DOC_UV_T1_111721", "T1",
 UVBIO.df<- UVBIO.df %>% 
   select(File, Time.point, Treatment, Filter.Trt, UV.Trt, Tank, plant.mass..g, NPOC..mg.L, TN..mg.L) 
 
+<<<<<<< HEAD
+# make levels for plotting and stats
+=======
 ```
 
 plot UV Bio
@@ -608,8 +749,19 @@ ggsave("figures/UVBio.percent.plots.T1_T2.pdf", height = 6, width = 11)
 
               ######################### END MESS #####################
 
+<<<<<<< HEAD
+=======
+>>>>>>> 09c4b3b9988b8f155f0f7b0939fecee2c3847c2c
+>>>>>>> main
 UVBIO.df$Burn.Filt.UV<-interaction(UVBIO.df$Treatment, UVBIO.df$Filter.Trt, UVBIO.df$UV.Trt)
+UVBIO.df$Filt.UV<-interaction(UVBIO.df$Filter.Trt, UVBIO.df$UV.Trt)
 
+# correct to make factor levels
+UVBIO.df$Filter.Trt<-as.factor(UVBIO.df$Filter.Trt)
+UVBIO.df$UV.Trt <-as.factor(UVBIO.df$UV.Trt)
+UVBIO.df$Tank <-as.factor(UVBIO.df$Tank)
+
+###############################################
 # make a dataframe of only the NPOC start data
 T1.DOC<-DOC.df[(DOC.df$Time.point=="T1"),] #T1 start NPOC
 T2.DOC<- DOC.df[(DOC.df$Time.point=="T2"),] #T2 start NPOC
@@ -617,21 +769,119 @@ T2.DOC<- DOC.df[(DOC.df$Time.point=="T2"),] #T2 start NPOC
 # repeat the T1 start NPOC 4x for the 2 treatments, 30 tanks
 UVBIO.df$start.NPOC<- rep(T1.DOC$NPOC..mg.L, times=4) 
 
-# change in NPOC over the 7d incubation
+# make new variables
+# (1) change in NPOC over the 7d incubation
 UVBIO.df$change.NPOC<-UVBIO.df$start.NPOC - UVBIO.df$NPOC..mg.L
+
+# (1) % change in NPOC over the 7d incubation
 UVBIO.df<-mutate (UVBIO.df, percent.change.NPOC=(change.NPOC/start.NPOC)*100)
 
-#make some plotting datafames
+# make some plotting datafames
+# these are all separated by the 4 incubation treatment levels
 Filt.UV <-UVBIO.df[UVBIO.df$Filter.Trt=="Filtered" & UVBIO.df$UV.Trt=="UV",]
 
 Filt.NoUV<-UVBIO.df[(UVBIO.df$Filter.Trt=="Filtered" & UVBIO.df$UV.Trt=="NoUV"),]
 
 NFilt.UV <-UVBIO.df[UVBIO.df$Filter.Trt=="Unfiltered" & UVBIO.df$UV.Trt=="UV",]
+<<<<<<< HEAD
 
 NFilt.NoUV <-UVBIO.df[UVBIO.df$Filter.Trt=="Unfiltered" & UVBIO.df$UV.Trt=="NoUV",]
+=======
+
+<<<<<<< HEAD
+```
+  
+- plots of 2: % change of DOC
+```{r}
+UV.TRT.plot<-ggplot(UVBIO.df, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  scale_linetype_manual(values=c("solid", "twodash")) +
+  geom_smooth(method=loess, aes(fill=Treatment, linetype=UV.Trt), alpha=0.1) +
+  ggtitle("No-UV vs. UV") +
+  coord_cartesian(ylim=c(-5, 40)) +
+  ylab(expression(paste("% ", Delta, " NPOC mg/L"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+FILTER.TRT.plot<-ggplot(UVBIO.df, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  scale_linetype_manual(values=c("solid", "twodash")) +
+  geom_smooth(method=loess, aes(fill=Treatment, linetype=Filter.Trt), alpha=0.1) +
+  ggtitle("Filtered vs. Unfiltered") +
+  coord_cartesian(ylim=c(-5, 40)) +
+  ylab(expression(paste("% ", Delta, " NPOC mg/L"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
 
 
+##### combine
+UVBio.plots2<-plot_grid(
+  UV.TRT.plot,
+  FILTER.TRT.plot,  ncol=2)
+
+ggsave("figures/UVBio.plots.percent2.pdf", height=5, width=9)
+
+```
+
+- another take on the UV-BIO separated by burning treatment
+```{r}
+UV.TRT.B.plot<-ggplot(UVBIO.df[(UVBIO.df$Treatment=="burned"),], 
+                       aes(x=plant.mass..g, y=percent.change.NPOC, color=Filt.UV)) + 
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("coral", "yellowgreen", "peru", "seagreen")) + 
+  scale_fill_manual(values = c("coral", "yellowgreen", "peru", "seagreen")) +
+  geom_smooth(method=loess, aes(fill=Filt.UV), alpha=0.1) +
+  ggtitle("Unburned") +
+  coord_cartesian(ylim=c(-5, 40)) +
+  ylab(expression(paste("% ", Delta, " NPOC mg/L"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+UV.TRT.UB.plot<-ggplot(UVBIO.df[(UVBIO.df$Treatment=="unburned"),], 
+                       aes(x=plant.mass..g, y=percent.change.NPOC, color=Filt.UV)) + 
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("coral", "yellowgreen", "peru", "seagreen")) + 
+  scale_fill_manual(values = c("coral", "yellowgreen", "peru", "seagreen")) +
+  geom_smooth(method=loess, aes(fill=Filt.UV), alpha=0.1) +
+  ggtitle("Burned") +
+  coord_cartesian(ylim=c(-5, 40)) +
+  ylab(expression(paste("% ", Delta, " NPOC mg/L"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+extract.legend2 <- get_legend(
+  # create some space to the left of the legend
+  UV.TRT.UB.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
+=======
+NFilt.NoUV <-UVBIO.df[UVBIO.df$Filter.Trt=="Unfiltered" & UVBIO.df$UV.Trt=="NoUV",]
+>>>>>>> 09c4b3b9988b8f155f0f7b0939fecee2c3847c2c
+
+##### combine
+UVBio.plots3<-plot_grid(
+  UV.TRT.B.plot + theme(legend.position = "none"),
+  UV.TRT.UB.plot + theme(legend.position = "none"),
+  extract.legend2,
+  rel_widths = c(8,8,3), ncol=3)
+
+<<<<<<< HEAD
+ggsave("figures/UVBio.plots.percent3.pdf", height=5, width=9)
+>>>>>>> main
+
+```
+
+<<<<<<< HEAD
  
+=======
+- plot of 4: UV-BIO as % change in DOC
+```{r}
+################## plots for % Change in DOC over incubation
+=======
+ 
+>>>>>>> 09c4b3b9988b8f155f0f7b0939fecee2c3847c2c
+>>>>>>> main
 # filtered UV plot
 Filt.UV.fig<-ggplot(Filt.UV, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
   geom_point() +
@@ -689,7 +939,6 @@ ggsave("figures/UVBio.plots.percent.pdf", height=4, width=11)
 
 ```
 
-collab started
 
 This chunk looks at different statistics:
 
@@ -766,8 +1015,5 @@ ggplot(NFilt.NoUV, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment))
 
 
 ```
-
-
-
 
 
