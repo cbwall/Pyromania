@@ -630,17 +630,15 @@ UVBIO.df$File<-gsub('^...........|....$', '', UVBIO.df$File)
 # if equals DOC_UV_T1_111721 then, T1, if not then "nothing"
 UVBIO.df$Time.point<- as.factor(ifelse(UVBIO.df$File=="DOC_UV_T1_111721", "T1",
   ifelse(UVBIO.df$File=="DOC_NoUV_T1_111721", "T1","")))
-        
-         
           ifelse(UVBIO.df$File=="DOC_UV_T2_12082021", "T2",
-                ifelse(UVBIO.df$File=="DOC_NoUV_T2_12082021.csv", "T2", "T2")))))
+                ifelse(UVBIO.df$File=="DOC_NoUV_T2_12082021.csv", "T2", "T2")))
 #rearrange
 UVBIO.df<- UVBIO.df %>% 
   select(File, Time.point, Treatment, Filter.Trt, UV.Trt, Tank, plant.mass..g, NPOC..mg.L, TN..mg.L) 
 
-<<<<<<< HEAD
+
 # make levels for plotting and stats
-=======
+
 ```
 
 plot UV Bio
@@ -749,10 +747,7 @@ ggsave("figures/UVBio.percent.plots.T1_T2.pdf", height = 6, width = 11)
 
               ######################### END MESS #####################
 
-<<<<<<< HEAD
-=======
->>>>>>> 09c4b3b9988b8f155f0f7b0939fecee2c3847c2c
->>>>>>> main
+
 UVBIO.df$Burn.Filt.UV<-interaction(UVBIO.df$Treatment, UVBIO.df$Filter.Trt, UVBIO.df$UV.Trt)
 UVBIO.df$Filt.UV<-interaction(UVBIO.df$Filter.Trt, UVBIO.df$UV.Trt)
 
@@ -783,12 +778,10 @@ Filt.UV <-UVBIO.df[UVBIO.df$Filter.Trt=="Filtered" & UVBIO.df$UV.Trt=="UV",]
 Filt.NoUV<-UVBIO.df[(UVBIO.df$Filter.Trt=="Filtered" & UVBIO.df$UV.Trt=="NoUV"),]
 
 NFilt.UV <-UVBIO.df[UVBIO.df$Filter.Trt=="Unfiltered" & UVBIO.df$UV.Trt=="UV",]
-<<<<<<< HEAD
 
 NFilt.NoUV <-UVBIO.df[UVBIO.df$Filter.Trt=="Unfiltered" & UVBIO.df$UV.Trt=="NoUV",]
-=======
 
-<<<<<<< HEAD
+
 ```
   
 - plots of 2: % change of DOC
@@ -855,9 +848,9 @@ UV.TRT.UB.plot<-ggplot(UVBIO.df[(UVBIO.df$Treatment=="unburned"),],
 extract.legend2 <- get_legend(
   # create some space to the left of the legend
   UV.TRT.UB.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
-=======
+
 NFilt.NoUV <-UVBIO.df[UVBIO.df$Filter.Trt=="Unfiltered" & UVBIO.df$UV.Trt=="NoUV",]
->>>>>>> 09c4b3b9988b8f155f0f7b0939fecee2c3847c2c
+
 
 ##### combine
 UVBio.plots3<-plot_grid(
@@ -866,9 +859,9 @@ UVBio.plots3<-plot_grid(
   extract.legend2,
   rel_widths = c(8,8,3), ncol=3)
 
-<<<<<<< HEAD
+
 ggsave("figures/UVBio.plots.percent3.pdf", height=5, width=9)
->>>>>>> main
+
 
 ```
 
@@ -878,10 +871,8 @@ ggsave("figures/UVBio.plots.percent3.pdf", height=5, width=9)
 - plot of 4: UV-BIO as % change in DOC
 ```{r}
 ################## plots for % Change in DOC over incubation
-=======
- 
->>>>>>> 09c4b3b9988b8f155f0f7b0939fecee2c3847c2c
->>>>>>> main
+
+
 # filtered UV plot
 Filt.UV.fig<-ggplot(Filt.UV, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
   geom_point() +
