@@ -677,10 +677,10 @@ test_all_2<- test_all_2<-mutate (test_all_2, percent.change.NPOC=(change.NPOC/st
 complete_test=rbind(test_all, test_all_2)
 
 # Filter it out
-Filtered.UV<- complete_test[complete_test$Filter.Trt=="Filtered" & complete_test$UV.Trt=="UV",]
-Filtered.NoUV<- complete_test[(complete_test$Filter.Trt=="Filtered" & complete_test$UV.Trt=="NoUV"),]
-Nofilter.UV<- complete_test[complete_test$Filter.Trt=="Unfiltered" & complete_test$UV.Trt=="UV",]
-Nofilter.NoUV<- complete_test[complete_test$Filter.Trt=="Unfiltered" & complete_test$UV.Trt=="NoUV",]
+Filtered.UV<- complete_test[complete_test$Filter.Trt=="Filtered" & complete_test$UV.Trt=="UV" & complete_test$Time.point=="T2",]
+Filtered.NoUV<- complete_test[(complete_test$Filter.Trt=="Filtered" & complete_test$UV.Trt=="NoUV") & complete_test$Time.point=="T2",]
+Nofilter.UV<- complete_test[complete_test$Filter.Trt=="Unfiltered" & complete_test$UV.Trt=="UV" & complete_test$Time.point=="T2",]
+Nofilter.NoUV<- complete_test[complete_test$Filter.Trt=="Unfiltered" & complete_test$UV.Trt=="NoUV" & complete_test$Time.point=="T2",]
 
 
 # Make some plots 
@@ -698,8 +698,9 @@ Filtered.NoUV.fig<-ggplot(Filtered.NoUV, aes(x=plant.mass..g, y=change.NPOC, col
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(-5, 40)) +
   ggtitle("T2: Filt:NoUV") +
-  ylab(expression(paste(Delta, " NPOC mg/L"))) +
+  ylab(expression(paste("%", Delta, " NPOC mg/L"))) +
   xlab("plant material (g)") +
   Fig.formatting
 
