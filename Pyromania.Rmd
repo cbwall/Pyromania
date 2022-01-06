@@ -592,9 +592,9 @@ file.names
   for(i in 1:length(UVBio.files))
     {
   data<-read.csv(UVBio.files[i], sep=",", skip=12) #skip 13 rows where standards are
-  data<-data[,c(1,3,5)] # removed columns we don't need
+  data<-data[,c(1,3,5,7, 9)] # removed columns we don't need
   data$File<-UVBio.files[i]
-  colnames(data)<-c("Tank", "NPOC..mg.L", "TN..mg.L", "File")
+  colnames(data)<-c("Tank", "NPOC..mg.L", "TN..mg.L", "Start.NPOC", "Start.TN", "File")
   data<-subset(data, Tank!="DI" & Tank!="UP") # remove the standards within sample run
   data$Tank<-as.character(data$Tank)
   data$Treatment<-IDs$Treatment # add treatment info
@@ -635,7 +635,7 @@ UVBIO.df$Time.point<- as.factor(ifelse(UVBIO.df$File=="DOC_UV_T1_111721", "T1",
   
 #rearrange
 UVBIO.df<- UVBIO.df %>% 
-  select(File, Time.point, Treatment, Filter.Trt, UV.Trt, Tank, plant.mass..g, NPOC..mg.L, TN..mg.L) 
+  select(File, Time.point, Treatment, Filter.Trt, UV.Trt, Tank, plant.mass..g, NPOC..mg.L, TN..mg.L, Start.NPOC, Start.TN) 
 
 
 # make levels for plotting and stats
@@ -659,9 +659,9 @@ test_2=subset(T.DOC, Time.point=="T2")
 test_1=subset(UVBIO.df, Time.point=="T1")
 test_3= subset(UVBIO.df, Time.point=="T2")
 
-test_all= cbind(test, test_1)
+test_all= merge(test, test_1)
 
-test_all_2=cbind(test_2, test_3)
+test_all_2=merge(test_2, test_3)
 
 
 names(test_all)[6]="start.NPOC"
@@ -679,48 +679,51 @@ test_all_2<- test_all_2<-mutate (test_all_2, percent.change.NPOC=(change.NPOC/st
 complete_test=rbind(test_all, test_all_2)
 
 # Filter it out
-Filtered.UV<- complete_test[complete_test$Filter.Trt=="Filtered" & complete_test$UV.Trt=="UV" & complete_test$Time.point=="T2",]
-Filtered.NoUV<- complete_test[(complete_test$Filter.Trt=="Filtered" & complete_test$UV.Trt=="NoUV") & complete_test$Time.point=="T2",]
-Nofilter.UV<- complete_test[complete_test$Filter.Trt=="Unfiltered" & complete_test$UV.Trt=="UV" & complete_test$Time.point=="T2",]
-Nofilter.NoUV<- complete_test[complete_test$Filter.Trt=="Unfiltered" & complete_test$UV.Trt=="NoUV" & complete_test$Time.point=="T2",]
+Filtered.UV<- complete_test[complete_test$Filter.Trt=="Filtered" & complete_test$UV.Trt=="UV" & complete_test$Time.point=="T2" & complete_test$NPOC..mg.L,]
 
+Filtered.NoUV<- complete_test[(complete_test$Filter.Trt=="Filtered" & complete_test$UV.Trt=="NoUV") & complete_test$Time.point=="T2" & complete_test$NPOC..mg.L,]
+
+Nofilter.UV<- complete_test[complete_test$Filter.Trt=="Unfiltered" & complete_test$UV.Trt=="UV" & complete_test$Time.point=="T2" & complete_test$NPOC..mg.L,]
+
+
+Nofilter.NoUV<- complete_test[complete_test$Filter.Trt=="Unfiltered" & complete_test$UV.Trt=="NoUV" & complete_test$Time.point=="T2" & complete_test$NPOC..mg.L,]
+ 
+
+coord_cartesian(ylim=c(-5, 40))
 
 # Make some plots 
-Filtered.UV.fig<-ggplot(Filtered.UV, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
+Filtered.UV.fig<-ggplot(Filtered.UV, aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(-5, 40)) +
   ggtitle("T2: Filt:UV") +
   ylab(expression(paste("%", Delta, " NPOC mg/L"))) +
   xlab("plant material (g)") +
   Fig.formatting 
+Filtered.UV.fig
 
-Filtered.NoUV.fig<-ggplot(Filtered.NoUV, aes(x=plant.mass..g, y=change.NPOC, color=Treatment)) + 
+Filtered.NoUV.fig<-ggplot(Filtered.NoUV, aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(-5, 40)) +
   ggtitle("T2: Filt:NoUV") +
   ylab(expression(paste("%", Delta, " NPOC mg/L"))) +
   xlab("plant material (g)") +
   Fig.formatting
 
-Nofilter.UV.fig<-ggplot(Nofilter.UV, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
+Nofilter.UV.fig<-ggplot(Nofilter.UV, aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(-5, 40)) +
   ggtitle("T2: NoFilt:UV") +
   ylab(expression(paste("%", Delta, " NPOC mg/L"))) +
   xlab("plant material (g)") +
   Fig.formatting
 
-Nofilter.NoUV.fig<-ggplot(Nofilter.NoUV, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
+Nofilter.NoUV.fig<-ggplot(Nofilter.NoUV, aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(-5, 40)) +
   ggtitle("T2: NoFilt:NoUV") +
   ylab(expression(paste("%", Delta, " NPOC mg/L"))) +
   xlab("plant material (g)") +
@@ -734,6 +737,8 @@ UVBio.test.plots<-plot_grid(
   Nofilter.NoUV.fig + theme(legend.position = "none"),
   extract.legend, 
   rel_widths = c(8,8,8,8,3), ncol=5)
+
+UVBio.test.plots
 
 UVBio.plots.T1_T2<-plot_grid(UVBio.plots, UVBio.test.plots, 
           labels = c('A', 'B'),
@@ -766,13 +771,16 @@ T2.DOC<- DOC.df[(DOC.df$Time.point=="T2"),] #T2 start NPOC
 
 # repeat the T1 start NPOC 4x for the 2 treatments, 30 tanks
 UVBIO.df$start.NPOC<- rep(T1.DOC$NPOC..mg.L, times=4) 
+UVBIO.df$start.NPOC<- rep(T2.DOC$NPOC..mg.L, timees=4)
 
 # make new variables
 # (1) change in NPOC over the 7d incubation
-UVBIO.df$change.NPOC<-UVBIO.df$start.NPOC - UVBIO.df$NPOC..mg.L
+UVBIO.df$change.NPOC<-UVBIO.df$Start.NPOC - UVBIO.df$NPOC..mg.L
+UVBIO.df$change.TN<- UVBIO.df$Start.TN - UVBIO.df$TN..mg.L
 
 # (1) % change in NPOC over the 7d incubation
-UVBIO.df<-mutate (UVBIO.df, percent.change.NPOC=(change.NPOC/start.NPOC)*100)
+UVBIO.df<-mutate (UVBIO.df, percent.change.NPOC=(change.NPOC/Start.NPOC)*100)
+UVBIO.df<-mutate (UVBIO.df, percent.change.TN=(change.TN/Start.TN)*100)
 
 # make some plotting datafames
 # these are all separated by the 4 incubation treatment levels
@@ -876,52 +884,53 @@ ggsave("figures/UVBio.plots.percent3.pdf", height=5, width=9)
 ################## plots for % Change in DOC over incubation
 
 
+  coord_cartesian(ylim=c(-5, 40)) 
+  Fig.formatting
+
 # filtered UV plot
-Filt.UV.fig<-ggplot(Filt.UV, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
+Filt.UV.fig<-ggplot(Filt.UV, aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) + 
   geom_point() +
+   facet_grid(.~ Time.point) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(-5, 40)) +
-  ggtitle("T1: Filt:UV") +
-  ylab(expression(paste("%", Delta, " NPOC mg/L"))) +
-  xlab("plant material (g)") +
-  Fig.formatting
+  ggtitle("Filt:UV") +
+  ylab(expression(paste(" NPOC mg/L"))) +
+  xlab("plant material (g)") 
 
 # filtered NoUV plot
-F.NoUV.fig<-ggplot(Filt.NoUV, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
+F.NoUV.fig<-ggplot(Filt.NoUV, aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) + 
   geom_point() +
+   facet_grid(.~ Time.point) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(-5, 40)) +
-  ggtitle("T1: Filt:NoUV") +
-  ylab(expression(paste("%", Delta, " NPOC mg/L"))) +
-  xlab("plant material (g)") +
-  Fig.formatting
+  ggtitle("Filt:NoUV") +
+  ylab(expression(paste("NPOC mg/L"))) +
+  xlab("plant material (g)") 
+
 
 # nofiltered UV plot
-NFilt.UV.fig<-ggplot(NFilt.UV, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
+NFilt.UV.fig<-ggplot(NFilt.UV, aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) + 
   geom_point() +
+   facet_grid(.~ Time.point) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(-5, 40)) +
-  ggtitle("T1: NoFilt:UV") +
-  ylab(expression(paste("%", Delta, " NPOC mg/L"))) +
-  xlab("plant material (g)") +
-  Fig.formatting
+  ggtitle("NoFilt:UV") +
+  ylab(expression(paste("NPOC mg/L"))) +
+  xlab("plant material (g)") 
+
 
 # nofiltered NoUV plot
-NFilt.NoUV.fig<-ggplot(NFilt.NoUV, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
+NFilt.NoUV.fig<-ggplot(NFilt.NoUV, aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) +
   geom_point() +
+  facet_wrap(.~ Time.point) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(-5, 40)) +
-  ggtitle("T1: NoFilt:NoUV") +
-  ylab(expression(paste("%", Delta, " NPOC mg/L"))) +
-  xlab("plant material (g)") +
-  Fig.formatting
+  ggtitle("NoFilt:NoUV") +
+  ylab(expression(paste("NPOC mg/L"))) +
+  xlab("plant material (g)") 
 
 ##### combine
-UVBio.plots<-plot_grid(
+UVBio.DOC.timeseries<-plot_grid(
   Filt.UV.fig + theme(legend.position = "none"),
   F.NoUV.fig + theme(legend.position = "none"),
   NFilt.UV.fig + theme(legend.position = "none"),
@@ -929,7 +938,12 @@ UVBio.plots<-plot_grid(
   extract.legend, 
   rel_widths = c(8,8,8,8,3), ncol=5)
 
-ggsave("figures/UVBio.plots.percent.pdf", height=4, width=11)
+UVBio.DOC.timeseries
+
+
+
+
+ggsave("figures/UVBio.DOC.timeseries.pdf", height=4, width=15)
 
 ```
 
