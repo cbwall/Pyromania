@@ -1,0 +1,6 @@
+"0","# repeat the T2 start NPOC 4x for the 2 treatments, 30 tanks
+UVBIO.df$start.NPOC<-rep(T.DOC$NPOC..mg.L, time=6)
+"
+"2","Error in `$<-.data.frame`(`*tmp*`, start.NPOC, value = c(47.65, 3.153,  : 
+  replacement has 360 rows, data has 240
+"

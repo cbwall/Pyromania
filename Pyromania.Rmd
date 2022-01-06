@@ -610,7 +610,7 @@ ls() #see all dfs you've made, the above will be df matching their file names
 
 
 #Combine files from loop to single df
-UVBIO.df<-rbind(DOC_NoUV_T1_111721, DOC_UV_T1_111721)
+UVBIO.df<-rbind(DOC_NoUV_T1_111721, DOC_UV_T1_111721, DOC_NoUV_T2_120821, DOC_UV_T2_120821)
 # make new factors for filtered (F/NF) and UV (+/-)
 # ** caution! Make sure this matches sheet layout after the loop!
 
@@ -629,9 +629,10 @@ UVBIO.df$File<-gsub('^...........|....$', '', UVBIO.df$File)
 # add a time point
 # if equals DOC_UV_T1_111721 then, T1, if not then "nothing"
 UVBIO.df$Time.point<- as.factor(ifelse(UVBIO.df$File=="DOC_UV_T1_111721", "T1",
-  ifelse(UVBIO.df$File=="DOC_NoUV_T1_111721", "T1","")))
+  ifelse(UVBIO.df$File=="DOC_NoUV_T1_111721", "T1",
           ifelse(UVBIO.df$File=="DOC_UV_T2_12082021", "T2",
-                ifelse(UVBIO.df$File=="DOC_NoUV_T2_12082021.csv", "T2", "T2")))
+                ifelse(UVBIO.df$File=="DOC_NoUV_T2_12082021.csv", "T2", "T2")))))
+  
 #rearrange
 UVBIO.df<- UVBIO.df %>% 
   select(File, Time.point, Treatment, Filter.Trt, UV.Trt, Tank, plant.mass..g, NPOC..mg.L, TN..mg.L) 
@@ -659,6 +660,7 @@ test_1=subset(UVBIO.df, Time.point=="T1")
 test_3= subset(UVBIO.df, Time.point=="T2")
 
 test_all= cbind(test, test_1)
+
 test_all_2=cbind(test_2, test_3)
 
 
@@ -677,10 +679,10 @@ test_all_2<- test_all_2<-mutate (test_all_2, percent.change.NPOC=(change.NPOC/st
 complete_test=rbind(test_all, test_all_2)
 
 # Filter it out
-Filtered.UV<- complete_test[complete_test$Filter.Trt=="Filtered" & complete_test$UV.Trt=="UV",]
-Filtered.NoUV<- complete_test[(complete_test$Filter.Trt=="Filtered" & complete_test$UV.Trt=="NoUV"),]
-Nofilter.UV<- complete_test[complete_test$Filter.Trt=="Unfiltered" & complete_test$UV.Trt=="UV",]
-Nofilter.NoUV<- complete_test[complete_test$Filter.Trt=="Unfiltered" & complete_test$UV.Trt=="NoUV",]
+Filtered.UV<- complete_test[complete_test$Filter.Trt=="Filtered" & complete_test$UV.Trt=="UV" & complete_test$Time.point=="T2",]
+Filtered.NoUV<- complete_test[(complete_test$Filter.Trt=="Filtered" & complete_test$UV.Trt=="NoUV") & complete_test$Time.point=="T2",]
+Nofilter.UV<- complete_test[complete_test$Filter.Trt=="Unfiltered" & complete_test$UV.Trt=="UV" & complete_test$Time.point=="T2",]
+Nofilter.NoUV<- complete_test[complete_test$Filter.Trt=="Unfiltered" & complete_test$UV.Trt=="NoUV" & complete_test$Time.point=="T2",]
 
 
 # Make some plots 
@@ -698,8 +700,9 @@ Filtered.NoUV.fig<-ggplot(Filtered.NoUV, aes(x=plant.mass..g, y=change.NPOC, col
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(-5, 40)) +
   ggtitle("T2: Filt:NoUV") +
-  ylab(expression(paste(Delta, " NPOC mg/L"))) +
+  ylab(expression(paste("%", Delta, " NPOC mg/L"))) +
   xlab("plant material (g)") +
   Fig.formatting
 
