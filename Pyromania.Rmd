@@ -163,7 +163,7 @@ Fig.formatting<-(theme_classic()) +
 T1.AM1<-ggplot(T1.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T1.dawn1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -174,7 +174,7 @@ T1.AM1<-ggplot(T1.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) +
 T1.PM1<-ggplot(T1.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T1.dusk1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -185,7 +185,7 @@ T1.PM1<-ggplot(T1.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) +
 T1.AM2<-ggplot(T1.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T1.dawn2")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -214,9 +214,10 @@ ggsave("figures/O2.T1.pdf", height=5, width=9)
 NEP.T1<-ggplot(T1.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  coord_cartesian(ylim=c(-25, 50)) +
   xlab("plant material (g)")+
   Fig.formatting
 
@@ -224,9 +225,10 @@ NEP.T1<-ggplot(T1.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
 NER.T1<-ggplot(T1.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  coord_cartesian(ylim=c(-40, 20)) +
   xlab("plant material (g)") +
   Fig.formatting
 
@@ -253,7 +255,7 @@ make figures of the data for timepoint 2
 T2.AM1<-ggplot(T2.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T2.dawn1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -264,7 +266,7 @@ T2.AM1<-ggplot(T2.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) +
 T2.PM1<-ggplot(T2.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T2.dusk1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -275,7 +277,7 @@ T2.PM1<-ggplot(T2.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) +
 T2.AM2<-ggplot(T2.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T2.dawn2")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -301,9 +303,10 @@ ggsave("figures/O2.T2.pdf", height=5, width=9)
 NEP.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  coord_cartesian(ylim=c(-25, 50)) +
   xlab("plant material (g)") +
   Fig.formatting
 
@@ -311,9 +314,10 @@ NEP.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
 NER.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment),alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment),alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  coord_cartesian(ylim=c(-40, 20))+
   xlab("plant material (g)") +
   Fig.formatting
 
@@ -341,7 +345,7 @@ make figures of the data for timepoint 3
 T3.AM1<-ggplot(T3.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T3.dawn1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -352,7 +356,7 @@ T3.AM1<-ggplot(T3.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) +
 T3.PM1<-ggplot(T3.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T3.dusk1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -363,7 +367,7 @@ T3.PM1<-ggplot(T3.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) +
 T3.AM2<-ggplot(T3.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T3.dawn2")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -389,9 +393,10 @@ ggsave("figures/O2.T3.pdf", height=5, width=9)
 NEP.T3<-ggplot(T3.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  coord_cartesian(ylim=c(-25, 50))+
   xlab("plant material (g)") +
   Fig.formatting
 
@@ -399,9 +404,10 @@ NEP.T3<-ggplot(T3.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
 NER.T3<-ggplot(T3.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment),alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment),alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  coord_cartesian(ylim=c(-40, 20))+
   xlab("plant material (g)") +
   Fig.formatting
 
