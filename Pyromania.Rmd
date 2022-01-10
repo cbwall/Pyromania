@@ -625,7 +625,7 @@ UVBIO.df$Tank[UVBIO.df$Tank == "NO UV F1" |
 
 # extract out the file names
 UVBIO.df$File<-gsub('^...........|....$', '', UVBIO.df$File) 
-
+ 
 # add a time point
 # if equals DOC_UV_T1_111721 then, T1, if not then "nothing"
 UVBIO.df$Time.point<- as.factor(ifelse(UVBIO.df$File=="DOC_UV_T1_111721", "T1",
