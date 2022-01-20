@@ -455,7 +455,7 @@ file.names<-file_path_sans_ext(list.files(path="data/DOC.TN", pattern = "csv$", 
 ls() #see all dfs you've made, the above will be df matching their file names
 
 #Combine files from loop to single df
-DOC.df<-rbind(DOC_T0_11052021, DOC_T1_11172021, DOC_T2_12082021)
+DOC.df<-rbind(DOC_T0_11052021, DOC_T1_11172021, DOC_T2_12082021, DOC_T3_01072022)
 
 DOC.df$File<-substr(DOC.df$File, 13, 27) #give the 10th-24th character of the file name, removing the rest
 #alternatively
@@ -465,8 +465,9 @@ DOC.df$File<-substr(DOC.df$File, 13, 27) #give the 10th-24th character of the fi
 
 # if equals DOC_T0_11052021 then, T0, if not then T1
 DOC.df$Time.point<- as.factor(ifelse(DOC.df$File=="DOC_T0_11052021", "T0", 
-                              ifelse(DOC.df$File=="DOC_T1_11172021", "T1", 
-                                     "T2")))
+                              ifelse(DOC.df$File=="DOC_T1_11172021", "T1",
+                                     ifelse(DOC.df$File=="DOC_T2_12082021", "T2", 
+                                     "T3"))))
   
 #rearrange
 DOC.df<- DOC.df %>% 
@@ -506,12 +507,24 @@ NPOC.T2<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=plant.mass..g, y=NPOC.
   xlab("plant material (g)") +
   Fig.formatting
 
+  
+NPOC.T3<-ggplot(DOC.df[(DOC.df$Time.point=="T3"),], aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-3") +
+  ylab("NPOC (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
 NPOC.plots<-plot_grid(
   NPOC.T0+ theme(legend.position = "none"),
   NPOC.T1+ theme(legend.position = "none"),
   NPOC.T2+ theme(legend.position = "none"),
+  NPOC.T3+ theme(legend.position = "none"),
   extract.legend, 
-  rel_widths = c(8,8,8,3), ncol=4)
+  rel_widths = c(8,8,8,8,3), ncol=5)
 
 
 NPOC.plots
