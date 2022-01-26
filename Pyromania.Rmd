@@ -646,6 +646,7 @@ ls() #see all dfs you've made, the above will be df matching their file names
 
 #Combine files from loop to single df
 UVBIO.df<-rbind(DOC_NoUV_T1_111721, DOC_UV_T1_111721, DOC_NoUV_T2_120821, DOC_UV_T2_120821)
+
 # make new factors for filtered (F/NF) and UV (+/-)
 # ** caution! Make sure this matches sheet layout after the loop!
 
@@ -863,7 +864,7 @@ change.Filt.UV.fig<-ggplot(Filt.UV, aes(x=plant.mass..g, y=change.NPOC, color=Tr
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("Filt:UV") +
-  ylab(expression(paste(delta, "NPOC mg/L"))) +
+  ylab(expression(paste(Delta, "NPOC mg/L"))) +
   xlab("plant material (g)") 
 
 # filtered NoUV plot
@@ -873,7 +874,7 @@ change.F.NoUV.fig<-ggplot(Filt.NoUV, aes(x=plant.mass..g, y=change.NPOC, color=T
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("Filt:NoUV") +
-  ylab(expression(paste(delta, "NPOC mg/L"))) +
+  ylab(expression(paste(Delta, "NPOC mg/L"))) +
   xlab("plant material (g)") 
 
 
@@ -884,7 +885,7 @@ change.NFilt.UV.fig<-ggplot(NFilt.UV, aes(x=plant.mass..g, y=change.NPOC, color=
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("NoFilt:UV") +
-  ylab(expression(paste(delta, "NPOC mg/L"))) +
+  ylab(expression(paste(Delta, "NPOC mg/L"))) +
   xlab("plant material (g)") 
 
 
@@ -895,7 +896,7 @@ change.NFilt.NoUV.fig<-ggplot(NFilt.NoUV, aes(x=plant.mass..g, y=change.NPOC, co
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("NoFilt:NoUV") +
-  ylab(expression(paste(delta, "NPOC mg/L"))) +
+  ylab(expression(paste(Delta, "NPOC mg/L"))) +
   xlab("plant material (g)") 
 
 ##### combine
@@ -909,6 +910,237 @@ change.UVBio.DOC<-plot_grid(
 
 change.UVBio.DOC
 ggsave("figures/change.UVBio.DOC.pdf", height=5, width=15)
+
+################## plots for % change in DOC over incubation period
+
+# filtered UV plot
+percent.change.Filt.UV.fig<-ggplot(Filt.UV, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
+  geom_point() +
+   facet_grid(.~ Time.point) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Filt:UV") +
+  ylab(expression(paste("%", Delta, "NPOC mg/L"))) +
+  xlab("plant material (g)") 
+
+# filtered NoUV plot
+percent.change.F.NoUV.fig<-ggplot(Filt.NoUV, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
+  geom_point() +
+   facet_grid(.~ Time.point) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Filt:NoUV") +
+  ylab(expression(paste("%", Delta, "NPOC mg/L"))) +
+  xlab("plant material (g)") 
+
+
+# nofiltered UV plot
+percent.change.NFilt.UV.fig<-ggplot(NFilt.UV, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) + 
+  geom_point() +
+   facet_grid(.~ Time.point) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("NoFilt:UV") +
+  ylab(expression(paste("%", Delta, "NPOC mg/L"))) +
+  xlab("plant material (g)") 
+
+
+# nofiltered NoUV plot
+percent.change.NFilt.NoUV.fig<-ggplot(NFilt.NoUV, aes(x=plant.mass..g, y=percent.change.NPOC, color=Treatment)) +
+  geom_point() +
+  facet_wrap(.~ Time.point) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("NoFilt:NoUV") +
+  ylab(expression(paste("%", Delta, "NPOC mg/L"))) +
+  xlab("plant material (g)") 
+
+##### combine
+percent.change.UVBio.DOC<-plot_grid(
+  percent.change.Filt.UV.fig + theme(legend.position = "none"),
+  percent.change.F.NoUV.fig + theme(legend.position = "none"),
+  percent.change.NFilt.UV.fig + theme(legend.position = "none"),
+  percent.change.NFilt.NoUV.fig + theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,8,8,3), ncol=5)
+
+percent.change.UVBio.DOC
+ggsave("figures/percent.change.UVBio.DOC.pdf", height=4, width=15)
+
+```
+
+
+change in TN over incubation period
+```{r}
+
+################## plots for TN concentration over incubation period
+
+# filtered UV plot
+TN.Filt.UV.fig<-ggplot(Filt.UV, aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) + 
+  geom_point() +
+   facet_grid(.~ Time.point) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Filt:UV") +
+  ylab(expression(paste("TN mg/L"))) +
+  xlab("plant material (g)") 
+
+# filtered NoUV plot
+TN.F.NoUV.fig<-ggplot(Filt.NoUV, aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) + 
+  geom_point() +
+   facet_grid(.~ Time.point) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Filt:NoUV") +
+  ylab(expression(paste("TN mg/L"))) +
+  xlab("plant material (g)") 
+
+
+# nofiltered UV plot
+TN.NFilt.UV.fig<-ggplot(NFilt.UV, aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) + 
+  geom_point() +
+   facet_grid(.~ Time.point) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("NoFilt:UV") +
+  ylab(expression(paste("TN mg/L"))) +
+  xlab("plant material (g)") 
+
+
+# nofiltered NoUV plot
+TN.NFilt.NoUV.fig<-ggplot(NFilt.NoUV, aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
+  geom_point() +
+  facet_wrap(.~ Time.point) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("NoFilt:NoUV") +
+  ylab(expression(paste("TN mg/L"))) +
+  xlab("plant material (g)") 
+
+##### combine
+TN.UVBio<-plot_grid(
+  TN.Filt.UV.fig + theme(legend.position = "none"),
+  TN.F.NoUV.fig + theme(legend.position = "none"),
+  TN.NFilt.UV.fig + theme(legend.position = "none"),
+  TN.NFilt.NoUV.fig + theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,8,8,3), ncol=5)
+
+TN.UVBio
+ggsave("figures/TN.UVBio.pdf", height=4, width=15)
+
+################## plots for change in TN over incubation period
+
+# filtered UV plot
+change.TN.Filt.UV.fig<-ggplot(Filt.UV, aes(x=plant.mass..g, y=change.TN, color=Treatment)) + 
+  geom_point() +
+   facet_grid(.~ Time.point) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Filt:UV") +
+  ylab(expression(paste(Delta, "TN mg/L"))) +
+  xlab("plant material (g)") 
+
+# filtered NoUV plot
+change.TN.F.NoUV.fig<-ggplot(Filt.NoUV, aes(x=plant.mass..g, y=change.TN, color=Treatment)) + 
+  geom_point() +
+   facet_grid(.~ Time.point) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Filt:NoUV") +
+  ylab(expression(paste(Delta, "TN mg/L"))) +
+  xlab("plant material (g)") 
+
+
+# nofiltered UV plot
+change.TN.NFilt.UV.fig<-ggplot(NFilt.UV, aes(x=plant.mass..g, y=change.TN, color=Treatment)) + 
+  geom_point() +
+   facet_grid(.~ Time.point) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("NoFilt:UV") +
+  ylab(expression(paste(Delta, "TN mg/L"))) +
+  xlab("plant material (g)") 
+
+
+# nofiltered NoUV plot
+change.TN.NFilt.NoUV.fig<-ggplot(NFilt.NoUV, aes(x=plant.mass..g, y=change.TN, color=Treatment)) +
+  geom_point() +
+  facet_wrap(.~ Time.point) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("NoFilt:NoUV") +
+  ylab(expression(paste(Delta, "TN mg/L"))) +
+  xlab("plant material (g)") 
+
+##### combine
+change.TN.UVBio<-plot_grid(
+  change.TN.Filt.UV.fig + theme(legend.position = "none"),
+  change.TN.F.NoUV.fig + theme(legend.position = "none"),
+  change.TN.NFilt.UV.fig + theme(legend.position = "none"),
+  change.TN.NFilt.NoUV.fig + theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,8,8,3), ncol=5)
+
+change.TN.UVBio
+ggsave("figures/change.TN.UVBio.pdf", height=4, width=15)
+
+################## plots for % change in TN over incubation period
+
+# filtered UV plot
+percent.change.TN.Filt.UV.fig<-ggplot(Filt.UV, aes(x=plant.mass..g, y=percent.change.TN, color=Treatment)) + 
+  geom_point() +
+   facet_grid(.~ Time.point) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Filt:UV") +
+  ylab(expression(paste("%", Delta, "TN mg/L"))) +
+  xlab("plant material (g)") 
+
+# filtered NoUV plot
+percent.change.TN.F.NoUV.fig<-ggplot(Filt.NoUV, aes(x=plant.mass..g, y=percent.change.TN, color=Treatment)) + 
+  geom_point() +
+   facet_grid(.~ Time.point) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Filt:NoUV") +
+  ylab(expression(paste("%", Delta, "TN mg/L"))) +
+  xlab("plant material (g)") 
+
+
+# nofiltered UV plot
+percent.change.TN.NFilt.UV.fig<-ggplot(NFilt.UV, aes(x=plant.mass..g, y=percent.change.TN, color=Treatment)) + 
+  geom_point() +
+   facet_grid(.~ Time.point) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("NoFilt:UV") +
+  ylab(expression(paste("%", Delta, "TN mg/L"))) +
+  xlab("plant material (g)") 
+
+
+# nofiltered NoUV plot
+percent.change.TN.NFilt.NoUV.fig<-ggplot(NFilt.NoUV, aes(x=plant.mass..g, y=percent.change.TN, color=Treatment)) +
+  geom_point() +
+  facet_wrap(.~ Time.point) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("NoFilt:NoUV") +
+  ylab(expression(paste("%", Delta, "TN mg/L"))) +
+  xlab("plant material (g)") 
+
+##### combine
+percent.change.TN.UVBio<-plot_grid(
+  percent.change.TN.Filt.UV.fig + theme(legend.position = "none"),
+  percent.change.TN.F.NoUV.fig + theme(legend.position = "none"),
+  percent.change.TN.NFilt.UV.fig + theme(legend.position = "none"),
+  percent.change.TN.NFilt.NoUV.fig + theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,8,8,3), ncol=5)
+
+percent.change.TN.UVBio
+ggsave("figures/percent.change.TN.UVBio.pdf", height=4, width=15)
+
 
 ```
 
