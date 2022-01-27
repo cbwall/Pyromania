@@ -415,8 +415,67 @@ ggsave("figures/O2.change.T3.pdf", height=5, width=8)
 
 
 ```
+  
+  
+###Chlorophyll  
+import 
+```{r}
+## import treatment IDs
+chl.dat<- read.csv("data/Pyro_chlorophyll.csv")  
+chl.dat<-chl.dat[!(chl.dat$Time.point=="First.round"),] # remove first round from aborted mission
 
 
+#plot
+
+chla.T0<-ggplot(chl.dat[(chl.dat$Time.point=="T0"),], aes(x=plant.mass..g, y=chla..ug.L, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 20)) +
+  ggtitle("Time-0") +
+  ylab("chlorophyll (ug/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+chla.T1<-ggplot(chl.dat[(chl.dat$Time.point=="T1"),], aes(x=plant.mass..g, y=chla..ug.L, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 20)) +
+  ggtitle("Time-1") +
+  ylab("chlorophyll (ug/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+chla.T2<-ggplot(chl.dat[(chl.dat$Time.point=="T2"),], aes(x=plant.mass..g, y=chla..ug.L, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 20)) +
+  ggtitle("Time-2") +
+  ylab("chlorophyll (ug/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+chl.plots<-plot_grid(
+  chla.T0+ theme(legend.position = "none"),
+  chla.T1+ theme(legend.position = "none"),
+  chla.T2+ theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,8,3), ncol=5)
+
+
+chl.plots
+
+ggsave("figures/chla.plots.pdf", height=5, width=10)
+
+
+
+```
+  
+  
 ###DOC  
 import and do a loop to clean up all files and make stacked data in single df
 ```{r}
@@ -549,13 +608,6 @@ TN.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=TN..mg.
   xlab("plant material (g)") +
   Fig.formatting
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-
-=======
->>>>>>> 09c4b3b9988b8f155f0f7b0939fecee2c3847c2c
->>>>>>> main
 TN.T2<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
@@ -583,31 +635,10 @@ TN.plots<-plot_grid(
   TN.T3+ theme(legend.position = "none"),
   extract.legend, 
   rel_widths = c(8,8,8,8,3), ncol=5)
-<<<<<<< HEAD
 
 ggsave("figures/TN.pdf", height=5, width=15)
-=======
-
-<<<<<<< HEAD
-TN.plots
-
-ggsave("figures/TN.pdf", height=4, width=9)
-=======
-ggsave("figures/TN.pdf", height=5, width=15)
->>>>>>> 09c4b3b9988b8f155f0f7b0939fecee2c3847c2c
->>>>>>> main
 
 ```
-
-```{r}
-
-mean(DOC_T2_12082021$TN..mg.L)
-
-
-
-
-```
-
 
 
 ### UV/BIO DOC
