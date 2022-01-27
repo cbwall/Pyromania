@@ -442,7 +442,7 @@ chla.T1<-ggplot(chl.dat[(chl.dat$Time.point=="T1"),], aes(x=plant.mass..g, y=chl
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 20)) +
+  coord_cartesian(ylim=c(0, 10)) +
   ggtitle("Time-1") +
   ylab("chlorophyll (ug/L)") +
   xlab("plant material (g)") +
@@ -470,6 +470,57 @@ chl.plots<-plot_grid(
 chl.plots
 
 ggsave("figures/chla.plots.pdf", height=5, width=10)
+
+
+
+
+#remove outlier
+chl.out.rem<-chl.dat[!(chl.dat$chla..ug.L>=10),]
+
+
+chla.T0<-ggplot(chl.out.rem[(chl.out.rem$Time.point=="T0"),], aes(x=plant.mass..g, y=chla..ug.L, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 20)) +
+  ggtitle("Time-0") +
+  ylab("chlorophyll (ug/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+chla.T1<-ggplot(chl.out.rem[(chl.out.rem$Time.point=="T1"),], aes(x=plant.mass..g, y=chla..ug.L, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 10)) +
+  ggtitle("Time-1") +
+  ylab("chlorophyll (ug/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+chla.T2<-ggplot(chl.out.rem[(chl.out.rem$Time.point=="T2"),], aes(x=plant.mass..g, y=chla..ug.L, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 5)) +
+  ggtitle("Time-2") +
+  ylab("chlorophyll (ug/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+chl.plots<-plot_grid(
+  chla.T0+ theme(legend.position = "none"),
+  chla.T1+ theme(legend.position = "none"),
+  chla.T2+ theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,8,3), ncol=5)
+
+
+chl.plots
+
+ggsave("figures/chla.plots2.pdf", height=5, width=10)
 
 
 
