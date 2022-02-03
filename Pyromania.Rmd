@@ -189,7 +189,7 @@ Fig.formatting<-(theme_classic()) +
 T1.AM1<-ggplot(T1.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T1.dawn1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -200,7 +200,7 @@ T1.AM1<-ggplot(T1.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) +
 T1.PM1<-ggplot(T1.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T1.dusk1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -211,7 +211,7 @@ T1.PM1<-ggplot(T1.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) +
 T1.AM2<-ggplot(T1.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T1.dawn2")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -280,7 +280,7 @@ make figures of the data for timepoint 2
 T2.AM1<-ggplot(T2.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T2.dawn1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -291,7 +291,7 @@ T2.AM1<-ggplot(T2.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) +
 T2.PM1<-ggplot(T2.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T2.dusk1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -302,7 +302,7 @@ T2.PM1<-ggplot(T2.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) +
 T2.AM2<-ggplot(T2.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T2.dawn2")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -369,7 +369,7 @@ make figures of the data for timepoint 3
 T3.AM1<-ggplot(T3.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T3.dawn1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -380,7 +380,7 @@ T3.AM1<-ggplot(T3.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) +
 T3.PM1<-ggplot(T3.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T3.dusk1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -391,7 +391,7 @@ T3.PM1<-ggplot(T3.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) +
 T3.AM2<-ggplot(T3.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T3.dawn2")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -458,7 +458,7 @@ make figures of the data for timepoint 4
 T4.AM1<-ggplot(T4.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T4.dawn1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -469,7 +469,7 @@ T4.AM1<-ggplot(T4.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) +
 T4.PM1<-ggplot(T4.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T4.dusk1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -480,7 +480,7 @@ T4.PM1<-ggplot(T4.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) +
 T4.AM2<-ggplot(T4.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T4.dawn2")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -586,19 +586,30 @@ chla.T3<-ggplot(chl.dat[(chl.dat$Time.point=="T3"),], aes(x=plant.mass..g, y=chl
   xlab("plant material (g)") +
   Fig.formatting
 
+chla.T4<-ggplot(chl.dat[(chl.dat$Time.point=="T4"),], aes(x=plant.mass..g, y=chla..ug.L, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 20)) +
+  ggtitle("Time-4") +
+  ylab("chlorophyll (ug/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
 
 chl.plots<-plot_grid(
   chla.T0+ theme(legend.position = "none"),
   chla.T1+ theme(legend.position = "none"),
   chla.T2+ theme(legend.position = "none"),
   chla.T3+ theme(legend.position = "none"),
+  chla.T4+ theme(legend.position = "none"),
   extract.legend, 
-  rel_widths = c(8,8,8,8,3), ncol=5)
+  rel_widths = c(8,8,8,8,8,3), ncol=6)
 
 
 chl.plots
 
-ggsave("figures/chla.plots.pdf", height=5, width=10)
+ggsave("figures/chla.plots.pdf", height=5, width=12)
 
 
 
@@ -648,19 +659,30 @@ chla.T3<-ggplot(chl.out.rem[(chl.out.rem$Time.point=="T3"),], aes(x=plant.mass..
   xlab("plant material (g)") +
   Fig.formatting
 
+chla.T4<-ggplot(chl.out.rem[(chl.out.rem$Time.point=="T4"),], aes(x=plant.mass..g, y=chla..ug.L, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 8)) +
+  ggtitle("Time-4") +
+  ylab("chlorophyll (ug/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
 
 chl.plots<-plot_grid(
   chla.T0+ theme(legend.position = "none"),
   chla.T1+ theme(legend.position = "none"),
   chla.T2+ theme(legend.position = "none"),
   chla.T3+ theme(legend.position = "none"),
+  chla.T4+ theme(legend.position = "none"),
   extract.legend, 
-  rel_widths = c(8,8,8,8,3), ncol=5)
+  rel_widths = c(8,8,8,8,8,3), ncol=6)
 
 
 chl.plots
 
-ggsave("figures/chla.plots2.pdf", height=5, width=10)
+ggsave("figures/chla.plots2.pdf", height=5, width=12)
 
 
 
