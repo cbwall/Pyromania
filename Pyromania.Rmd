@@ -125,11 +125,37 @@ T3.O2<- mutate(T3.O2,
 T3.O2<-T3.O2 %>% 
   arrange(Treatment, plant.mass..g) 
 
+################ ################ ################
+####### Time 3 change in O2 ################
+
+#separate time points
+YSI.T4<- YSI[(YSI$Time.point=="T4"),]
+
+#calculate NEP for T4
+T4.Prod<-YSI.T4[(YSI.T4$Date == "2022-02-02"),] # dawn and dusk for 12h period
+T4.Dawn1<-T4.Prod[(T4.Prod$Dawn..Dusk == "dawn"),] # dawn-1 measurements
+T4.Dusk<-T4.Prod[(T4.Prod$Dawn..Dusk == "dusk"),] # dusk measurements
+
+T4.Dawn2<-YSI.T4[(YSI.T4$Date == "2022-02-03"),] # dawn-2 measurements, following AM
+
+# make new dataframe
+T4.O2<-(T4.Dawn1[,c(2,4:6)]) 
+T4.O2$dawn1<-T4.Dawn1$DO.percent
+T4.O2$dusk1<-T4.Dusk$DO.percent
+T4.O2$dawn2<-T4.Dawn2$DO.percent
+
+T4.O2<- mutate(T4.O2, 
+                NEP=dusk1 - dawn1,
+                NER=dawn2 - dusk1) 
+
+#sort
+T4.O2<-T4.O2 %>% 
+  arrange(Treatment, plant.mass..g) 
 
 ################ ################ ################
-# combine T1  T2 and T3 timepoints
+# combine T1  T2  T3 T4 timepoints
 ################ ################ ################
-O2.tanks<-rbind(T1.O2,T2.O2, T3.O2)
+O2.tanks<-rbind(T1.O2,T2.O2, T3.O2, T4.O2)
 ```
   
 TIME POINT 1: Change in O2% and NEP and NER --   
@@ -214,7 +240,7 @@ ggsave("figures/O2.T1.pdf", height=5, width=9)
 NEP.T1<-ggplot(T1.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
   xlab("plant material (g)")+
@@ -224,8 +250,9 @@ NEP.T1<-ggplot(T1.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
 NER.T1<-ggplot(T1.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  coord_cartesian(ylim=c(-40, 10)) +
   ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
   xlab("plant material (g)") +
   Fig.formatting
@@ -301,7 +328,7 @@ ggsave("figures/O2.T2.pdf", height=5, width=9)
 NEP.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
   xlab("plant material (g)") +
@@ -311,8 +338,9 @@ NEP.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
 NER.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment),alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment),alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  coord_cartesian(ylim=c(-40, 10)) +
   ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
   xlab("plant material (g)") +
   Fig.formatting
@@ -389,7 +417,7 @@ ggsave("figures/O2.T3.pdf", height=5, width=9)
 NEP.T3<-ggplot(T3.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
   xlab("plant material (g)") +
@@ -399,8 +427,9 @@ NEP.T3<-ggplot(T3.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
 NER.T3<-ggplot(T3.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lm, aes(fill=Treatment),alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment),alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  coord_cartesian(ylim=c(-40, 10)) +
   ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
   xlab("plant material (g)") +
   Fig.formatting
@@ -412,6 +441,95 @@ O2.change.T3<-plot_grid(
   rel_widths = c(8,8,3), ncol=3)
 
 ggsave("figures/O2.change.T3.pdf", height=5, width=8)
+
+
+```
+  
+TIME POINT 4: Change in O2% and NEP and NER --
+make figures of the data for timepoint 4
+```{r}
+############################################################
+##############################################################################
+#############################################################################################
+###################
+
+# total oxygen % plot for the 3 time points (dawn-dusk-dawn)
+
+T4.AM1<-ggplot(T4.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T4.dawn1")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T4.PM1<-ggplot(T4.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T4.dusk1")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T4.AM2<-ggplot(T4.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=lm, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T4.dawn2")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+O2.T4<-plot_grid(
+  T4.AM1+ theme(legend.position = "none"), 
+  T4.PM1+ theme(legend.position = "none"),
+  T4.AM2+ theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,8,3), ncol=4)
+
+ggsave("figures/O2.T4.pdf", height=5, width=9)
+
+
+############################################################
+##############################################################################################
+# net ecosystem production and respiration
+
+#Time 4 NEP
+NEP.T4<-ggplot(T4.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+#Time 4 NER
+NER.T4<-ggplot(T4.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment),alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  coord_cartesian(ylim=c(-40, 10)) +
+  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+O2.change.T4<-plot_grid(
+  NEP.T4+ theme(legend.position = "none") + ggtitle("Time 4"),
+  NER.T4+ theme(legend.position = "none") + ggtitle(""),
+  extract.legend, 
+  rel_widths = c(8,8,3), ncol=3)
+
+ggsave("figures/O2.change.T4.pdf", height=5, width=8)
 
 
 ```
