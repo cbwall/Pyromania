@@ -189,7 +189,7 @@ Fig.formatting<-(theme_classic()) +
 T1.AM1<-ggplot(T1.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T1.dawn1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -200,7 +200,7 @@ T1.AM1<-ggplot(T1.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) +
 T1.PM1<-ggplot(T1.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T1.dusk1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -211,7 +211,7 @@ T1.PM1<-ggplot(T1.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) +
 T1.AM2<-ggplot(T1.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T1.dawn2")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -243,6 +243,7 @@ NEP.T1<-ggplot(T1.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  coord_cartesian(ylim=c(-20, 50)) +
   xlab("plant material (g)")+
   Fig.formatting
 
@@ -280,7 +281,7 @@ make figures of the data for timepoint 2
 T2.AM1<-ggplot(T2.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T2.dawn1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -291,7 +292,7 @@ T2.AM1<-ggplot(T2.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) +
 T2.PM1<-ggplot(T2.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T2.dusk1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -302,7 +303,7 @@ T2.PM1<-ggplot(T2.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) +
 T2.AM2<-ggplot(T2.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T2.dawn2")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -330,6 +331,7 @@ NEP.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  coord_cartesian(ylim=c(-20, 50)) +
   ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
   xlab("plant material (g)") +
   Fig.formatting
@@ -369,7 +371,7 @@ make figures of the data for timepoint 3
 T3.AM1<-ggplot(T3.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T3.dawn1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -380,7 +382,7 @@ T3.AM1<-ggplot(T3.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) +
 T3.PM1<-ggplot(T3.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T3.dusk1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -391,7 +393,7 @@ T3.PM1<-ggplot(T3.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) +
 T3.AM2<-ggplot(T3.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T3.dawn2")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -419,6 +421,7 @@ NEP.T3<-ggplot(T3.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  coord_cartesian(ylim=c(-20, 50)) +
   ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
   xlab("plant material (g)") +
   Fig.formatting
@@ -458,7 +461,7 @@ make figures of the data for timepoint 4
 T4.AM1<-ggplot(T4.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T4.dawn1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -469,7 +472,7 @@ T4.AM1<-ggplot(T4.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) +
 T4.PM1<-ggplot(T4.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T4.dusk1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -480,7 +483,7 @@ T4.PM1<-ggplot(T4.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) +
 T4.AM2<-ggplot(T4.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=lowess, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T4.dawn2")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -508,6 +511,7 @@ NEP.T4<-ggplot(T4.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  coord_cartesian(ylim=c(-20, 50)) +
   ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
   xlab("plant material (g)") +
   Fig.formatting
@@ -530,6 +534,29 @@ O2.change.T4<-plot_grid(
   rel_widths = c(8,8,3), ncol=3)
 
 ggsave("figures/O2.change.T4.pdf", height=5, width=8)
+
+########## ########## ########## ########## ########## 
+########## compile all figs
+
+##### All dawn-dusk-dawn measurements
+O2change.alltimes<-plot_grid(
+  O2.T1,
+  O2.T2,
+  O2.T3,
+  O2.T4, ncol=1)
+
+ggsave("figures/O2change.alltimes.pdf", height=12, width=10)
+
+
+##### All photosynthesis and respiration
+
+PnR.alltimes<-plot_grid(
+  O2.change.T1,
+  O2.change.T2,
+  O2.change.T3,
+  O2.change.T4, ncol=1)
+
+ggsave("figures/PnR.alltimes.pdf", height=12, width=8)
 
 
 ```
@@ -622,7 +649,7 @@ chla.T0<-ggplot(chl.out.rem[(chl.out.rem$Time.point=="T0"),], aes(x=plant.mass..
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 20)) +
+  coord_cartesian(ylim=c(0, 12)) +
   ggtitle("Time-0") +
   ylab("chlorophyll (ug/L)") +
   xlab("plant material (g)") +
@@ -633,7 +660,7 @@ chla.T1<-ggplot(chl.out.rem[(chl.out.rem$Time.point=="T1"),], aes(x=plant.mass..
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 8)) +
+  coord_cartesian(ylim=c(0, 12)) +
   ggtitle("Time-1") +
   ylab("chlorophyll (ug/L)") +
   xlab("plant material (g)") +
@@ -643,7 +670,7 @@ chla.T2<-ggplot(chl.out.rem[(chl.out.rem$Time.point=="T2"),], aes(x=plant.mass..
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 8)) +
+  coord_cartesian(ylim=c(0, 12)) +
   ggtitle("Time-2") +
   ylab("chlorophyll (ug/L)") +
   xlab("plant material (g)") +
@@ -653,7 +680,7 @@ chla.T3<-ggplot(chl.out.rem[(chl.out.rem$Time.point=="T3"),], aes(x=plant.mass..
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 8)) +
+  coord_cartesian(ylim=c(0, 12)) +
   ggtitle("Time-3") +
   ylab("chlorophyll (ug/L)") +
   xlab("plant material (g)") +
@@ -663,7 +690,7 @@ chla.T4<-ggplot(chl.out.rem[(chl.out.rem$Time.point=="T4"),], aes(x=plant.mass..
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 8)) +
+  coord_cartesian(ylim=c(0, 12)) +
   ggtitle("Time-4") +
   ylab("chlorophyll (ug/L)") +
   xlab("plant material (g)") +
