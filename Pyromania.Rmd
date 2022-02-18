@@ -728,14 +728,15 @@ Total.DOC.files
 
 ##### what are the file names, sans extensions using package 'tools'
 file.names<-file_path_sans_ext(list.files(path="data/DOC.TN", pattern = "csv$", full.names = F))
-
+file.names
 ############ formatting all data in for loop
   for(i in 1:length(Total.DOC.files))
     {
   data<-read.csv(Total.DOC.files[i], sep=",")
-  data<-data[,c(1,3,5)] # removed columns we don't need
+  data<-data[,c(1,3,4)] # removed columns we don't need
   data$File<-Total.DOC.files[i]
-  colnames(data)<-c("Tank", "NPOC..mg.L", "TN..mg.L", "File")
+  colnames(data)<-c("Tank", "DOC..mg.L", "TN..mg.L", "File")
+  data$Tank<- IDs$Tank
   data$Tank<-as.numeric(as.character(data$Tank)) # make the column of samples all numeric
   data <- data[!is.na(as.numeric(as.character(data$Tank))),] # remove all rows that aren't numeric/tanks
   data$Treatment<-IDs$Treatment
@@ -748,7 +749,7 @@ file.names<-file_path_sans_ext(list.files(path="data/DOC.TN", pattern = "csv$", 
 ls() #see all dfs you've made, the above will be df matching their file names
 
 #Combine files from loop to single df
-DOC.df<-rbind(DOC_T0_11052021, DOC_T1_11172021, DOC_T2_12082021, DOC_T3_01072022)
+DOC.df<-rbind(DOC_T0, DOC_T1, DOC_T2, DOC_T3, DOC_T4)
 
 DOC.df$File<-substr(DOC.df$File, 13, 27) #give the 10th-24th character of the file name, removing the rest
 #alternatively
@@ -757,72 +758,83 @@ DOC.df$File<-substr(DOC.df$File, 13, 27) #give the 10th-24th character of the fi
 #DOC.df$File<-gsub('^.........|....$', '', DOC.df$File) 
 
 # if equals DOC_T0_11052021 then, T0, if not then T1
-DOC.df$Time.point<- as.factor(ifelse(DOC.df$File=="DOC_T0_11052021", "T0", 
-                              ifelse(DOC.df$File=="DOC_T1_11172021", "T1",
-                                     ifelse(DOC.df$File=="DOC_T2_12082021", "T2", 
-                                     "T3"))))
-  
+DOC.df$Time.point<- as.factor(ifelse(DOC.df$File=="DOC_T0.csv", "T0",
+         ifelse (DOC.df$File=="DOC_T1.csv", "T1",
+           ifelse (DOC.df$File=="DOC_T2.csv", "T2", 
+                   ifelse(DOC.df$File=="DOC_T3.csv", "T3", "T4")))))
+
 #rearrange
 DOC.df<- DOC.df %>% 
-  select(File, Time.point, Treatment, Tank, plant.mass..g, NPOC..mg.L, TN..mg.L) 
+  select(File, Time.point, Treatment, Tank, plant.mass..g, DOC..mg.L, TN..mg.L) 
 
 ```
 
 DOC plots
 ```{r}
-NPOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) +
+DOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 60)) +
   ggtitle("Time-0") +
-  ylab("NPOC (mg/L)") +
+  ylab("DOC (mg/L)") +
   xlab("plant material (g)") +
   Fig.formatting
 
-NPOC.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) + 
+DOC.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 60)) +
   ggtitle("Time-1") +
-  ylab("NPOC (mg/L)") +
+  ylab("DOC (mg/L)") +
   xlab("plant material (g)") +
   Fig.formatting
   
-NPOC.T2<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) + 
+DOC.T2<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 60)) +
   ggtitle("Time-2") +
-  ylab("NPOC (mg/L)") +
+  ylab("DOC (mg/L)") +
   xlab("plant material (g)") +
   Fig.formatting
 
   
-NPOC.T3<-ggplot(DOC.df[(DOC.df$Time.point=="T3"),], aes(x=plant.mass..g, y=NPOC..mg.L, color=Treatment)) + 
+DOC.T3<-ggplot(DOC.df[(DOC.df$Time.point=="T3"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 60)) +
   ggtitle("Time-3") +
-  ylab("NPOC (mg/L)") +
+  ylab("DOC (mg/L)") +
   xlab("plant material (g)") +
   Fig.formatting
 
-NPOC.plots<-plot_grid(
-  NPOC.T0+ theme(legend.position = "none"),
-  NPOC.T1+ theme(legend.position = "none"),
-  NPOC.T2+ theme(legend.position = "none"),
-  NPOC.T3+ theme(legend.position = "none"),
+DOC.T4<-ggplot(DOC.df[(DOC.df$Time.point=="T4"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-4") +
+  ylab("DOC (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+DOC.plots<-plot_grid(
+  DOC.T0+ theme(legend.position = "none"),
+  DOC.T1+ theme(legend.position = "none"),
+  DOC.T2+ theme(legend.position = "none"),
+  DOC.T3+ theme(legend.position = "none"),
+  DOC.T4+ theme(legend.position = "none"),
   extract.legend, 
-  rel_widths = c(8,8,8,8,3), ncol=5)
+  rel_widths = c(8,8,8,8, 8, 3), ncol=6)
 
 
-NPOC.plots
+DOC.plots
 
-ggsave("figures/NPOC.pdf", height=5, width=12)
+ggsave("figures/DOC.pdf", height=5, width=12)
 
 ```
 
@@ -897,11 +909,10 @@ file.names
 ############ formatting all data in for loop
   for(i in 1:length(UVBio.files))
     {
-  data<-read.csv(UVBio.files[i], sep=",", skip=12) #skip 13 rows where standards are
-  data<-data[,c(1,3,5,7, 9)] # removed columns we don't need
+  data<-read.csv(UVBio.files[i], sep=",") #skip 13 rows where standards are
+  data<-data[,c(1,3,4)] # removed columns we don't need
   data$File<-UVBio.files[i]
-  colnames(data)<-c("Tank", "NPOC..mg.L", "TN..mg.L", "Start.NPOC", "Start.TN", "File")
-  data<-subset(data, Tank!="DI" & Tank!="UP") # remove the standards within sample run
+  colnames(data)<-c("Tank", "DOC..mg.L", "TN..mg.L", "File") 
   data$Tank<-as.character(data$Tank)
   data$Treatment<-IDs$Treatment # add treatment info
   data$plant.mass..g<-IDs$plant.mass..g # add plant biomass info
@@ -916,7 +927,7 @@ ls() #see all dfs you've made, the above will be df matching their file names
 
 
 #Combine files from loop to single df
-UVBIO.df<-rbind(DOC_NoUV_T1_111721, DOC_UV_T1_111721, DOC_NoUV_T2_120821, DOC_UV_T2_120821)
+UVBIO.df<-rbind(DOC_NoUV_T1, DOC_UV_T1, DOC_NoUV_T2, DOC_UV_T2, DOC_NoUV_T3, DOC_UV_T3)
 
 # make new factors for filtered (F/NF) and UV (+/-)
 # ** caution! Make sure this matches sheet layout after the loop!
@@ -928,21 +939,32 @@ UVBIO.df$UV.Trt<-rep(c("NoUV", "UV"), each=60) # repeat 60 times
 UVBIO.df$Tank[UVBIO.df$Tank == "NO UV F1" | 
                 UVBIO.df$Tank == "NO UV NF1" |
                 UVBIO.df$Tank == "UV F1" |
+                UVBIO.df$Tank == "1NoUVF" |
+                UVBIO.df$Tank == "1NoUVNF" |
                 UVBIO.df$Tank == "UV NF1"] <- "1"
 
 # extract out the file names
 UVBIO.df$File<-gsub('^...........|....$', '', UVBIO.df$File) 
+UVBIO.df$DOC..mg.L<-gsub("NPOC:","", UVBIO.df$DOC..mg.L)
+UVBIO.df$DOC..mg.L<- gsub("mg/L", "", UVBIO.df$DOC..mg.L)
+UVBIO.df$TN..mg.L<-gsub("TN:","", UVBIO.df$TN..mg.L)
+UVBIO.df$TN..mg.L<- gsub("mg/L", "", UVBIO.df$TN..mg.L)
+
+#convert DOC and TN to numeric
+UVBIO.df$DOC..mg.L<-as.numeric(as.character(UVBIO.df$DOC..mg.L))
+UVBIO.df$TN..mg.L<- as.numeric(as.character(UVBIO.df$TN..mg.L))
+
 
 # add a time point
 # if equals DOC_UV_T1_111721 then, T1, if not then "nothing"
-UVBIO.df$Time.point<- as.factor(ifelse(UVBIO.df$File=="DOC_UV_T1_111721", "T1",
-  ifelse(UVBIO.df$File=="DOC_NoUV_T1_111721", "T1",
-          ifelse(UVBIO.df$File=="DOC_UV_T2_12082021", "T2",
-                ifelse(UVBIO.df$File=="DOC_NoUV_T2_12082021.csv", "T2", "T2")))))
-  
+UVBIO.df$Time.point<- as.factor(ifelse(UVBIO.df$File=="DOC_UV_T1", "T1",
+  ifelse(UVBIO.df$File=="DOC_NoUV_T1", "T1",
+          ifelse(UVBIO.df$File=="DOC_UV_T2", "T2",
+                ifelse(UVBIO.df$File=="DOC_NoUV_T2", "T2", "T3")))))
+
 #rearrange
 UVBIO.df<- UVBIO.df %>% 
-  select(File, Time.point, Treatment, Filter.Trt, UV.Trt, Tank, plant.mass..g, NPOC..mg.L, TN..mg.L, Start.NPOC, Start.TN) 
+  select(File, Time.point, Treatment, Filter.Trt, UV.Trt, Tank, plant.mass..g, DOC..mg.L, TN..mg.L)
 
 
 # make levels for plotting and stats
