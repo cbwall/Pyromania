@@ -970,21 +970,6 @@ UVBIO.df$Time.point<- as.factor(ifelse(UVBIO.df$File=="DOC_UV_T1.csv", "T1",
 UVBIO.df<- UVBIO.df %>% 
   select(File, Time.point, Treatment, Filter.Trt, UV.Trt, Tank, plant.mass..g, DOC..mg.L, TN..mg.L)
 
-#create new start.DOC column
-
-UVBIO.df2 <- UVBIO.df
-
-# Assign NA's for the whole column
-UVBIO.df2$newcol <- NA
-
-# Assign 1 and 2, automatically repeating to fill
-
-UVBIO.df2$start.DOC<- DOC.df$DOC..mg.L[match(UVBIO.df2$Time.point, DOC.df$Time.point)]
-
-
-merge(DOC.df, UVBIO.df2, by = c("Time.point")) %>% 
-  mutate(start.DOC = DOC.df$DOC..mg.L) %>%
-  arrange(Time.point)
 
 # make levels for plotting and stats
 # add in starting DOC and TN
