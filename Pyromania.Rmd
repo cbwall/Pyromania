@@ -1013,7 +1013,7 @@ UVBIO.df<-mutate (UVBIO.df, percent.change.TN=(change.TN/Start.TN)*100)
 Time 1 UV-BIO
 ```{r}
 # make some plotting datafames
-UVBIO.df<-UVBIO.df[!(UVBIO.df$percent.change.DOC>=100),]
+UVBIO.df<-UVBIO.df[!(UVBIO.df$percent.change.DOC>=40),]
 UVBIO.df<-UVBIO.df[!(UVBIO.df$percent.change.DOC<=-100),]
 
 
@@ -1029,24 +1029,26 @@ NFilt.UV.T1 <-UVBIO.df.T1[UVBIO.df.T1$Filter.Trt=="Unfiltered" & UVBIO.df.T1$UV.
 NFilt.NoUV.T1 <-UVBIO.df.T1[UVBIO.df.T1$Filter.Trt=="Unfiltered" & UVBIO.df.T1$UV.Trt=="NoUV",]
 
 ## Time 1 plots
-Filt.UV.T1.plot<-ggplot(Filt.UV.T1, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
+Filt.UV.T1.plot<-ggplot(
+  Filt.UV.T1, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   scale_linetype_manual(values=c("solid", "twodash")) +
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("T1: -Bio, +UV") +
-  coord_cartesian(ylim=c(-40, 10)) +
+  coord_cartesian(ylim=c(-40, 20)) +
   ylab(expression(paste("% ", Delta, " DOC mg/L"))) +
   xlab("plant material (g)") +
   Fig.formatting
 
-Filt.NoUV.T1.plot<-ggplot(Filt.NoUV.T1, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
+Filt.NoUV.T1.plot<-ggplot(
+  Filt.NoUV.T1, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   scale_linetype_manual(values=c("solid", "twodash")) +
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("T1: -Bio, -UV") +
-  coord_cartesian(ylim=c(-40, 10)) +
+  coord_cartesian(ylim=c(-40, 20)) +
   ylab(expression(paste("% ", Delta, " DOC mg/L"))) +
   xlab("plant material (g)") +
   Fig.formatting
@@ -1057,18 +1059,19 @@ NFilt.UV.T1.plot<-ggplot(NFilt.UV.T1, aes(x=plant.mass..g, y=percent.change.DOC,
   scale_linetype_manual(values=c("solid", "twodash")) +
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("T1: +Bio, +UV") +
-  coord_cartesian(ylim=c(-40, 10)) +
+  coord_cartesian(ylim=c(-40, 20)) +
   ylab(expression(paste("% ", Delta, " DOC mg/L"))) +
   xlab("plant material (g)") +
   Fig.formatting
 
-NFilt.NoUV.T1.plot<-ggplot(NFilt.NoUV.T1, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
+NFilt.NoUV.T1.plot<-ggplot(
+  NFilt.NoUV.T1, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   scale_linetype_manual(values=c("solid", "twodash")) +
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("T1: +Bio, -UV") +
-  coord_cartesian(ylim=c(-40, 10)) +
+  coord_cartesian(ylim=c(-40, 20)) +
   ylab(expression(paste("% ", Delta, " DOC mg/L"))) +
   xlab("plant material (g)") +
   Fig.formatting
@@ -1106,7 +1109,8 @@ Filt.UV.T2.plot<-ggplot(Filt.UV.T2, aes(x=plant.mass..g, y=percent.change.DOC, c
   xlab("plant material (g)") +
   Fig.formatting
 
-Filt.NoUV.T2.plot<-ggplot(Filt.NoUV.T2, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
+Filt.NoUV.T2.plot<-ggplot(
+  Filt.NoUV.T2, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   scale_linetype_manual(values=c("solid", "twodash")) +
@@ -1117,7 +1121,8 @@ Filt.NoUV.T2.plot<-ggplot(Filt.NoUV.T2, aes(x=plant.mass..g, y=percent.change.DO
   xlab("plant material (g)") +
   Fig.formatting
 
-NFilt.UV.T2.plot<-ggplot(NFilt.UV.T2, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
+NFilt.UV.T2.plot<-ggplot(
+  NFilt.UV.T2, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   scale_linetype_manual(values=c("solid", "twodash")) +
@@ -1128,7 +1133,8 @@ NFilt.UV.T2.plot<-ggplot(NFilt.UV.T2, aes(x=plant.mass..g, y=percent.change.DOC,
   xlab("plant material (g)") +
   Fig.formatting
 
-NFilt.NoUV.T2.plot<-ggplot(NFilt.NoUV.T2, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
+NFilt.NoUV.T2.plot<-ggplot(
+  NFilt.NoUV.T2, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   scale_linetype_manual(values=c("solid", "twodash")) +
@@ -1161,7 +1167,8 @@ NFilt.UV.T3 <-UVBIO.df.T3[UVBIO.df.T3$Filter.Trt=="Unfiltered" & UVBIO.df.T3$UV.
 NFilt.NoUV.T3 <-UVBIO.df.T3[UVBIO.df.T3$Filter.Trt=="Unfiltered" & UVBIO.df.T3$UV.Trt=="NoUV",]
 
 ## Time 3 plots
-Filt.UV.T3.plot<-ggplot(Filt.UV.T3, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
+Filt.UV.T3.plot<-ggplot(
+  Filt.UV.T3, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   scale_linetype_manual(values=c("solid", "twodash")) +
@@ -1172,7 +1179,8 @@ Filt.UV.T3.plot<-ggplot(Filt.UV.T3, aes(x=plant.mass..g, y=percent.change.DOC, c
   xlab("plant material (g)") +
   Fig.formatting
 
-Filt.NoUV.T3.plot<-ggplot(Filt.NoUV.T3, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
+Filt.NoUV.T3.plot<-ggplot(
+  Filt.NoUV.T3, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   scale_linetype_manual(values=c("solid", "twodash")) +
@@ -1183,7 +1191,8 @@ Filt.NoUV.T3.plot<-ggplot(Filt.NoUV.T3, aes(x=plant.mass..g, y=percent.change.DO
   xlab("plant material (g)") +
   Fig.formatting
 
-NFilt.UV.T3.plot<-ggplot(NFilt.UV.T3, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
+NFilt.UV.T3.plot<-ggplot(
+  NFilt.UV.T3, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   scale_linetype_manual(values=c("solid", "twodash")) +
@@ -1194,7 +1203,8 @@ NFilt.UV.T3.plot<-ggplot(NFilt.UV.T3, aes(x=plant.mass..g, y=percent.change.DOC,
   xlab("plant material (g)") +
   Fig.formatting
 
-NFilt.NoUV.T3.plot<-ggplot(NFilt.NoUV.T3, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
+NFilt.NoUV.T3.plot<-ggplot(
+  NFilt.NoUV.T3, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   scale_linetype_manual(values=c("solid", "twodash")) +
