@@ -1004,8 +1004,8 @@ UVBIO.df$change.DOC<- UVBIO.df$DOC..mg.L - UVBIO.df$Start.DOC # final value (low
 UVBIO.df$change.TN<-  UVBIO.df$TN..mg.L - UVBIO.df$Start.TN 
 
 # (1) % change in DOC over the 7d incubation
-UVBIO.df<-mutate (UVBIO.df, percent.change.DOC=(change.DOC/Start.DOC)*100)
-UVBIO.df<-mutate (UVBIO.df, percent.change.TN=(change.TN/Start.TN)*100)
+UVBIO.df<-mutate (UVBIO.df, percent.change.DOC=((UVBIO.df$DOC..mg.L - UVBIO.df$Start.DOC)/Start.DOC)*100)
+UVBIO.df<-mutate (UVBIO.df, percent.change.TN=((UVBIO.df$TN..mg.L - UVBIO.df$Start.TN)/Start.TN)*100)
 
 ```
 Plot the UV Bio as % change, using the values of the tank DOC at deployment as start DOC, then the values of DOC after 7d as the final. Get the difference (start-end, should be a negative if values decline over incubation), then make a % by dividing by the start values of DOC.
