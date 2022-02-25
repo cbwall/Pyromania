@@ -988,9 +988,8 @@ UVBIO.df$Start.DOC<-c(DOC_T1.start, DOC_T2.start, DOC_T3.start)
 UVBIO.df$Start.TN<-c(TN_T1.start, TN_T2.start, TN_T3.start)
 
 ```
-
-plot UV Bio
-
+  
+Process the UVBio and get ready for plotting
 ```{r}
 UVBIO.df$Burn.Filt.UV<-interaction(UVBIO.df$Treatment, UVBIO.df$Filter.Trt, UVBIO.df$UV.Trt)
 UVBIO.df$Filt.UV<-interaction(UVBIO.df$Filter.Trt, UVBIO.df$UV.Trt)
@@ -1009,6 +1008,8 @@ UVBIO.df<-mutate (UVBIO.df, percent.change.DOC=(change.DOC/Start.DOC)*100)
 UVBIO.df<-mutate (UVBIO.df, percent.change.TN=(change.TN/Start.TN)*100)
 
 ```
+Plot the UV Bio as % change, using the values of the tank DOC at deployment as start DOC, then the values of DOC after 7d as the final. Get the difference (start-end, should be a negative if values decline over incubation), then make a % by dividing by the start values of DOC.
+  
   
 Time 1 UV-BIO
 ```{r}
@@ -1236,6 +1237,8 @@ ggsave("figures/all.UV.Bio.pdf", height=10, width=11)
 
 ```
   
+- Instead of the % see how UV Bio looks if you plot the absolute change in DOC  instead of the % change. Use the column "change.DOC" here.
+
 Time 1 UV-BIO as absolute change
 ```{r}
 
