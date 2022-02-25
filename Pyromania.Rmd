@@ -1037,10 +1037,10 @@ Filt.UV.T1.plot<-ggplot(
   scale_linetype_manual(values=c("solid", "twodash")) +
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("T1: -Bio, +UV") +
-  coord_cartesian(ylim=c(-40, 20)) +
+  coord_cartesian(ylim=c(-40, 60)) +
   ylab(expression(paste("%", Delta, " DOC mg/L"))) +
   xlab("plant material (g)")  +
-  scale_y_continuous(name = expression(paste(Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Total Start DOC mg/L")) +
+  scale_y_continuous(name = expression(paste("%", Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Initial DOC mg/L")) +
   geom_line( aes(y=Start.DOC), size=1, linetype= "twodash") +
   Fig.formatting
 
@@ -1051,10 +1051,10 @@ Filt.NoUV.T1.plot<-ggplot(
   scale_linetype_manual(values=c("solid", "twodash")) +
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("T1: -Bio, +UV") +
-  coord_cartesian(ylim=c(-40, 20)) +
+  coord_cartesian(ylim=c(-40, 60)) +
   ylab(expression(paste("%", Delta, " DOC mg/L"))) +
   xlab("plant material (g)")  +
-  scale_y_continuous(name = expression(paste(Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Total Start DOC mg/L")) +
+  scale_y_continuous(name = expression(paste("%", Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Initial DOC mg/L")) +
   geom_line( aes(y=Start.DOC), size=1, linetype= "twodash") +
   Fig.formatting
 
@@ -1065,10 +1065,10 @@ NFilt.UV.T1.plot<-ggplot(
   scale_linetype_manual(values=c("solid", "twodash")) +
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("T1: -Bio, +UV") +
-  coord_cartesian(ylim=c(-40, 20)) +
+  coord_cartesian(ylim=c(-40, 60)) +
   ylab(expression(paste("%", Delta, " DOC mg/L"))) +
   xlab("plant material (g)")  +
-  scale_y_continuous(name = expression(paste(Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Total Start DOC mg/L")) +
+  scale_y_continuous(name = expression(paste("%", Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Initial DOC mg/L")) +
   geom_line( aes(y=Start.DOC), size=1, linetype= "twodash") +
   Fig.formatting
 
@@ -1079,10 +1079,10 @@ NFilt.NoUV.T1.plot<-ggplot(
   scale_linetype_manual(values=c("solid", "twodash")) +
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("T1: -Bio, +UV") +
-  coord_cartesian(ylim=c(-40, 20)) +
+  coord_cartesian(ylim=c(-40, 60)) +
   ylab(expression(paste("%", Delta, " DOC mg/L"))) +
   xlab("plant material (g)")  +
-  scale_y_continuous(name = expression(paste(Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Total Start DOC mg/L")) +
+  scale_y_continuous(name = expression(paste("%", Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Initial DOC mg/L")) +
   geom_line( aes(y=Start.DOC), size=1, linetype= "twodash") +
   Fig.formatting
 
@@ -1118,10 +1118,11 @@ Filt.UV.T2.plot<-ggplot(Filt.UV.T2, aes(x=plant.mass..g, y=percent.change.DOC, c
   ggtitle("T2: -Bio, +UV") +
   coord_cartesian(ylim=c(-50, 50)) +
   ylab(expression(paste("% ", Delta, " DOC mg/L"))) +
-  xlab("plant material (g)")  +
-  scale_y_continuous(name = expression(paste(Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Total Start DOC mg/L")) +
+  xlab("plant material (g)") +
+  scale_y_continuous(name = expression(paste("%", Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Initial DOC mg/L")) +
   geom_line( aes(y=Start.DOC), size=1, linetype= "twodash") +
   Fig.formatting
+
 
 Filt.NoUV.T2.plot<-ggplot(
   Filt.NoUV.T2, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
@@ -1132,8 +1133,8 @@ Filt.NoUV.T2.plot<-ggplot(
   ggtitle("T2: -Bio, -UV") +
   coord_cartesian(ylim=c(-50, 50)) +
   ylab(expression(paste("% ", Delta, " DOC mg/L"))) +
-  xlab("plant material (g)")  +
-  scale_y_continuous(name = expression(paste(Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Total Start DOC mg/L")) +
+  xlab("plant material (g)") +
+  scale_y_continuous(name = expression(paste("%", Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Initial DOC mg/L")) +
   geom_line( aes(y=Start.DOC), size=1, linetype= "twodash") +
   Fig.formatting
 
@@ -1147,7 +1148,7 @@ NFilt.UV.T2.plot<-ggplot(
   coord_cartesian(ylim=c(-50, 50)) +
   ylab(expression(paste("% ", Delta, " DOC mg/L"))) +
   xlab("plant material (g)")  +
-  scale_y_continuous(name = expression(paste(Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Total Start DOC mg/L")) +
+  scale_y_continuous(name = expression(paste("%", Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Initial DOC mg/L")) +
   geom_line( aes(y=Start.DOC), size=1, linetype= "twodash") +
   Fig.formatting
 
@@ -1160,8 +1161,8 @@ NFilt.NoUV.T2.plot<-ggplot(
   ggtitle("T2: +Bio, -UV") +
   coord_cartesian(ylim=c(-50, 50)) +
   ylab(expression(paste("% ", Delta, " DOC mg/L"))) +
-  xlab("plant material (g)")  +
-  scale_y_continuous(name = expression(paste(Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Total Start DOC mg/L")) +
+  xlab("plant material (g)") +
+  scale_y_continuous(name = expression(paste("%", Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Initial DOC mg/L")) +
   geom_line( aes(y=Start.DOC), size=1, linetype= "twodash") +
   Fig.formatting
 
@@ -1196,8 +1197,8 @@ Filt.UV.T3.plot<-ggplot(
   ggtitle("T3: -Bio, +UV") +
   coord_cartesian(ylim=c(-15, 15)) +
   ylab(expression(paste("% ", Delta, " DOC mg/L"))) +
-  xlab("plant material (g)")  +
-  scale_y_continuous(name = expression(paste(Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Total Start DOC mg/L")) +
+  xlab("plant material (g)") +
+  scale_y_continuous(name = expression(paste("%", Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Initial DOC mg/L")) +
   geom_line( aes(y=Start.DOC), size=1, linetype= "twodash") +
   Fig.formatting
 
@@ -1210,8 +1211,8 @@ Filt.NoUV.T3.plot<-ggplot(
   ggtitle("T3: -Bio, -UV") +
   coord_cartesian(ylim=c(-20, 40)) +
   ylab(expression(paste("% ", Delta, " DOC mg/L"))) +
-  xlab("plant material (g)")  +
-  scale_y_continuous(name = expression(paste(Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Total Start DOC mg/L")) +
+  xlab("plant material (g)") +
+  scale_y_continuous(name = expression(paste("%", Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Initial DOC mg/L")) +
   geom_line( aes(y=Start.DOC), size=1, linetype= "twodash") +
   Fig.formatting
 
@@ -1224,8 +1225,8 @@ NFilt.UV.T3.plot<-ggplot(
   ggtitle("T3: +Bio, +UV") +
   coord_cartesian(ylim=c(-20, 40)) +
   ylab(expression(paste("% ", Delta, " DOC mg/L"))) +
-  xlab("plant material (g)")  +
-  scale_y_continuous(name = expression(paste(Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Total Start DOC mg/L")) +
+  xlab("plant material (g)") +
+  scale_y_continuous(name = expression(paste("%", Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Initial DOC mg/L")) +
   geom_line( aes(y=Start.DOC), size=1, linetype= "twodash") +
   Fig.formatting
 
@@ -1239,7 +1240,7 @@ NFilt.NoUV.T3.plot<-ggplot(
   coord_cartesian(ylim=c(-20, 40)) +
   ylab(expression(paste("% ", Delta, " DOC mg/L"))) +
   xlab("plant material (g)")  +
-  scale_y_continuous(name = expression(paste(Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Total Start DOC mg/L")) +
+  scale_y_continuous(name = expression(paste("%", Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Initial DOC mg/L")) +
   geom_line( aes(y=Start.DOC), size=1, linetype= "twodash") +
   Fig.formatting
 
@@ -1276,7 +1277,7 @@ Filt.UV.T1.plot<-ggplot(
   scale_linetype_manual(values=c("solid", "twodash")) +
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("T1: -Bio, +UV") +
-  coord_cartesian(ylim=c(-5, 5)) +
+  coord_cartesian(ylim=c(-8, 5)) +
   ylab(expression(paste(Delta, " DOC mg/L"))) +
   xlab("plant material (g)") +
   Fig.formatting
@@ -1289,7 +1290,7 @@ Filt.NoUV.T1.plot<-ggplot(
   scale_linetype_manual(values=c("solid", "twodash")) +
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("T1: -Bio, -UV") +
-  coord_cartesian(ylim=c(-5, 5)) +
+  coord_cartesian(ylim=c(-8, 5)) +
   ylab(expression(paste(Delta, " DOC mg/L"))) +
   xlab("plant material (g)") +
   Fig.formatting
@@ -1300,7 +1301,7 @@ NFilt.UV.T1.plot<-ggplot(NFilt.UV.T1, aes(x=plant.mass..g, y=change.DOC, color=T
   scale_linetype_manual(values=c("solid", "twodash")) +
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("T1: +Bio, +UV") +
-  coord_cartesian(ylim=c(-5, 5)) +
+  coord_cartesian(ylim=c(-8, 5)) +
   ylab(expression(paste(Delta, " DOC mg/L"))) +
   xlab("plant material (g)")+
   Fig.formatting
@@ -1312,7 +1313,7 @@ NFilt.NoUV.T1.plot<-ggplot(
   scale_linetype_manual(values=c("solid", "twodash")) +
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("T1: +Bio, -UV") +
-  coord_cartesian(ylim=c(-5, 5)) +
+  coord_cartesian(ylim=c(-8, 5)) +
   ylab(expression(paste(Delta, " DOC mg/L"))) +
   xlab("plant material (g)")+
   Fig.formatting
