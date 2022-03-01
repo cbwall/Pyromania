@@ -884,16 +884,27 @@ TN.T3<-ggplot(DOC.df[(DOC.df$Time.point=="T3"),], aes(x=plant.mass..g, y=TN..mg.
   ylab("TN (mg/L)") +
   xlab("plant material (g)") +
   Fig.formatting
+
+TN.T4<-ggplot(DOC.df[(DOC.df$Time.point=="T4"),], aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 2)) +
+  ggtitle("Time-4") +
+  ylab("TN (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
   
 TN.plots<-plot_grid(
   TN.T0+ theme(legend.position = "none"),
   TN.T1+ theme(legend.position = "none"),
   TN.T2+ theme(legend.position = "none"),
   TN.T3+ theme(legend.position = "none"),
+  TN.T4+ theme(legend.position = "none"),
   extract.legend, 
-  rel_widths = c(8,8,8,8,3), ncol=5)
+  rel_widths = c(8,8,8,8,8,3), ncol=6)
 
-ggsave("figures/TN.pdf", height=5, width=15)
+ggsave("figures/TN.pdf", height=5, width=18)
 
 ```
 
@@ -1096,7 +1107,7 @@ UVBio.T1<-plot_grid(
 
 UVBio.T1
 
-ggsave("figures/UVBio.T1.pdf", height=6, width=11)
+ggsave("figures/UVBio.T1.pdf", height=6, width=14)
 
 ```
   
@@ -1174,7 +1185,7 @@ UVBio.T2<-plot_grid(
   extract.legend, 
   rel_widths = c(8,8,8,8,3), ncol=5)
 
-ggsave("figures/UVBio.T2.pdf", height=6, width=11)
+ggsave("figures/UVBio.T2.pdf", height=6, width=14)
 
 ```
   
@@ -1195,7 +1206,7 @@ Filt.UV.T3.plot<-ggplot(
   scale_linetype_manual(values=c("solid", "twodash")) +
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("T3: -Bio, +UV") +
-  coord_cartesian(ylim=c(-15, 15)) +
+  coord_cartesian(ylim=c(-20, 40)) +
   ylab(expression(paste("% ", Delta, " DOC mg/L"))) +
   xlab("plant material (g)") +
   scale_y_continuous(name = expression(paste("%", Delta, " DOC mg/L")), sec.axis = sec_axis( trans=~.*1, name="Initial DOC mg/L")) +
@@ -1252,7 +1263,7 @@ UVBio.T3<-plot_grid(
   extract.legend, 
   rel_widths = c(8,8,8,8,3), ncol=5)
 
-ggsave("figures/UVBio.T3.pdf", height=6, width=11)
+ggsave("figures/UVBio.T3.pdf", height=6, width=14)
 
 #compile all plots
 all.UV.Bio<-plot_grid(
@@ -1261,7 +1272,7 @@ all.UV.Bio<-plot_grid(
   UVBio.T3,
   ncol=1)
 
-ggsave("figures/all.UV.Bio.pdf", height=10, width=11)
+ggsave("figures/all.UV.Bio.pdf", height=10, width=14)
 
 ```
   
