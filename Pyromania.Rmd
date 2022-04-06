@@ -1120,7 +1120,7 @@ Filt.NoUV.T2<-UVBIO.df.T2[(UVBIO.df.T2$Filter.Trt=="Filtered" & UVBIO.df.T2$UV.T
 NFilt.UV.T2 <-UVBIO.df.T2[UVBIO.df.T2$Filter.Trt=="Unfiltered" & UVBIO.df.T2$UV.Trt=="UV",]
 NFilt.NoUV.T2 <-UVBIO.df.T2[UVBIO.df.T2$Filter.Trt=="Unfiltered" & UVBIO.df.T2$UV.Trt=="NoUV",]
 
-## Time 1 plots
+## Time 2 plots
 Filt.UV.T2.plot<-ggplot(Filt.UV.T2, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
