@@ -1997,4 +1997,43 @@ ggplot(NFilt.NoUV, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) 
 
 ```
 
+### Isotopes
+```{r, isotopes}
+
+topes<-read.csv("data/Isotopes/Time1_isotopes_pyromania.csv")
+topes.cut<-topes[(topes$Treatment=="burned" | topes$Treatment=="unburned"),]
+topes.controls<-topes[!(topes$Treatment=="burned" | topes$Treatment=="unburned"),]
+
+
+iso.plot<-ggplot(topes.cut, 
+                 aes(x=plant.mass..g, y=d15N, color=Treatment, shape=Type, linetype=Type)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ylab(expression(paste(delta^{15}, N, " (\u2030, air)"))) +
+  xlab("plant material (g)") +
+  Fig.formatting +
+  theme(legend.key.size = unit(2,"line"))
+
+iso.plot
+ggsave("figures/iso.plot.pdf", height=5, width=6)
+
+##########
+
+iso.plot2<-ggplot(data=topes.controls,  aes(x=Type, y=d15N, fill=Type)) +
+  geom_bar(stat="identity") +
+  #scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  #geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ylab(expression(paste(delta^{15}, N, " (\u2030, air)"))) +
+  xlab("control types") +  Fig.formatting +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+
+iso.plot2
+ggsave("figures/iso.plot_controls.pdf", height=5, width=6)
+
+
+
+
+
+```
 
