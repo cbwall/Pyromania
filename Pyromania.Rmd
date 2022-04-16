@@ -2016,7 +2016,7 @@ iso.plot<-ggplot(topes.cut,
   theme(legend.key.size = unit(2,"line"))
 
 iso.plot
-ggsave("figures/iso.plot.pdf", height=5, width=6)
+ggsave("figures/iso.plot.pdf", encod="MacRoman", height=5, width=6)
 
 ##########
 
@@ -2029,7 +2029,7 @@ iso.plot2<-ggplot(data=topes.controls,  aes(x=Type, y=d15N, fill=Type)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
 
 iso.plot2
-ggsave("figures/iso.plot_controls.pdf", height=5, width=6)
+ggsave("figures/iso.plot_controls.pdf", encod="MacRoman", height=5, width=6)
 
 
 
