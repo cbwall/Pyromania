@@ -2020,11 +2020,29 @@ ggsave("figures/iso.plot.pdf", encod="MacRoman", height=5, width=6)
 
 ##########
 
-iso.plot2<-ggplot(data=topes.controls,  aes(x=Type, y=d15N, fill=Type)) +
+#make some summaries for the controls
+iso.contr.means<-aggregate(d15N~ Type, topes.controls, mean)
+iso.contr.sd<-aggregate(d15N~ Type, topes.controls, sd)
+
+iso.cont.df<-cbind(iso.contr.means,iso.contr.sd[2])
+colnames(iso.cont.df)<-c("Type", "d15N", "SD")
+pd<-position_dodge(0.71) #offset for error bars
+
+iso.cont.df$Type<-factor(iso.cont.df$Type, 
+                         levels=c("blank", "plankton.stock", 
+                                  "willow.unburned", "willow.burned",
+                                  "sage.unburned", "sage.burned", 
+                                  "sage.veryburned", "sage.stem.burned"))
+
+
+iso.plot2<-ggplot(data=iso.cont.df,  aes(x=Type, y=d15N, fill=Type)) +
   geom_bar(stat="identity") +
-  #scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  #geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_errorbar(aes(ymin=d15N-SD, ymax=d15N+SD),size=.5, width=0, position=pd)+
   ylab(expression(paste(delta^{15}, N, " (\u2030, air)"))) +
+  scale_fill_manual(values = c("azure2", "cornflowerblue",
+                                "darkgoldenrod1", "darkgoldenrod",
+                                "darkseagreen3", "darkolivegreen3",
+                                "darkolivegreen4", "darkgreen")) +
   xlab("control types") +  Fig.formatting +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
 
