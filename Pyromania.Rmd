@@ -2001,11 +2001,11 @@ ggplot(NFilt.NoUV, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) 
 ```{r, isotopes}
 
 topes<-read.csv("data/Isotopes/Time1_isotopes_pyromania.csv")
-topes.cut<-topes[(topes$Treatment=="burned" | topes$Treatment=="unburned"),]
+topes.trt<-topes[(topes$Treatment=="burned" | topes$Treatment=="unburned"),]
 topes.controls<-topes[!(topes$Treatment=="burned" | topes$Treatment=="unburned"),]
 
-
-iso.plot<-ggplot(topes.cut, 
+#### isotope plots for treatments
+iso.plot<-ggplot(topes.trt, 
                  aes(x=plant.mass..g, y=d15N, color=Treatment, shape=Type, linetype=Type)) +
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
@@ -2018,7 +2018,97 @@ iso.plot<-ggplot(topes.cut,
 iso.plot
 ggsave("figures/iso.plot.pdf", encod="MacRoman", height=5, width=6)
 
-##########
+
+############# C vs N plot
+iso.plot.CN<-ggplot(topes.trt,aes(x=Total.C..ug, y=Total.N..ug, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ylab("Total N (ug)") +
+  xlab("Total C (ug)") +
+  Fig.formatting +
+  theme(legend.key.size = unit(2,"line"))
+
+iso.plot.CN
+ggsave("figures/iso.plot.pdf", encod="MacRoman", height=5, width=6)
+
+
+######### C:N ratio plot by biomass
+topes.trt$CN <-topes.trt$Total.C..ug/topes.trt$Total.N..ug
+
+iso.plot.CNratio<-ggplot(topes.trt, aes(y=C.N, x=plant.mass..g, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ylab("C:N") +
+  xlab("plant material (g)") +
+  Fig.formatting +
+  theme(legend.key.size = unit(2,"line"))
+
+iso.plot.CNratio
+ggsave("figures/iso.plot.CNratio.pdf", encod="MacRoman", height=5, width=6)
+
+
+########## POM only
+iso.plot.CN.POM<-ggplot(topes.trt[(topes.trt$Type=="POM"),], 
+                         aes(y=C.N, x=plant.mass..g, color=Treatment)) +
+  geom_point() +
+  ggtitle("POM")+ 
+  coord_cartesian(ylim=c(0, 16)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ylab("C:N") +
+  xlab("plant material (g)") +
+  Fig.formatting +
+  theme(legend.key.size = unit(2,"line"))
+
+######## Plankton
+iso.plot.CN.Plank<-ggplot(topes.trt[(topes.trt$Type=="plankton"),], 
+                         aes(y=C.N, x=plant.mass..g, color=Treatment)) +
+  geom_point() +
+  ggtitle("plankton")+
+  coord_cartesian(ylim=c(0, 16)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ylab("C:N") +
+  xlab("plant material (g)") +
+  Fig.formatting +
+  theme(legend.key.size = unit(2,"line"))
+
+## combine plots
+isoCNplot<- plot_grid(iso.plot.CN.POM + theme(legend.position = "none"), 
+                    iso.plot.CN.Plank + theme(legend.position = "none"),
+                    extract.legend, rel_widths = c(8,8,3), ncol=3)
+
+isoCNplot
+ggsave("figures/iso.plot.CN.POM.Plank.pdf", encod="MacRoman", height=5, width=10)
+
+
+
+#### C by biomass plot
+iso.plot.C<-ggplot(topes.trt, aes(x=plant.mass..g, y=Total.C..ug, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ylab("Total C (ug)") +
+  xlab("plant material (g)") +
+  Fig.formatting +
+  theme(legend.key.size = unit(2,"line"))
+
+#### N by biomass plot
+iso.plot.N<-ggplot(topes.trt, aes(x=plant.mass..g, y=Total.N..ug, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ylab("Total C (ug)") +
+  xlab("plant material (g)") +
+  Fig.formatting +
+  theme(legend.key.size = unit(2,"line"))
+
+
+
+########## ########## ########## 
+########## control plots
 
 #make some summaries for the controls
 iso.contr.means<-aggregate(d15N~ Type, topes.controls, mean)
@@ -2035,7 +2125,7 @@ iso.cont.df$Type<-factor(iso.cont.df$Type,
                                   "sage.veryburned", "sage.stem.burned"))
 
 
-iso.plot2<-ggplot(data=iso.cont.df,  aes(x=Type, y=d15N, fill=Type)) +
+iso.plot.control<-ggplot(data=iso.cont.df,  aes(x=Type, y=d15N, fill=Type)) +
   geom_bar(stat="identity") +
   geom_errorbar(aes(ymin=d15N-SD, ymax=d15N+SD),size=.5, width=0, position=pd)+
   ylab(expression(paste(delta^{15}, N, " (\u2030, air)"))) +
@@ -2046,7 +2136,7 @@ iso.plot2<-ggplot(data=iso.cont.df,  aes(x=Type, y=d15N, fill=Type)) +
   xlab("control types") +  Fig.formatting +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
 
-iso.plot2
+iso.plot.control
 ggsave("figures/iso.plot_controls.pdf", encod="MacRoman", height=5, width=6)
 
 
