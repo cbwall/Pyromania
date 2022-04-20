@@ -30,6 +30,7 @@ rm(list=ls())
 ```
 
 ### Zooplankton
+integrating the zooplankton counting data and code from Jon into the markdown.
 
 ```{r}
 plank<-read.csv("data/zooplankton/Pyro_Master zoop data.csv")
@@ -514,5 +515,98 @@ anova(t4zoop)
 anova(t4zoop, by="terms", permu=800)
 
 
+```
+
+
+
+### Greenhouse Gas Data
+```{r}
+rm(list=ls())
+
+GHG<-read.csv("data/GH.gases/Pyro_ghg.csv")
+trt<-read.csv("data/treatment.IDs.csv")
+
+GHG<-merge(GHG, trt, by="Tank", all=T)
+
+GHG<-subset(GHG, Week!="AA")
+GHG<-subset(GHG, Week!="CH4")
+GHG<-subset(GHG, Gas=="CH4"|Gas=="CO2")
+GHG$Treatment<-as.factor(GHG$Treatment)
+
+# rename levels and then column
+GHG$Week<- revalue(GHG$Week, c("WK0"="T0", "WK1"="T1", "WK2"="T2", "WK3"="T3"))
+names(GHG)[names(GHG)=="Week"] <- "Time.point"
+names(GHG)[names(GHG)=="plant.mass..g"] <- "Plant.mass..g"
+
+# reorder columns and export
+GHG<- GHG %>% select(Time.point, Treatment, Plant.mass..g, Tank, Gas, d13C, at.perc.13C, ppm)
+
+GHG$Plant.mass..g<-as.numeric(GHG$Plant.mass..g)
+GHG$Time.point<-as.factor(GHG$Time.point)
+
+
+write.csv(GHG, "data/GH.gases/Pyro_GHG_cleaned.csv")
+#############################################
+
+```
+
+
+```{r, CO2}
+CO2<-subset(GHG, Gas=="CO2")
+CH4<-subset(GHG, Gas=="CH4")
+
+#time 1
+CO2_1<-subset(CO2, Time.point== "T1")
+
+
+p1<-ggplot(GHG, aes(y=ppm, x=Plant.mass..g, color = factor(Treatment))) +
+  geom_point(size=2)+
+  facet_grid(rows=vars(Gas), cols=vars(Time.point), scales="free_y")+
+  labs(GHG = "G plants added", y="ppm", title = "Greenhouse gases")+
+  geom_smooth(method = loess)
+p1
+```
+
+
+```{r, CO2}
+
+timepoint<-"T3"
+CO21 <- gam(ppm ~ s(Plant.mass..g, k=5, bs="tp") +
+            s(Plant.mass..g, Treatment, k=5, bs="re"), data=subset(CO2, Time.point %in% timepoint), method="REML", family="gaussian")
+
+CO22 <- gam(ppm ~ s(Plant.mass..g, k=5, bs="tp"), data=subset(CO2, Time.point %in% timepoint), method="REML", family="gaussian")
+
+AIC(CO21,CO22) 
+summary(CO21) 
+summary(CO22)
+
+p2<-ggplot(CO2,aes(y=ppm, x=Plant.mass..g, color = factor(Treatment))) +
+  geom_point(size=2)+
+  facet_grid(rows=vars(Gas), cols=vars(Time.point), scales="free_y")+
+  labs(GHG = "G plants added", y="ppm", title = "Greenhouse gases")+
+  geom_smooth(method = loess)
+p2
+```
+
+
+```{r, CH4}
+timepoint<-"T1"
+CH41 <- gam(ppm ~ s(Plant.mass..g, k=5, bs="tp") +
+              s(Plant.mass..g, Treatment, k=5, bs="re"), data=subset(CH4, Time.point %in% timepoint), method="REML", family="gaussian")
+
+
+CH42 <- gam(ppm ~ s(Plant.mass..g, k=5, bs="tp"), data=subset(CH4, Time.point %in% timepoint), method="REML", family="gaussian")
+
+AIC(CH41,CH42) 
+summary(CH41) 
+summary(CH42) 
+
+
+p2<-ggplot(CH2, aes(y=ppm, x=Plant.mass..g, color = factor(Treatment))) +
+  geom_point(size=2)+
+  facet_grid(rows=vars(Gas), cols=vars(Time.point), scales="free_y")+
+  labs(GHG = "G plants added", y="ppm", title = "Greenhouse gases")+
+  geom_smooth(method = loess)
+p2
 ```
 
