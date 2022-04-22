@@ -106,15 +106,21 @@ draw(m1.gam)
 k.check(m1.gam)
 
 ```
-
+I think this one is the best fit
 ```{r}
-m2.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=8, bs="fs", m=1), data=DOC.df, method="REML")
+m2.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=11, bs="fs", m=1), data=DOC.df, method="REML", select = T)
 summary(m2.gam)
 draw(m2.gam)
+k.check(m2.gam)
+
+library(visreg)
+visreg(m2.gam, xvar = "plant.mass..g",
+       by = "Treatment", data = DOC.df,
+       method = "REML")
 ```
 
 ```{r}
-m3.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, bs="tp", k=8) + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=8, bs="fs", m=1), data=DOC.df, method="REML")
+m3.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, bs="tp", k=8) + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=8, bs="fs", m=1), data=DOC.df, method="REML", select = T)
 summary(m3.gam)
 draw(m3.gam)
 
@@ -123,7 +129,7 @@ draw(m3.gam)
 
 ```{r}
 #with link= log
-m4.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=8, bs="fs", m=1),family = gaussian(link = "log"), data=DOC.df, method="REML")
+m4.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=8, bs="fs", m=1),family = gaussian(link = "log"), data=DOC.df, method="REML", select=T)
 summary(m4.gam)
 draw(m4.gam)
 ```
@@ -137,19 +143,6 @@ summary(m5.gam)
 draw(m5.gam)
 ```
 
-```{r}
-m6.gam=gam(DOC..mg.L~  Treatment+ #main effect
-             s(plant.mass..g, bs="tp", k=8)+ #global smoother
-             s(plant.mass..g, by= Treatment, k=8, m=1) + #treatment specific trends
-             s(plant.mass..g, Time.point, bs="fs", k=8, m=1),#time point specific trends as random effect
-           data= DOC.df, 
-           methods= 'REML', 
-           select=TRUE)#more penalization
-summary(m6.gam)
-draw(m6.gam)
-
-
-```
 
 Separate models for each time point
 ```{r}
