@@ -1997,6 +1997,8 @@ ggplot(NFilt.NoUV, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) 
 
 ```
 
+<<<<<<< HEAD
+=======
 ### Isotopes
 ```{r, isotopes}
 
@@ -2146,3 +2148,4 @@ ggsave("figures/iso.plot_cont.C.N.pdf", encod="MacRoman", height=5, width=6)
 
 ```
 
+>>>>>>> 4ac483d399ca432209f3803ca0785803fc37c845
