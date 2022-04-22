@@ -1997,4 +1997,80 @@ ggplot(NFilt.NoUV, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) 
 
 ```
 
+GAMs for DOC (just concentration)
+```{r}
+####Gamma distribution
+#model 1: basic model fit to all data
+m1.gam=gam(DOC..mg.L~  
+             s(plant.mass..g) + #smooth of plant mass trend
+             s(Time.point, bs="re"),#random effect of time point
+           data= DOC.df,
+           family= Gamma(link = "log"),#for positive skewed data
+           methods= 'REML',
+           select=TRUE)
+summary(m1.gam)
+```
+Model 2
+```{r}
+#model 2: by treatment
+m2.gam=gam(DOC..mg.L~ Treatment + #main effect
+             s(plant.mass..g,  by=Treatment, k=8, m=1) + #treatment specific trends
+             s(Time.point, bs="re", k=8),#random effect of time point 
+           data= DOC.df,
+           family= Gamma(link = "log"),#for positive skewed data
+           methods= 'REML',
+           select=TRUE)
+summary(m2.gam)
+draw(m2.gam)
+```
+Model 3
+```{r}
+#model 3: individual trends
+m3.gam=gam(DOC..mg.L~ Treatment + 
+             s(plant.mass..g, Time.point, bs="fs", k=8, m=1),#time point specific trends
+           data= DOC.df,
+           family= Gamma(link = "log"),#for positive skewed data
+           methods= 'REML',
+           select=TRUE)
+summary(m3.gam)
+draw(m3.gam)
+```
+Model 4
+```{r}
+#model 4: treatment specific trends, plus individual trends
+m4.gam=gam(DOC..mg.L~  Treatment+ s(plant.mass..g, bs="tp", k=8)+ #main effect
+             s(plant.mass..g, by= Treatment, k=8, m=1, bs="fs") + #treatment specific trends
+             s(plant.mass..g, Time.point, bs="fs", k=8, m=1),#time point specific trends as random effect
+           data= DOC.df,
+           family= Gamma(link = "log"),#for positive skewed data
+           methods= 'REML', 
+           select=TRUE)#more penalization
+summary(m4.gam)
+draw(m4.gam)
+gam.check(m4.gam, rep= 1000)##reps provide confidence intervals
+
+?anova.gam
+
+library(gratia)#gavin's package the uses ggplot as a base to see residuals
+draw(m4.gam, residuals = T)#looking at smoothing effects
+k.check(m4.gam)#checks to see if the k is good..and they are
+```
+Log transformed (model 4)
+```{r}
+#model 5 
+m5.gam= gam(log10(DOC..mg.L)~ Treatment +
+              s(plant.mass..g, by= Treatment, k=15)+ 
+               s(plant.mass..g, Time.point, bs="fs", k=15),
+           data= DOC.df,
+           family= gaussian(),
+           methods= 'REML',
+           select= TRUE)
+summary(m5.gam)
+draw(m5.gam)
+gam.check(m5.gam, rep=1000)#reps provide confidence intervals
+
+
+
+
+```
 
