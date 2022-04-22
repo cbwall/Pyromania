@@ -150,7 +150,7 @@ draw(m3.gam)
 ```{r}
 m6.gam=gam(DOC..mg.L~  Treatment+ #main effect
              s(plant.mass..g, bs="tp", k=8)+ #global smoother
-             s(plant.mass..g, by= Treatment, k=8, m=1, bs="fs") + #treatment specific trends
+             s(plant.mass..g, by= Treatment, k=8, m=1) + #treatment specific trends
              s(plant.mass..g, Time.point, bs="fs", k=8, m=1),#time point specific trends as random effect
            data= DOC.df,
            family= Gamma(link = "log"),#for positive skewed data
@@ -159,4 +159,44 @@ m6.gam=gam(DOC..mg.L~  Treatment+ #main effect
 summary(m6.gam)
 draw(m6.gam)
 
+
 ```
+
+Separate models for each time point
+```{r}
+DOC_T1$Treatment=as.factor(DOC_T1$Treatment)
+m1=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment, k=8, m=1), data= DOC_T1, method= "REML")
+summary.gam(m1)
+draw(m1)
+
+```
+```{r}
+DOC_T2$Treatment=as.factor(DOC_T2$Treatment)
+m2=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment, k=8, m=1), data= DOC_T2, method= "REML")
+summary.gam(m2)
+draw(m2)
+
+
+
+```
+
+```{r}
+DOC_T3$Treatment=as.factor(DOC_T3$Treatment)
+m3=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment, k=8, m=1), data= DOC_T3, method= "REML")
+summary.gam(m3)
+draw(m3)
+
+
+
+
+```
+
+```{r}
+DOC_T4$Treatment=as.factor(DOC_T4$Treatment)
+m4=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment, bs="ps", k=8, m=1), data= DOC_T4, method= "REML")
+summary.gam(m4)
+draw(m4)
+
+```
+
+
