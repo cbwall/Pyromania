@@ -90,118 +90,73 @@ DOC.df<- DOC.df %>%
 ggplot(DOC.df, aes(x = plant.mass..g, y = DOC..mg.L, colour = Treatment)) +
     geom_point() +
     facet_grid(~Time.point)+
-    geom_smooth(method = 'loess', se = FALSE) +
-    scale_colour_brewer(type = 'qual', palette = 'Dark2') +
-    theme(legend.position = 'top')
+    geom_smooth(method = 'loess', se = FALSE) 
 
 
 ```
 
 
 ```{r}
+library(mgcv)
+library(gratia)
 #A single common smoother plus group-level smoothers that have the same wiggliness (model GS)
-m1.gam=gam(log(DOC..mg.L) ~ Treatment + s(plant.mass..g, k=8, m=1) + s(plant.mass..g, factor(Time.point), k=8, bs="fs", m=1), data=DOC.df, method="REML")
+m1.gam=gam(log(DOC..mg.L) ~ Treatment + s(plant.mass..g, k=8, m=1) + s(plant.mass..g, Time.point, k=8, bs="fs", m=1), data=DOC.df, method="REML")
 summary.gam(m1.gam)
 draw(m1.gam)
 k.check(m1.gam)
-#all groups have similar functional responses, but intergroup variation in responses is allowed. This approach works by allowing each grouping level to have its own functional response, but penalizing functions that are too far from the average.
 
 ```
 
 ```{r}
-#add in a smooth term. This is a thin plate regression spline, where we are smoothing over mass
-m1.gam=gam(log(DOC..mg.L)~ s(log(plant.mass..g), m=2, k=8) + s(), method="REML", family= gaussian(link="log"), data = DOC_T1)
-summary(m1.gam)
-gam.check(m1.gam, rep=1000)
-plot(m1.gam)
-
-gam(log(uptake) ∼ s(log(conc), k=5, m=2) +
-s(log(conc), Plant_uo, k=5, bs="fs", m=2),
-data=CO2, method="REML")
-
-
-m1.lm=lm(DOC..mg.L ~ Treatment+ poly(plant.mass..g,3), data=DOC_T1)
-summary(m1.lm)
-qqnorm(resid(m1.lm))
-qqline(resid(m1.lm))
-
-
-
+#log transformed
+m2.gam=gam(log(DOC..mg.L) ~ Treatment + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=8, bs="fs", m=1), data=DOC.df, method="REML")
+summary(m2.gam)
+draw(m2.gam)
+```
 
 ```{r}
-#observations have some distribution
-#wiggliness is smoothing curve
-#assumptions for glm hold true for GAM...must be satisfied 
-
 ####Gamma distribution
-#model 1: basic model fit to all data
-m1.gam=gam(DOC..mg.L~  
-             s(plant.mass..g) + #smooth of plant mass trend
-             s(Time.point, bs="re"),#random effect of time point
-           data= DOC.df,
-           family= Gamma(link = "log"),#for positive skewed data
-           methods= 'REML',
-           select=TRUE)
-summary(m1.gam)
+m3.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=8, bs="fs", m=1), family = Gamma(link = "log"), data=DOC.df, method="REML")
+summary(m3.gam)
+draw(m3.gam)
+
 
 ```
 
-
-Model 2
 ```{r}
-#model 2: by treatment
-m2.gam=gam(DOC..mg.L~ Treatment + #main effect
+#model: by treatment
+m4.gam=gam(DOC..mg.L~ Treatment + #main effect
              s(plant.mass..g,  by=Treatment, k=8, m=1) + #treatment specific trends
              s(Time.point, bs="re", k=8),#random effect of time point 
            data= DOC.df,
            family= Gamma(link = "log"),#for positive skewed data
            methods= 'REML',
            select=TRUE)
-summary(m2.gam)
-draw(m2.gam)
+summary(m4.gam)
 ```
-Model 3
+
 ```{r}
 #model 3: individual trends
-m3.gam=gam(DOC..mg.L~ Treatment + 
+m5.gam=gam(DOC..mg.L~ Treatment + 
              s(plant.mass..g, Time.point, bs="fs", k=8, m=1),#time point specific trends
            data= DOC.df,
            family= Gamma(link = "log"),#for positive skewed data
            methods= 'REML',
            select=TRUE)
-summary(m3.gam)
+summary(m5.gam)
 draw(m3.gam)
 ```
-Model 4
+
 ```{r}
-#model 4: treatment specific trends, plus individual trends
-m4.gam=gam(DOC..mg.L~  Treatment+ s(plant.mass..g, bs="tp", k=8)+ #main effect
+m6.gam=gam(DOC..mg.L~  Treatment+ #main effect
+             s(plant.mass..g, bs="tp", k=8)+ #global smoother
              s(plant.mass..g, by= Treatment, k=8, m=1, bs="fs") + #treatment specific trends
              s(plant.mass..g, Time.point, bs="fs", k=8, m=1),#time point specific trends as random effect
            data= DOC.df,
            family= Gamma(link = "log"),#for positive skewed data
            methods= 'REML', 
            select=TRUE)#more penalization
-summary(m4.gam)
-draw(m4.gam)
-gam.check(m4.gam, rep= 1000)##reps provide confidence intervals
+summary(m6.gam)
+draw(m6.gam)
 
-?anova.gam
-
-library(gratia)#gavin's package the uses ggplot as a base to see residuals
-draw(m4.gam, residuals = T)#looking at smoothing effects
-k.check(m4.gam)#checks to see if the k is good..and they are
 ```
-Log transformed (model 4)
-```{r}
-#model 5 
-m5.gam= gam(log10(DOC..mg.L)~ Treatment +
-              s(plant.mass..g, by= Treatment, k=15)+ 
-               s(plant.mass..g, Time.point, bs="fs", k=15),
-           data= DOC.df,
-           family= gaussian(),
-           methods= 'REML',
-           select= TRUE)
-summary(m5.gam)
-draw(m5.gam)
-gam.check(m5.gam, rep=1000)#reps provide confidence intervals
