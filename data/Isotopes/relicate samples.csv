@@ -1,0 +1,17 @@
+﻿Time.point,Treatment,plant.mass..g,Type,Tank,replicate,Sample.ID,at.P..13C,d13C,Total.C..ug,d13C.Comment,at.P..15N,d15N,Total.N..ug,d15N.Comment,Tray.Name,Well.Id,Type.of.Material,Analysis,Sample Weight (mg) from Sample List,OurLabID,Analysis Number,Mass Spec
+T1,unburned,300,POM,3,,T1 12,1.07617,-26.91,86.33,Precision decreases for samples containing less than 100ugC,0.43407,185.85,13.73,Precision decreases for samples containing less than 20ugN,Pyro1Shurin,A12,"POM, scraped GFF","13C, 15N",4.6,1874211,386979,A
+T1,unburned,300,POM,3,*rep sample,T1 13,1.07599,-27.07,135.84,,0.43227,180.91,17.74,Precision decreases for samples containing less than 20ugN,Pyro1Shurin,B1,"POM, scraped GFF","13C, 15N",6.7,1874212,387105,A
+T1,unburned,250,plankton,5,,T1 17,1.07918,-24.15,1858.23,,0.43988,201.77,448.43,Contained more nitrogen than largest reference in run,Pyro1Shurin,B5,"plankton, scrape GFF","13C, 15N",6.8,1874216,387109,A
+T1,unburned,250,plankton,5,*rep sample,T1 18,1.07954,-23.83,1294.8,,0.43938,200.42,308.02,Contained more nitrogen than largest reference in run,Pyro1Shurin,B6,"plankton, scrape GFF","13C, 15N",4.9,1874217,387110,A
+T1,unburned,225,plankton,7,,T1 29,1.07767,-25.53,1352.54,,0.42183,152.27,289.79,,Pyro1Shurin,C5,"plankton, scrape GFF","13C, 15N",3.6,1874228,387124,A
+T1,unburned,225,plankton,7,*rep sample,T1 30,1.07764,-25.56,1634.56,,0.4211,150.27,329.3,Contained more nitrogen than largest reference in run,Pyro1Shurin,C6,"plankton, scrape GFF","13C, 15N",4.7,1874229,387125,A
+T1,unburned,200,plankton,9,,T1 37,1.07713,-26.03,561.04,,0.41874,143.77,94.85,,Pyro1Shurin,D1,"plankton, scrape GFF","13C, 15N",6.2,1874236,386983,A
+T1,unburned,200,plankton,9,*rep sample,T1 38,1.07712,-26.04,786.88,,0.41968,146.37,139.04,,Pyro1Shurin,D2,"plankton, scrape GFF","13C, 15N",7.1,1874237,386984,A
+T1,burned,100,POM,14,,T1 46,1.07725,-25.92,109.5,,0.40037,93.39,21.01,,Pyro1Shurin,D10,"POM, scraped GFF","13C, 15N",4.7,1874245,386992,A
+T1,burned,100,POM,14,*rep sample,T1 47,1.07697,-26.17,65.47,Precision decreases for samples containing less than 100ugC,0.40042,93.53,14.08,Precision decreases for samples containing less than 20ugN,Pyro1Shurin,D11,"POM, scraped GFF","13C, 15N",4.6,1874246,386993,A
+T1,unburned,100,POM,17,,T1 52,1.07468,-28.27,103.28,,0.40728,112.35,15.2,Precision decreases for samples containing less than 20ugN,Pyro1Shurin,E4,"POM, scraped GFF","13C, 15N",2.9,1874251,387001,A
+T1,unburned,100,POM,17,*rep sample,T1 53,1.07463,-28.32,65.04,Precision decreases for samples containing less than 100ugC,0.40735,112.55,10.61,Precision decreases for samples containing less than 20ugN,Pyro1Shurin,E5,"POM, scraped GFF","13C, 15N",2.2,1874252,387002,A
+T1,burned,25,plankton,8,,T1 60,1.08026,-23.17,579.67,,0.38358,47.36,98.31,,Pyro1Shurin,E12,"plankton, scrape GFF","13C, 15N",2.5,1874259,387009,A
+T1,burned,25,plankton,8,*rep sample,T1 61,1.08075,-22.72,259.2,,0.38373,47.79,42.76,,Pyro1Shurin,F1,"plankton, scrape GFF","13C, 15N",1.2,1874260,387013,A
+T1,burned,10,plankton,6,,T1 71,1.07701,-26.14,398.41,,0.38023,38.19,53.68,,Pyro1Shurin,F11,"plankton, scrape GFF","13C, 15N",1.9,1874270,387023,A
+T1,burned,10,plankton,6,*rep sample,T1 72,1.07772,-25.49,492.48,,0.3807,39.47,67.72,,Pyro1Shurin,F12,"plankton, scrape GFF","13C, 15N",1.7,1874271,387024,A

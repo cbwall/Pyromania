@@ -583,7 +583,7 @@ summary(CO22)
 p2<-ggplot(CO2,aes(y=ppm, x=Plant.mass..g, color = factor(Treatment))) +
   geom_point(size=2)+
   facet_grid(rows=vars(Gas), cols=vars(Time.point), scales="free_y")+
-  labs(GHG = "G plants added", y="ppm", title = "Greenhouse gases")+
+  labs(GHG = "G plants added", y="CO2 ppm", title = "Greenhouse gases")+
   geom_smooth(method = loess)
 p2
 ```

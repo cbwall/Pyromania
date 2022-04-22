@@ -1998,8 +1998,7 @@ ggplot(NFilt.NoUV, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) 
 ```
 
 ### Isotopes
-```{r, isotopes}
-
+```{r, isotopes treatment}
 topes<-read.csv("data/Isotopes/Time1_isotopes_pyromania.csv")
 topes$C.N <-(topes$Total.C..ug/12)/(topes$Total.N..ug/14) # C mol : N mol
 
@@ -2019,8 +2018,10 @@ iso.plot<-ggplot(topes.trt,
 
 iso.plot
 ggsave("figures/iso.plot.pdf", encod="MacRoman", height=5, width=6)
+```
 
 
+```{r, isotopes CN}
 ############# C vs N plot
 iso.plot.CN<-ggplot(topes.trt,aes(x=Total.C..ug, y=Total.N..ug, color=Treatment)) +
   geom_point() +
@@ -2076,6 +2077,7 @@ iso.plot.CN.Plank<-ggplot(topes.trt[(topes.trt$Type=="plankton"),],
   Fig.formatting +
   theme(legend.key.size = unit(2,"line"))
 
+
 ## combine plots
 isoCNplot<- plot_grid(iso.plot.CN.POM + theme(legend.position = "none"), 
                     iso.plot.CN.Plank + theme(legend.position = "none"),
@@ -2083,9 +2085,10 @@ isoCNplot<- plot_grid(iso.plot.CN.POM + theme(legend.position = "none"),
 
 isoCNplot
 ggsave("figures/iso.plot.CN.POM.Plank.pdf", encod="MacRoman", height=5, width=10)
+```
 
 
-
+```{r, control isotopes}
 ########## ########## ########## 
 ########## control plots
 
@@ -2096,23 +2099,24 @@ d15N.SD<-aggregate(d15N~ Type, topes.controls, sd)
 C.N.cont<-aggregate(C.N~ Type, topes.controls, mean)
 C.N.SD<-aggregate(C.N~ Type, topes.controls, sd)
 
-iso.cont.d15N<-cbind(d15N.cont, iso.contr.sd[2])
+iso.cont.d15N<-cbind(d15N.cont, d15N.SD[2])
 colnames(iso.cont.d15N)<-c("Type", "d15N", "SD")
 
 iso.cont.CN<-cbind(C.N.cont, C.N.SD[2])
 colnames(iso.cont.CN)<-c("Type", "C.N", "SD")
 
-
-pd<-position_dodge(0.71) #offset for error bars
-
-iso.cont.d15N$Type<-factor(iso.cont.d15N$Type, 
+# set levels
+topes.controls$Type<-factor(topes.controls$Type, 
                          levels=c("blank", "plankton.stock", 
                                   "willow.unburned", "willow.burned",
                                   "sage.unburned", "sage.burned", 
                                   "sage.veryburned", "sage.stem.burned"))
 
 
-iso.plot.control<-ggplot(data=iso.cont.d15N,  aes(x=Type, y=d15N, fill=Type)) +
+pd<-position_dodge(0.71) #offset for error bars
+
+#### controls d15N
+iso.plot.control.d15N<-ggplot(data=iso.cont.d15N,  aes(x=Type, y=d15N, fill=Type)) +
   geom_bar(stat="identity") +
   geom_errorbar(aes(ymin=d15N-SD, ymax=d15N+SD),size=.5, width=0, position=pd)+
   ylab(expression(paste(delta^{15}, N, " (\u2030, air)"))) +
@@ -2122,9 +2126,6 @@ iso.plot.control<-ggplot(data=iso.cont.d15N,  aes(x=Type, y=d15N, fill=Type)) +
                                 "darkolivegreen4", "darkgreen")) +
   xlab("control types") +  Fig.formatting +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
-
-iso.plot.control
-ggsave("figures/iso.plot_controls.pdf", encod="MacRoman", height=5, width=6)
 
 
 ###### control C:N
@@ -2139,10 +2140,18 @@ iso.plot.control.CN<-ggplot(data=iso.cont.CN,  aes(x=Type, y=C.N, fill=Type)) +
   xlab("control types") +  Fig.formatting +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
 
-iso.plot.control.CN
-ggsave("figures/iso.plot_cont.C.N.pdf", encod="MacRoman", height=5, width=6)
+####### combine plots
+# legend
+extract.legend3 <- get_legend(
+  # create some space to the left of the legend
+  iso.plot.control.d15N + theme(legend.box.margin = margin(0, 0, 0, 10)))
 
 
+## combine 
+control.iso<- plot_grid(iso.plot.control.d15N + theme(legend.position = "none"), 
+                    iso.plot.control.CN + theme(legend.position = "none"),
+                    extract.legend3, rel_widths = c(8,8,3), ncol=3)
 
+ggsave("figures/iso.controls.pdf", encod="MacRoman", height=5, width=10)
 ```
 
