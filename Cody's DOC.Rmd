@@ -108,13 +108,25 @@ k.check(m1.gam)
 ```
 I think this one is the best fit
 ```{r}
-m2.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=11, bs="fs", m=1), data=DOC.df, method="REML", select = T)
+#first model is that the reference level of mass is modeled as a constant term (it is the intercept), with the effect of mass for the other levels being smooth differences from this constant.
+m2.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=11, bs="fs", m=1), data=DOC.df, family= Gamma("log"), method="REML", select = T)
 summary(m2.gam)
 draw(m2.gam)
 k.check(m2.gam)
 
+#in the second model,  add s(mass), which then models the smooth effect of mass in the reference level. Now, the by smooths model smooth differences from this no-longer-constant reference smooth.
+m2.gamB=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, bs="tp", k=8) + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=11, bs="fs", m=1), data=DOC.df, method="REML", family= Gamma(link = "log"), select = T)
+summary(m2.gamB)
+
+# the second model, all the levels of Treatment respond similarly to mass hence there are no large deviations from the smooth for the reference level of Treatment and hence the terms are not significant. the model is set up like ANOVA contrasts (estimate an effect for the reference level then have differences between individual levels and the reference), then fit the model like model 2
+
+#In the first model, the effect of mass for the reference level was constant, so the difference smooths picked up the actual non-linear effect of mass and hence were significantly different from zero
+
+AIC(m2.gam, m2.gamB)
+k.check(m2.gamB)
+gam.check(m2.gamB, rep=1000)
 library(visreg)
-visreg(m2.gam, xvar = "plant.mass..g",
+visreg(m2.gamB, xvar = "plant.mass..g",
        by = "Time.point", data = DOC.df,
        method = "REML", gg=T)
 
