@@ -115,8 +115,10 @@ k.check(m2.gam)
 
 library(visreg)
 visreg(m2.gam, xvar = "plant.mass..g",
-       by = "Treatment", data = DOC.df,
-       method = "REML")
+       by = "Time.point", data = DOC.df,
+       method = "REML", gg=T)
+
+
 ```
 
 ```{r}
