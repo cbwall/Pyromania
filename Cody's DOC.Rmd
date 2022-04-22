@@ -100,7 +100,7 @@ ggplot(DOC.df, aes(x = plant.mass..g, y = DOC..mg.L, colour = Treatment)) +
 library(mgcv)
 library(gratia)
 #A single common smoother plus group-level smoothers that have the same wiggliness (model GS)
-m1.gam=gam(log(DOC..mg.L) ~ Treatment + s(plant.mass..g, k=8, m=1) + s(plant.mass..g, Time.point, k=8, bs="fs", m=1), data=DOC.df, method="REML")
+m1.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, k=8, m=1) + s(plant.mass..g, Time.point, k=8, bs="fs", m=1), data=DOC.df, method="REML")
 summary.gam(m1.gam)
 draw(m1.gam)
 k.check(m1.gam)
@@ -108,15 +108,13 @@ k.check(m1.gam)
 ```
 
 ```{r}
-#log transformed
-m2.gam=gam(log(DOC..mg.L) ~ Treatment + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=8, bs="fs", m=1), data=DOC.df, method="REML")
+m2.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=8, bs="fs", m=1), data=DOC.df, method="REML")
 summary(m2.gam)
 draw(m2.gam)
 ```
 
 ```{r}
-####Gamma distribution
-m3.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=8, bs="fs", m=1), family = Gamma(link = "log"), data=DOC.df, method="REML")
+m3.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, bs="tp", k=8) + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=8, bs="fs", m=1), data=DOC.df, method="REML")
 summary(m3.gam)
 draw(m3.gam)
 
@@ -124,27 +122,19 @@ draw(m3.gam)
 ```
 
 ```{r}
-#model: by treatment
-m4.gam=gam(DOC..mg.L~ Treatment + #main effect
-             s(plant.mass..g,  by=Treatment, k=8, m=1) + #treatment specific trends
-             s(Time.point, bs="re", k=8),#random effect of time point 
-           data= DOC.df,
-           family= Gamma(link = "log"),#for positive skewed data
-           methods= 'REML',
-           select=TRUE)
+#with link= log
+m4.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=8, bs="fs", m=1),family = gaussian(link = "log"), data=DOC.df, method="REML")
 summary(m4.gam)
+draw(m4.gam)
 ```
 
 ```{r}
-#model 3: individual trends
-m5.gam=gam(DOC..mg.L~ Treatment + 
-             s(plant.mass..g, Time.point, bs="fs", k=8, m=1),#time point specific trends
+m5.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g, bs="tp", k=8, m=1)+ s(plant.mass..g, Time.point, bs="fs", k=8, m=1),#time point specific trends
            data= DOC.df,
-           family= Gamma(link = "log"),#for positive skewed data
            methods= 'REML',
            select=TRUE)
 summary(m5.gam)
-draw(m3.gam)
+draw(m5.gam)
 ```
 
 ```{r}
@@ -152,8 +142,7 @@ m6.gam=gam(DOC..mg.L~  Treatment+ #main effect
              s(plant.mass..g, bs="tp", k=8)+ #global smoother
              s(plant.mass..g, by= Treatment, k=8, m=1) + #treatment specific trends
              s(plant.mass..g, Time.point, bs="fs", k=8, m=1),#time point specific trends as random effect
-           data= DOC.df,
-           family= Gamma(link = "log"),#for positive skewed data
+           data= DOC.df, 
            methods= 'REML', 
            select=TRUE)#more penalization
 summary(m6.gam)
@@ -191,10 +180,12 @@ draw(m3)
 
 ```
 
+Not sure why T4 is being difficult...
 ```{r}
 DOC_T4$Treatment=as.factor(DOC_T4$Treatment)
-m4=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment, bs="ps", k=8, m=1), data= DOC_T4, method= "REML")
+m4=gam(log(DOC..mg.L) ~ Treatment +  s(plant.mass..g, by= Treatment, k=8, m=1), data= DOC_T4, method= "REML")
 summary.gam(m4)
+gam.check(m4, rep=1000)
 draw(m4)
 
 ```
