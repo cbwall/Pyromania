@@ -1997,6 +1997,8 @@ ggplot(NFilt.NoUV, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) 
 
 ```
 
+<<<<<<< HEAD
+=======
 ### Isotopes
 ```{r, isotopes treatment}
 topes<-read.csv("data/Isotopes/Time1_isotopes_pyromania.csv")
@@ -2155,3 +2157,4 @@ control.iso<- plot_grid(iso.plot.control.d15N + theme(legend.position = "none"),
 ggsave("figures/iso.controls.pdf", encod="MacRoman", height=5, width=10)
 ```
 
+>>>>>>> 4ac483d399ca432209f3803ca0785803fc37c845
