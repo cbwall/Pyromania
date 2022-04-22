@@ -1,0 +1,207 @@
+---
+title: "Cody"
+author: "Cody Spiegel"
+date: "4/22/2022"
+output: html_document
+---
+
+```{r setup chunk, setup, include = FALSE, cache=FALSE, message=FALSE, warning=FALSE}
+if (!require('knitr')) install.packages('knitr'); library('knitr')
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
+
+# load packages
+if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
+
+# use pacman to load all the packages you are missing!
+pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'magrittr', 'effects', 'plyr', 'dplyr', 
+               'plotrix', 'car',"gridExtra", "cowplot", "tools")
+Fig.formatting<-(theme_classic()) +
+  theme(text=element_text(size=10),
+        legend.text.align = 0,
+        panel.border = element_rect(fill=NA, colour = "black", size=1),
+        aspect.ratio=1, 
+        axis.ticks.length=unit(0.25, "cm"),
+        axis.text.y=element_text(
+          margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=10), 
+        axis.text.x=element_text(
+          margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=8)) +
+  theme(legend.key.size = unit(0.4, "cm")) +
+  theme(aspect.ratio=1.3) +
+  theme(panel.spacing=unit(c(0, 0, 0, 0), "cm"))
+
+
+```
+
+###DOC  
+import and do a loop to clean up all files and make stacked data in single df
+```{r}
+## import treatment IDs
+IDs<-read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/Pyromania/data/treatment.IDs.csv")
+
+##### grab files in a list
+Total.DOC.files <- list.files(path="/Users/tobyspiegel2/Desktop/My_pyromania/Pyromania/data/DOC.TN", pattern = "csv$", full.names = T)
+
+##### what are the file names, sans extensions using package 'tools'
+file.names<-file_path_sans_ext(list.files(path="/Users/tobyspiegel2/Desktop/My_pyromania/Pyromania/data/DOC.TN", pattern = "csv$", full.names = F))
+
+############ formatting all data in for loop
+  for(i in 1:length(Total.DOC.files))
+    {
+  data<-read.csv(Total.DOC.files[i], sep=",")
+  data<-data[,c(1,3,4)] # removed columns we don't need
+  data$File<-Total.DOC.files[i]
+  colnames(data)<-c("Tank", "DOC..mg.L", "TN..mg.L", "File")
+  data$Tank<- IDs$Tank
+  data$Tank<-as.numeric(as.character(data$Tank)) # make the column of samples all numeric
+  data <- data[!is.na(as.numeric(as.character(data$Tank))),] # remove all rows that aren't numeric/tanks
+  data$Treatment<-IDs$Treatment
+  data$plant.mass..g<-IDs$plant.mass..g
+  make.names(assign(paste(file.names[i], sep=""), data)) # make the file name the name of new df for loop df
+  }
+
+########## this is the end of the loop
+
+#Combine files from loop to single df
+DOC.df<-rbind(DOC_T1, DOC_T2, DOC_T3, DOC_T4)
+DOC.df$Treatment=as.factor(DOC.df$Treatment)
+
+DOC.df$File<-substr(DOC.df$File, 64, 74) 
+# alternative way to code the above
+#give the 10th-24th character of the file name, removing the rest
+#DOC.df$File<-substr(DOC.df$File, 13, 27) 
+
+#alternatively
+# remove the 9 letters ('^.) at start 
+# remove the 4 letters (.$') at end
+#DOC.df$File<-gsub('^.........|....$', '', DOC.df$File) 
+
+# if equals DOC_T0_11052021 then, T0, if not then T1
+DOC.df$Time.point<- as.factor(
+         ifelse (DOC.df$File=="DOC_T1.csv", "T1",
+           ifelse (DOC.df$File=="DOC_T2.csv", "T2", 
+                   ifelse(DOC.df$File=="DOC_T3.csv", "T3", "T4"))))
+
+#rearrange
+library(dplyr)
+DOC.df<- DOC.df %>% 
+  dplyr::select(File, Time.point, Treatment, Tank, plant.mass..g, DOC..mg.L, TN..mg.L) 
+
+#visualize
+ggplot(DOC.df, aes(x = plant.mass..g, y = DOC..mg.L, colour = Treatment)) +
+    geom_point() +
+    facet_grid(~Time.point)+
+    geom_smooth(method = 'loess', se = FALSE) +
+    scale_colour_brewer(type = 'qual', palette = 'Dark2') +
+    theme(legend.position = 'top')
+
+
+```
+
+
+```{r}
+#A single common smoother plus group-level smoothers that have the same wiggliness (model GS)
+m1.gam=gam(log(DOC..mg.L) ~ Treatment + s(plant.mass..g, k=8, m=1) + s(plant.mass..g, factor(Time.point), k=8, bs="fs", m=1), data=DOC.df, method="REML")
+summary.gam(m1.gam)
+draw(m1.gam)
+k.check(m1.gam)
+#all groups have similar functional responses, but intergroup variation in responses is allowed. This approach works by allowing each grouping level to have its own functional response, but penalizing functions that are too far from the average.
+
+```
+
+```{r}
+#add in a smooth term. This is a thin plate regression spline, where we are smoothing over mass
+m1.gam=gam(log(DOC..mg.L)~ s(log(plant.mass..g), m=2, k=8) + s(), method="REML", family= gaussian(link="log"), data = DOC_T1)
+summary(m1.gam)
+gam.check(m1.gam, rep=1000)
+plot(m1.gam)
+
+gam(log(uptake) ∼ s(log(conc), k=5, m=2) +
+s(log(conc), Plant_uo, k=5, bs="fs", m=2),
+data=CO2, method="REML")
+
+
+m1.lm=lm(DOC..mg.L ~ Treatment+ poly(plant.mass..g,3), data=DOC_T1)
+summary(m1.lm)
+qqnorm(resid(m1.lm))
+qqline(resid(m1.lm))
+
+
+
+
+```{r}
+#observations have some distribution
+#wiggliness is smoothing curve
+#assumptions for glm hold true for GAM...must be satisfied 
+
+####Gamma distribution
+#model 1: basic model fit to all data
+m1.gam=gam(DOC..mg.L~  
+             s(plant.mass..g) + #smooth of plant mass trend
+             s(Time.point, bs="re"),#random effect of time point
+           data= DOC.df,
+           family= Gamma(link = "log"),#for positive skewed data
+           methods= 'REML',
+           select=TRUE)
+summary(m1.gam)
+
+```
+
+
+Model 2
+```{r}
+#model 2: by treatment
+m2.gam=gam(DOC..mg.L~ Treatment + #main effect
+             s(plant.mass..g,  by=Treatment, k=8, m=1) + #treatment specific trends
+             s(Time.point, bs="re", k=8),#random effect of time point 
+           data= DOC.df,
+           family= Gamma(link = "log"),#for positive skewed data
+           methods= 'REML',
+           select=TRUE)
+summary(m2.gam)
+draw(m2.gam)
+```
+Model 3
+```{r}
+#model 3: individual trends
+m3.gam=gam(DOC..mg.L~ Treatment + 
+             s(plant.mass..g, Time.point, bs="fs", k=8, m=1),#time point specific trends
+           data= DOC.df,
+           family= Gamma(link = "log"),#for positive skewed data
+           methods= 'REML',
+           select=TRUE)
+summary(m3.gam)
+draw(m3.gam)
+```
+Model 4
+```{r}
+#model 4: treatment specific trends, plus individual trends
+m4.gam=gam(DOC..mg.L~  Treatment+ s(plant.mass..g, bs="tp", k=8)+ #main effect
+             s(plant.mass..g, by= Treatment, k=8, m=1, bs="fs") + #treatment specific trends
+             s(plant.mass..g, Time.point, bs="fs", k=8, m=1),#time point specific trends as random effect
+           data= DOC.df,
+           family= Gamma(link = "log"),#for positive skewed data
+           methods= 'REML', 
+           select=TRUE)#more penalization
+summary(m4.gam)
+draw(m4.gam)
+gam.check(m4.gam, rep= 1000)##reps provide confidence intervals
+
+?anova.gam
+
+library(gratia)#gavin's package the uses ggplot as a base to see residuals
+draw(m4.gam, residuals = T)#looking at smoothing effects
+k.check(m4.gam)#checks to see if the k is good..and they are
+```
+Log transformed (model 4)
+```{r}
+#model 5 
+m5.gam= gam(log10(DOC..mg.L)~ Treatment +
+              s(plant.mass..g, by= Treatment, k=15)+ 
+               s(plant.mass..g, Time.point, bs="fs", k=15),
+           data= DOC.df,
+           family= gaussian(),
+           methods= 'REML',
+           select= TRUE)
+summary(m5.gam)
+draw(m5.gam)
+gam.check(m5.gam, rep=1000)#reps provide confidence intervals
