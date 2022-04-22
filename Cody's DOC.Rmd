@@ -2,7 +2,7 @@
 title: "Cody"
 author: "Cody Spiegel"
 date: "4/22/2022"
-output: html_document
+output: word
 ---
 
 ```{r setup chunk, setup, include = FALSE, cache=FALSE, message=FALSE, warning=FALSE}
