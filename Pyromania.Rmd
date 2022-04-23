@@ -1997,11 +1997,9 @@ ggplot(NFilt.NoUV, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) 
 
 ```
 
-<<<<<<< HEAD
-=======
 ### Isotopes
 ```{r, isotopes treatment}
-topes<-read.csv("data/Isotopes/Time1_isotopes_pyromania.csv")
+topes<-read.csv("data/Isotopes/Pyro_isotopes_T1.csv")
 topes$C.N <-(topes$Total.C..ug/12)/(topes$Total.N..ug/14) # C mol : N mol
 
 topes.trt<-topes[(topes$Treatment=="burned" | topes$Treatment=="unburned"),]
@@ -2157,4 +2155,38 @@ control.iso<- plot_grid(iso.plot.control.d15N + theme(legend.position = "none"),
 ggsave("figures/iso.controls.pdf", encod="MacRoman", height=5, width=10)
 ```
 
->>>>>>> 4ac483d399ca432209f3803ca0785803fc37c845
+```{r}
+# mixing model
+head(topes.trt)
+
+sage.mean<-d15N.cont[c(5:8),]
+mean(sage.mean$d15N) # sage ~300, willow 12
+
+F.cont<-aggregate(at.P..15N  ~ Type, topes.controls, mean)
+sage.meanF<-F.cont[c(5:8),]
+mean(sage.meanF$at.P..15N) # sage ~0.422, willow 0.371
+
+# 2 source mixing model 
+
+# value of consumer/pool - food source 1 [i.e., no-label food]/ (food 2 [i.e.,plants]- source 1)
+# using d15N values of 12 for algae/plankton stock 
+# or 156 for the pooled (0.5*d15N-willow[12])+(0.5*d15N-sage[300]) 
+
+topes.trt$percent.plant<-(topes.trt$d15N-12)/(156-12) 
+
+iso.mix<-ggplot(topes.trt, 
+                 aes(x=plant.mass..g, y=percent.plant, color=Treatment, shape=Type, linetype=Type)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ylab("%plant source")+
+  xlab("plant material (g)") +
+  Fig.formatting +
+  theme(legend.key.size = unit(2,"line"))
+
+iso.mix
+ggsave("figures/iso.mix.pdf", encod="MacRoman", height=5, width=6)
+```
+
+
+
