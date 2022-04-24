@@ -113,14 +113,32 @@ m2.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment, k=8, m=1) + s(
 summary(m2.gam)
 draw(m2.gam)
 k.check(m2.gam)
+#intercept adjustment for unburned in comparison with burned in parametric
+#the smooth terms summary shows two smooths that are sig different from 0. We cannot conclude from the summary that the two curves are different from each other.
 ```
 
 
 ```{r}
 #in the second model,  add s(mass), which then models the smooth effect of mass in the reference level. Now, the by smooths model smooth differences from this no-longer-constant reference smooth.
-m2.gamB=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, bs="tp", k=8) + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=11, bs="fs", m=1), data=DOC.df, method="REML", family= Gamma(link = "log"), select = T)
+#order factors
+DOC.df2=data.frame(DOC.df)
+DOC.df2=mutate(DOC.df2, oTreatment= ordered(Treatment, levels= c("burned", "unburned")))
+DOC.df2$oTreatment=as.factor(DOC.df2$oTreatment)
+
+
+m2.gamB=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, bs="tp", k=8) + s(plant.mass..g, by=oTreatment, k=8, m=1) + s(plant.mass..g, Time.point, k=11, bs="fs", m=1), data=DOC.df2, method="REML", family= Gamma(link = "log"), select = T)
 summary(m2.gamB)
+gam.check(m2.gamB, rep=1000)
+AIC(m2.gam, m2.gamB)
+#intercept adjustment for unburned in comparison with burned in parametric summary
+#smooth summary shows smooths that are different from 0: the reference smooth (burned) and the difference smooth (unburned - burned). When the difference smooth is sig different from 0, we can conclude that 2 groups follow a different trend over time
 draw(m2.gamB)
+#estimated smoooth trend for burned (top left), and difference smooths reflecting estimated differences between the burned and unburned 
+
+
+
+
+
 
 # the second model, all the levels of Treatment respond similarly to mass hence there are no large deviations from the smooth for the reference level of Treatment and hence the terms are not significant. the model is set up like ANOVA contrasts (estimate an effect for the reference level then have differences between individual levels and the reference), then fit the model like model 2
 
@@ -141,23 +159,31 @@ visreg(m2.gamB, xvar = "plant.mass..g",
 ```
 
 ```{r}
-m3.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, bs="tp", k=8) + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=8, bs="fs", m=1), data=DOC.df, method="REML", select = T)
+m3.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, bs="tp", k=13) + s(plant.mass..g, Time.point, by=Treatment, k=8, bs="fs", m=1), family = Gamma(link = "log"), data=DOC.df, method="REML", select = T)
 summary(m3.gam)
 draw(m3.gam)
+plot.gam(m3.gam)
+gam.check(m3.gam, rep=1000)
 
+library(visreg)
+visreg(m3.gam, xvar = "plant.mass..g",
+       by = "Time.point", data = DOC.df,
+       method = "REML", gg=T)
 
+AIC(m2.gam, m2.gamB, m3.gam)
 ```
 
 ```{r}
 #with link= log
-m4.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=8, bs="fs", m=1),family = gaussian(link = "log"), data=DOC.df, method="REML", select=T)
+m4.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, bs="tp", k=13) + s(plant.mass..g, Time.point, by=oTreatment, k=8, bs="fs", m=1), family = Gamma(link = "log"), data=DOC.df2, method="REML", select = T)
 summary(m4.gam)
 draw(m4.gam)
+AIC(m2.gam, m2.gamB, m3.gam, m4.gam)
 ```
 
 ```{r}
-m5.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g, bs="tp", k=8, m=1)+ s(plant.mass..g, Time.point, bs="fs", k=8, m=1),#time point specific trends
-           data= DOC.df,
+m5.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g, bs="cr", k=8, m=1)+ s(plant.mass..g, by=oTreatment, k=8, m=1) + te(plant.mass..g, Time.point, bs=c("cr","re"), k=8, m=1),
+           data= DOC.df2,
            methods= 'REML',
            select=TRUE)
 summary(m5.gam)
