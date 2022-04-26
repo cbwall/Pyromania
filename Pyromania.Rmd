@@ -2155,37 +2155,54 @@ control.iso<- plot_grid(iso.plot.control.d15N + theme(legend.position = "none"),
 ggsave("figures/iso.controls.pdf", encod="MacRoman", height=5, width=10)
 ```
 
-```{r}
+```{r, percent sage}
 # mixing model
 head(topes.trt)
 
-sage.mean<-d15N.cont[c(5:8),]
-mean(sage.mean$d15N) # sage ~300, willow 12
+d15N.cont # summary mean
+sage.mean<-d15N.cont[c(3:6),]
+mean(sage.mean$d15N) # sage ~297, willow 13
 
 F.cont<-aggregate(at.P..15N  ~ Type, topes.controls, mean)
-sage.meanF<-F.cont[c(5:8),]
-mean(sage.meanF$at.P..15N) # sage ~0.422, willow 0.371
+sage.meanF<-F.cont[c(3:6),]
+mean(sage.meanF$at.P..15N) # sage ~0.475, willow 0.371
 
 # 2 source mixing model 
 
 # value of consumer/pool - food source 1 [i.e., no-label food]/ (food 2 [i.e.,plants]- source 1)
-# using d15N values of 12 for algae/plankton stock 
-# or 156 for the pooled (0.5*d15N-willow[12])+(0.5*d15N-sage[300]) 
+# using d15N values of 11 for algae/plankton stock 
+# using d15N value of 297 for % sage
 
-topes.trt$percent.plant<-(topes.trt$d15N-12)/(156-12) 
+topes.trt$percent.sage<-(topes.trt$d15N-11)/(297-11) 
 
-iso.mix<-ggplot(topes.trt, 
-                 aes(x=plant.mass..g, y=percent.plant, color=Treatment, shape=Type, linetype=Type)) +
+iso.mix<-ggplot(topes.trt, aes(x=plant.mass..g, y=percent.sage, color=Treatment)) +
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  ylab("%plant source")+
+  ylab("% Sage")+
   xlab("plant material (g)") +
+  coord_cartesian(ylim=c(0, 1)) +
   Fig.formatting +
   theme(legend.key.size = unit(2,"line"))
 
 iso.mix
 ggsave("figures/iso.mix.pdf", encod="MacRoman", height=5, width=6)
+
+# model with biomass and treatment
+mod1 <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp") +
+            s(plant.mass..g, Treatment, k=5, bs="re"), data=topes.trt, method="REML",
+           family="gaussian")
+# model with biomass
+mod2 <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp"), data=topes.trt, method="REML",
+          family="gaussian")
+
+AIC(mod1,mod2) 
+# mod1 preferred
+summary(mod1)
+
+
+
+
 ```
 
 
