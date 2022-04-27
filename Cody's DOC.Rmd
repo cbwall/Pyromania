@@ -326,8 +326,7 @@ UVBIO.df$Burn.Filt.UV<-interaction(UVBIO.df$Treatment, UVBIO.df$Filter.Trt, UVBI
 UVBIO.df$Filt.UV<-interaction(UVBIO.df$Filter.Trt, UVBIO.df$UV.Trt)
 
 ```
-Assign letters (A,B,C,D) and compute the following:
-
+Calculate photo, microbe, and total degradation:
 ```{r}
 #+UV/+Bio=A
 #-UV/+Bio=B
@@ -384,13 +383,15 @@ degra.df= degra.df[!(degra.df$abs.change.DOC<=-100),]
 ```
 Visualize it
 ```{r}
+ggplot(degra.df[(degra.df$Treatment=="unburned"),])+
+  geom_point(aes(x=plant.mass..g,y=abs.change.DOC,color=type,shape=Time.point))+
+  geom_smooth(aes(x=plant.mass..g, y=abs.change.DOC, color=type), method = "gam", formula = y ~ s(x, bs="tp"))
+
 #Unburned treatment degradation
-unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),], 
-                       aes(x=plant.mass..g, y=abs.change.DOC, color=type)) + 
-  geom_point(alpha=0.5) +
-  scale_color_manual(values = c("purple", "gold", "brown")) + 
-  scale_fill_manual(values = c("purple", "gold", "brown")) +
-  geom_smooth(method= "loess", alpha=0.1)+
+unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+ 
+   geom_point(aes(x=plant.mass..g,y=abs.change.DOC,color=type,shape=Time.point),alpha=0.5)+
+  geom_smooth(aes(x=plant.mass..g, y=abs.change.DOC, color=type), method="loess", alpha=0.1)+
+  scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
   ggtitle("Degradation: unburned") +
   ylab(expression(paste(Delta, " DOC mg/L"))) +
   scale_y_continuous(limits = c(-8,0))+
@@ -398,19 +399,16 @@ unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),],
   Fig.formatting
 unburned.degra.plot
 
-
 extract.legend2 <- get_legend(
   # create some space to the left of the legend
   unburned.degra.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
 
 
 #Burned degradation
-burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),], 
-                       aes(x=plant.mass..g, y=abs.change.DOC, color=type)) + 
-  geom_point(alpha=0.5) +
-  scale_color_manual(values = c("purple", "gold", "brown")) + 
-  scale_fill_manual(values = c("purple", "gold", "brown")) +
-  geom_smooth(method= "loess", alpha=0.1) +
+burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+ 
+   geom_point(aes(x=plant.mass..g,y=abs.change.DOC,color=type,shape=Time.point),alpha=0.5)+
+  geom_smooth(aes(x=plant.mass..g, y=abs.change.DOC, color=type), method="loess", alpha=0.1)+
+  scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
   ggtitle("Degradation: burned") +
   ylab(expression(paste(Delta, " DOC mg/L"))) +
   scale_y_continuous(limits = c(-8,0))+
@@ -425,150 +423,10 @@ degra.plots=plot_grid(unburned.degra.plot + theme(legend.position = "none"),
           rel_widths = c(8,8,3),
           ncol=3)
 degra.plots
+ggsave("figures/UVBio.degra_type.plots.pdf", height=5, width=9)
 ```
 
 
-
-
-
-```{r}
-#Time 1
-photo.T1=ggplot(degra.df[(degra.df$Time.point=="T1"),], aes(x=plant.mass..g, y=photo, color=Treatment)) + geom_point() +
-scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-ggtitle("Time-1: Photodegradation") +
-coord_cartesian(ylim = c(-8,2))+
-ylab(expression(paste(Delta, " DOC mg/L")))+
-xlab("plant material (g)")+
-Fig.formatting
-
-
-microbe.T1=ggplot(degra.df[(degra.df$Time.point=="T1"),], aes(x=plant.mass..g, y=microbe, color=Treatment)) + geom_point() +
-scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-ggtitle("Time-1: Microbial Decomp.") +
-coord_cartesian(ylim = c(-8,2))+
-ylab(expression(paste(Delta, " DOC mg/L")))+
-xlab("plant material (g)")+
-Fig.formatting
-
-
-total.T1=ggplot(degra.df[(degra.df$Time.point=="T1"),], aes(x=plant.mass..g, y=total.decomp, color=Treatment)) + geom_point() +
-scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-ggtitle("Time-1: Total Decomp.") +
-coord_cartesian(ylim = c(-8,2))+
-ylab(expression(paste(Delta, " DOC mg/L")))+
-xlab("plant material (g)") +
-Fig.formatting
-
-  
-
-T1.decomp.plots<-plot_grid(
-  photo.T1+ theme(legend.position = "none"),
-  microbe.T1+ theme(legend.position = "none"),
-  total.T1+ theme(legend.position = "none"),
-  extract.legend, 
-  rel_widths = c(8,8,8,3), ncol=4)
-
-T1.decomp.plots
-
-
-#Time 2
-photo.T2=ggplot(degra.df[(degra.df$Time.point=="T2"),], aes(x=plant.mass..g, y=photo, color=Treatment)) + geom_point() +
-scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-ggtitle("Time-2: Photodegradation") +
-coord_cartesian(ylim = c(-8,2))+
-ylab(expression(paste(Delta, " DOC mg/L")))+
-xlab("plant material (g)") +
-Fig.formatting
-
-
-
-microbe.T2=ggplot(degra.df[(degra.df$Time.point=="T2"),], aes(x=plant.mass..g, y=microbe, color=Treatment)) + geom_point() +
-scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-ggtitle("Time-2: Microbial Decomp.") +
-coord_cartesian(ylim = c(-8,2))+
-ylab(expression(paste(Delta, " DOC mg/L")))+
-xlab("plant material (g)") +
-Fig.formatting
-
-microbe.T2
-
-
-total.T2=ggplot(degra.df[(degra.df$Time.point=="T2"),], aes(x=plant.mass..g, y=total.decomp, color=Treatment)) + geom_point() +
-scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-ggtitle("Time-2: Total Decomp.") +
-coord_cartesian(ylim = c(-8,2))+
-ylab(expression(paste(Delta, " DOC mg/L")))+
-xlab("plant material (g)") +
-Fig.formatting
-
-  
-
-T2.decomp.plots<-plot_grid(
-  photo.T2+ theme(legend.position = "none"),
-  microbe.T2+ theme(legend.position = "none"),
-  total.T2+ theme(legend.position = "none"),
-  extract.legend, 
-  rel_widths = c(8,8,8,3), ncol=4)
-
-T2.decomp.plots
-
-#Time 3
-photo.T3=ggplot(degra.df[(degra.df$Time.point=="T3"),], aes(x=plant.mass..g, y=photo, color=Treatment)) + geom_point() +
-scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-ggtitle("Time-3: Photodegradation") +
-coord_cartesian(ylim = c(-8,2))+
-ylab(expression(paste(Delta, " DOC mg/L")))+
-xlab("plant material (g)") +
-Fig.formatting
-photo.T3
-
-microbe.T3=ggplot(degra.df[(degra.df$Time.point=="T3"),], aes(x=plant.mass..g, y=microbe, color=Treatment)) + geom_point() +
-scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-ggtitle("Time-3: Microbial Decomp.") +
-coord_cartesian(ylim = c(-8,2))+
-ylab(expression(paste(Delta, " DOC mg/L")))+
-xlab("plant material (g)") +
-Fig.formatting
-
-total.T3=ggplot(degra.df[(degra.df$Time.point=="T3"),], aes(x=plant.mass..g, y=total.decomp, color=Treatment)) + geom_point() +
-scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-ggtitle("Time-3: Total Decomp.") +
-coord_cartesian(ylim = c(-8,2))+
-ylab(expression(paste(Delta, " DOC mg/L")))+
-xlab("plant material (g)") +
-Fig.formatting
-  
-
-T3.decomp.plots<-plot_grid(
-  photo.T3+ theme(legend.position = "none"),
-  microbe.T3+ theme(legend.position = "none"),
-  total.T3+ theme(legend.position = "none"),
-  extract.legend, 
-  rel_widths = c(8,8,8,3), ncol=4)
-
-T3.decomp.plots
-
-#all time points
-all.decomp.plots<-plot_grid(
-  T1.decomp.plots, 
-  T2.decomp.plots,
-  T3.decomp.plots,
-  ncol=1)
-
-all.decomp.plots
-
-
-
-```
 
 
 
