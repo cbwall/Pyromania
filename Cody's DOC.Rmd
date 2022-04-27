@@ -380,6 +380,9 @@ degra.df=rbind(photo.df, microbe.df, total.df)
 degra.df<-degra.df[!(degra.df$abs.change.DOC>=40),]
 degra.df= degra.df[!(degra.df$abs.change.DOC<=-100),]
 
+#add absolute value of abs.change.DOC
+degra.df$abs.value.DOC=abs(degra.df$abs.change.DOC)
+
 ```
 Visualize it
 ```{r}
@@ -424,6 +427,75 @@ degra.plots=plot_grid(unburned.degra.plot + theme(legend.position = "none"),
           ncol=3)
 degra.plots
 ggsave("figures/UVBio.degra_type.plots.pdf", height=5, width=9)
+```
+
+Absolute value of abs.change.DOC plots
+```{r}
+
+#Unburned treatment degradation
+abs.unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+ 
+   geom_point(aes(x=plant.mass..g,y=abs.value.DOC,color=type,shape=Time.point),alpha=0.5)+
+  geom_smooth(aes(x=plant.mass..g, y=abs.value.DOC, color=type), method="loess", alpha=0.1)+
+  scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
+  ggtitle("Degradation: unburned") +
+  ylab(expression(paste(Delta, " DOC mg/L"))) +
+  scale_y_continuous(limits = c(0,8))+
+  xlab("plant material (g)") +
+  Fig.formatting
+abs.unburned.degra.plot
+
+abs.extract.legend2 <- get_legend(
+  # create some space to the left of the legend
+  abs.unburned.degra.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+
+#Burned degradation
+abs.burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+ 
+   geom_point(aes(x=plant.mass..g,y=abs.value.DOC,color=type,shape=Time.point),alpha=0.5)+
+  geom_smooth(aes(x=plant.mass..g, y=abs.value.DOC, color=type), method="loess", alpha=0.1)+
+  scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
+  ggtitle("Degradation: burned") +
+  ylab(expression(paste(Delta, " DOC mg/L"))) +
+  scale_y_continuous(limits = c(0,8))+
+  xlab("plant material (g)") +
+  Fig.formatting
+abs.burned.degra.plot
+
+#combine them
+abs.degra.plots=plot_grid(abs.unburned.degra.plot + theme(legend.position = "none"),
+          abs.burned.degra.plot + theme(legend.position = "none"),
+          extract.legend2, 
+          rel_widths = c(8,8,3),
+          ncol=3)
+abs.degra.plots
+ggsave("figures/UVBio.abs.degra_type.plots.pdf", height=5, width=9)
+
+```
+UVBIO models
+```{r}
+library(mgcv)
+#make sure we have factors
+degra.df=degra.df%>%
+    mutate_if(is.character,as.factor)
+
+#fit null (similar format as total DOC)
+uv.m1.gam=gam(abs.change.DOC ~ Treatment  + type + s(plant.mass..g, Time.point, bs="fs"), data=degra.df, method="REML")
+summary(uv.m1.gam)
+
+uv.m2.gam=gam(abs.value.DOC~ Treatment  + type + s(plant.mass..g, by=type, bs="fs") + s(plant.mass..g, Time.point, by=Treatment, bs="fs"), family= Gamma(link = "log"), data=degra.df, method="REML")
+summary(uv.m2.gam)
+
+
+
+
+
+
+
+
+
+
+
+
 ```
 
 
