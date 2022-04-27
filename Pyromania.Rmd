@@ -2175,31 +2175,69 @@ mean(sage.meanF$at.P..15N) # sage ~0.475, willow 0.371
 
 topes.trt$percent.sage<-(topes.trt$d15N-11)/(297-11) 
 
-iso.mix<-ggplot(topes.trt, aes(x=plant.mass..g, y=percent.sage, color=Treatment)) +
-  geom_point() +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+# unicode text for micrometer = \u03BC, use this in legend
+
+iso.mix<-ggplot(topes.trt, aes(x=plant.mass..g, y=100*percent.sage, color=Treatment)) +
+  geom_point(aes(shape=Type)) +
+  scale_shape_manual(name="Plankton", values = c(17, 16), 
+                     labels = c(expression(paste("> 63"~mu,"m")), 
+                                expression(paste("< 63"~mu,"m")))) +
+  scale_color_manual(name="Treatments", values = c("brown1", "mediumseagreen")) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1, show.legend = FALSE) +
   ylab("% Sage")+
   xlab("plant material (g)") +
-  coord_cartesian(ylim=c(0, 1)) +
+  coord_cartesian(ylim=c(0, 100)) +
   Fig.formatting +
-  theme(legend.key.size = unit(2,"line"))
+  theme(legend.key.size = unit(1,"line"))
+
 
 iso.mix
 ggsave("figures/iso.mix.pdf", encod="MacRoman", height=5, width=6)
 
+
+
 # model with biomass and treatment
-mod1 <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp") +
-            s(plant.mass..g, Treatment, k=5, bs="re"), data=topes.trt, method="REML",
-           family="gaussian")
+###### only POM
+mod1a <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp") +
+            s(plant.mass..g, Treatment, k=5, bs="re"),
+            data=topes.trt[(topes.trt$Type=="POM"),], method="REML", family="gaussian")
 # model with biomass
-mod2 <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp"), data=topes.trt, method="REML",
-          family="gaussian")
+mod2a <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp"), 
+            data=topes.trt[(topes.trt$Type=="POM"),], method="REML", family="gaussian")
 
 AIC(mod1,mod2) 
 # mod1 preferred
 summary(mod1)
 
+##############
+## only plankton
+mod1b <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp") +
+            s(plant.mass..g, Treatment, k=5, bs="re"),
+            data=topes.trt[(topes.trt$Type=="plankton"),], method="REML", family="gaussian")
+# model with biomass
+mod2b <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp"), 
+            data=topes.trt[(topes.trt$Type=="plankton"),], method="REML", family="gaussian")
+
+AIC(mod1,mod2) 
+# mod1 preferred
+summary(mod1)
+
+
+############# all plankton
+mod1c <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp") +
+            s(plant.mass..g, Treatment, k=5, bs="re"),
+            data=topes.trt, method="REML", family="gaussian")
+# model with biomass
+mod2c <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp"), 
+            data=topes.trt, method="REML", family="gaussian")
+
+AIC(mod1c,mod2c) 
+# mod1 preferred
+# compare across
+AIC(mod1a, mod1b, mod1c) 
+# full model best
+
+summary(mod1c)
 
 
 
