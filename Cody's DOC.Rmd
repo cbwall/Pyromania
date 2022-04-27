@@ -96,6 +96,11 @@ ggplot(DOC.df, aes(x = plant.mass..g, y = DOC..mg.L, colour = Treatment)) +
 #y doc
 #shape treatment
 #color mass
+DOC.df2=data.frame(DOC.df)
+DOC.df2=mutate(DOC.df2, oTreatment= ordered(Treatment, levels= c("burned", "unburned")))
+DOC.df2=mutate(DOC.df2, oTime.point= ordered(Time.point, levels= c("T1", "T2", "T3", "T4")))
+DOC.df2$oTreatment=as.factor(DOC.df2$oTreatment)
+DOC.df2$oTime.point=as.factor(DOC.df2$oTime.point)
 
 
 
@@ -145,7 +150,8 @@ summary(m5.gam)
 
 AIC(m4.gam, m5.gam)
 
-#now lets account the for positively skewed data with gamma distribution and log link
+#now lets account the for positively skewed data with gamma distribution and log link. Gamma distributions have variance as a quadratic function of the mean.
+#There variance is not constant and the data is heteroscedastic...transforming seems to only account for one of those. Gamma works best since if we  expect to see a small value of DOC we should also expect only a small amount of variability in observed values. On the other hand, if we expect a huge value of DOC, we should expect a lot of variability.
 m6.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment) + s(plant.mass..g, Time.point, by= Treatment, bs="fs"), family= Gamma(link="log"), data=DOC.df2, method="REML")
 summary(m6.gam)
 
@@ -153,7 +159,7 @@ AIC(m4.gam, m5.gam, m6.gam)
 
 ###now we seem to have created a model that fit the original question, how does burning and loading affect DOC while accounting for variation in the random effect of sampling period...let's play with the model to see if we can get a better fit using AIC as our guide
 
-#choose max k
+#choose a k value
 m7.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, by=Treatment, k=12) + s(plant.mass..g, Time.point, by=Treatment, bs="fs",k=12), family= Gamma(link="log"), data=DOC.df2, select= T, method="REML")
 
 #better fit with less
@@ -170,227 +176,68 @@ m10.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, Time.point, by=Treatment, 
 
 AIC(m9.gam, m10.gam)
 
-m11.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, Time.point, by=Treatment, bs="fs", k=12), family= Gamma(link="log"), data=DOC.df2, select= T, method="REML")
+m11.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, Time.point, by=Treatment, bs="fs", k=12), family= Gamma(link="log"), data=DOC.df, select= T, method="REML")
 summary(m11.gam)
+gam.check(m11.gam, rep=1000)
+
+m12.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, by=Treatment) + s(plant.mass..g, Time.point, bs="fs"), family= Gamma(link="log"), data=DOC.df, select= T, method="REML")
+
+#This just confims that Gamma distribution is a better fit
+m13.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, Time.point, by=Treatment, bs="fs", k=12), family= gaussian(link="identity"), data=DOC.df, select= T, method="REML")
+summary(m13.gam)
+
+m14.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, Time.point, by=Treatment, bs="fs", k=12), family= Gamma(link="identity"), data=DOC.df, select= T, method="REML")
+
+#Setting fs just for time point with by level treatment
+m15.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, by=Treatment) +s(plant.mass..g, Time.point, bs="fs"), family= Gamma(link="inverse"), data=DOC.df, select= T, method="REML")
+summary(m13.gam)
+
+m16.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, by=Treatment) + s(plant.mass..g, Time.point, bs="fs", k=12), family= Gamma(link="log"), data=DOC.df, select= T, method="REML")
 
 
-AIC(m8.gam, m9.gam, m10.gam, m11.gam)
+#additive m16 comparison
+AIC( m11.gam, m16.gam)
+summary(m11.gam)
+anova(m16.gam,m11.gam,test="F")
+
+
+termplot(exp(m16.gam))
+
+DOC_pred <- data.frame(
+  DOC=DOC.df$DOC..mg.L,
+  fitted_values= fitted_values(m11.gam, scale = "response")
+)
+
+
+
+ggplot(DOC_pred)+
+  geom_point(aes(x=fitted_values.plant.mass..g,y=DOC,color=fitted_values.Treatment,shape=fitted_values.Time.point))+
+  geom_line(aes(x= fitted_values.plant.mass..g, y=fitted_values.fitted, color=fitted_values.Treatment))
+#DO
+
+
 ```
 
 
 ```{r}
 #we can see what this looks like
+library(visreg)
 visreg(m11.gam, xvar = "plant.mass..g",
        by = "Treatment", data = DOC.df2,
        method = "REML", gg=T)
+gam.check(m11.gam, resid=T)
 summary(m11.gam)
-exp(-0.02413)
+#exp(2.12999)=8.41
+#the conditional mean when all the explanatory variables are 0: burned treatment has a mean DOC of 8.41 
+#Unburned mean DOC is exp(-0.02413)= 0.976 less than the burned treatment
+
 #If the outcome is skewed and always positive, it can be modeled using the gamma distribution. The link function is log() to be consistent with the previous linear model, thus the model is modeling the following.
 
-#For example, having unburned = - decreases the log arithmetic mean outcome by -0.02413. The exponentiated coefficient (e^{-0.02413} = 0.9761588) is the factor by which the arithmetic mean outcome on the original scale is multiplied, i.e., if unburned = -, the arithmetic mean on the original scale is 0.98 times lower compared to x1 = - within levels of other variables.
-
-
-Therefore, this model assumes multiplicative effects on the original outcome by the predictors.
+#For example, having unburned = - decreases the log arithmetic mean outcome by -0.02413. The exponentiated coefficient is the factor by which the arithmetic mean outcome on the original scale is multiplied, i.e., if unburned = -, the arithmetic mean on the original scale is 0.98 times lower. This model assumes multiplicative effects on the original outcome by the predictors?
 
 
 
 ```
-
-
-
-
-
-
-
-```{r}
-library(itsadug)
-m7.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment) + s(plant.mass..g, Time.point, by=Treatment, bs="fs", k=12), family= Gamma(link="log"), data=DOC.df2, select= T, method="REML")
-summary(m7.gam)
-
-###########
-m8.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment) + s(plant.mass..g, Time.point, by=Treatment, bs="fs"), family= Gamma(link="log"), data=DOC.df2, select= T, method="REML")
-draw(m8.gam)
-summary(m8.gam)
-
-
-m9.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g, by = Treatment) + s(Time.point, Treatment, bs = "re") + s(plant.mass..g, Time.point, bs = "fs", m =1), data = DOC.df, family= Gamma(link = "log"), method = "REML")
-
-
-m8.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, Time.point, by=Treatment, bs="fs"), family= Gamma(link="log"), data=DOC.df2, select= T, method="REML")
-summary(m9.gam)
-draw(m5.gam)
-gam.check(m5.gam, rep=1000)
-library(visreg)
-visreg(m7.gam, xvar = "plant.mass..g",
-       by = "Treatment", data = DOC.df2,
-       method = "REML", gg=T)
-
-check_resid(m8.gam, split_by=list(Time.point=DOC.df$Time.point, Treatment=DOC.df$Treatment))
-
-
-m6.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment) + s(plant.mass..g, Time.point, bs="re"), family= Gamma(link="log"), data=DOC.df2, method="REML")
-summary(m6.gam)
-
-AIC(m7.gam, m8.gam)
-
-```
-I think this one is the best fit
-```{r}
-#first model is that the reference level of mass is modeled as a constant term (it is the intercept), with the effect of mass for the other levels being smooth differences from this constant.
-m2.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment, k=8, m=1) + s(plant.mass..g, Time.point, k=11, bs="fs", m=1), data=DOC.df, family= Gamma(link="log"), method="REML", select = T)
-summary(m2.gam)
-draw(m2.gam)
-k.check(m2.gam)
-#intercept adjustment for unburned in comparison with burned in parametric
-#the smooth terms summary shows two smooths that are sig different from 0. We cannot conclude from the summary that the two curves are different from each other.
-```
-
-
-```{r}
-#in the second model,  add s(mass), which then models the smooth effect of mass in the reference level. Now, the by smooths model smooth differences from this no-longer-constant reference smooth.
-#order factors
-DOC.df2=data.frame(DOC.df)
-DOC.df2=mutate(DOC.df2, oTreatment= ordered(Treatment, levels= c("burned", "unburned")))
-DOC.df2=mutate(DOC.df2, oTime.point= ordered(Time.point, levels= c("T1", "T2", "T3", "T4")))
-DOC.df2$oTreatment=as.factor(DOC.df2$oTreatment)
-DOC.df2$oTime.point=as.factor(DOC.df2$oTime.point)
-
-
-m2.gamB=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, bs="tp", k=8) + s(plant.mass..g, by=oTreatment, k=8, m=1) + s(plant.mass..g, Time.point, k=11, bs="fs", m=1), data=DOC.df2, method="REML", family= Gamma(link = "log"), select = T)
-summary(m2.gamB)
-gam.check(m2.gamB, rep=1000)
-AIC(m2.gam, m2.gamB)
-#intercept adjustment for unburned in comparison with burned in parametric summary
-#smooth summary shows smooths that are different from 0: the reference smooth (burned) and the difference smooth (unburned - burned). When the difference smooth is sig different from 0, we can conclude that 2 groups follow a different trend over time
-draw(m2.gamB)
-#estimated smoooth trend for burned (top left), and difference smooths reflecting estimated differences between the burned and unburned 
-
-
-
-
-
-
-# the second model, all the levels of Treatment respond similarly to mass hence there are no large deviations from the smooth for the reference level of Treatment and hence the terms are not significant. the model is set up like ANOVA contrasts (estimate an effect for the reference level then have differences between individual levels and the reference), then fit the model like model 2
-
-#In the first model, the effect of mass for the reference level was constant, so the difference smooths picked up the actual non-linear effect of mass and hence were significantly different from zero
-```
-
-
-```{r}
-AIC(m2.gam, m2.gamB)
-#gamB seems to be the better fit
-gam.check(m2.gamB, rep=1000)
-library(visreg)
-visreg(m2.gamB, xvar = "plant.mass..g",
-       by = "Time.point", data = DOC.df,
-       method = "REML", gg=T)
-```
-
-
-```{r}
-
-m3.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, bs="tp", k=13) + s(plant.mass..g, Time.point, by=oTreatment, k=8, bs="fs", m=1)+  s(plant.mass..g, Time.point, bs="fs", k=8, m=1), family = Gamma(link = "log"), data=DOC.df2, method="REML", select = T)
-summary(m3.gam)
-draw(m3.gam)
-plot.gam(m3.gam)
-gam.check(m3.gam, rep=1000)
-anova.gam(m2.gamB)
-
-#so if all variables are exactly zero then exp(intercept)= ~10
-#interpret the exponentiated coefficients multiplicatively rather than additively. They give you the multiplier on the expected value when 𝑥 changes by 1.
-
-library(visreg)
-
-
-```
-
-
-```{r}
-#with link= log
-m4.gam=gam(DOC..mg.L ~ Treatment + Time.point + s(plant.mass..g, bs="tp", k=13) + s(plant.mass..g, by=oTreatment, k=8, bs="fs", m=1) + s(plant.mass..g, by=oTime.point, k=8, bs="fs", m=1), family = Gamma(link = "log"), data=DOC.df2, method="REML", select = T)
-summary(m4.gam)
-draw(m4.gam)
-AIC(m2.gam, m2.gamB, m3.gam, m4.gam)
-```
-
-```{r}
-m5.gam=gam(DOC..mg.L ~ Treatment + Time.point + s(plant.mass..g, bs="tp", k=13) + s(plant.mass..g, Time.point, by=oTreatment, k=8, bs="fs", m=1) + s(plant.mass..g, Treatment, by=oTime.point, k=8, bs="fs", m=1), family = Gamma(link = "log"), data=DOC.df2, method="REML", select = T)
-summary(m3.gam)
-summary(m5.gam)
-draw(m5.gam)
-```
-
-
-```{r}
-
-
-m6.gam=gam(DOC..mg.L~Treatment + s(plant.mass..g, bs="tp", k=13) + s(plant.mass..g, by=oTreatment, k=8, m=1) + s(plant.mass..g, Time.point, bs="fs", k=8, m=1), data= DOC.df2, method= "REML", family = Gamma(link = "log"), select= T)
-summary(m6.gam)
-draw(m6.gam)
-#model comparison
-AIC(m2.gam, m2.gamB, m3.gam, m4.gam, m5.gam, m6.gam, m7.gam)
-visreg(m6.gam, xvar = "plant.mass..g",
-       by = "Time.point", data = DOC.df2,
-       method = "REML", gg=T)
-
-#interpretation:
-#exp(2.18977)=8.933158
-#an increase in the burned 
-?gam.models
-
-```
-
-
-
-```{r}
-m7.gam=gam(DOC..mg.L~Treatment + Time.point + s(plant.mass..g, bs="tp", k=13) + s(plant.mass..g, by=oTreatment, k=8, m=1) + s(plant.mass..g, by=oTime.point, k=8, m=1) -1, data= DOC.df2, method= "REML", family = Gamma(link = "log"), select= T)
-summary(m7.gam)
-draw(m7.gam)
-
-
-
-```
-
-Separate models for each time point
-```{r}
-DOC_T1$Treatment=as.factor(DOC_T1$Treatment)
-m1=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment, k=8, m=1), data= DOC_T1, method= "REML")
-summary.gam(m1)
-draw(m1)
-
-```
-```{r}
-DOC_T2$Treatment=as.factor(DOC_T2$Treatment)
-m2=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment, k=8, m=1), data= DOC_T2, method= "REML")
-summary.gam(m2)
-draw(m2)
-
-
-
-```
-
-```{r}
-DOC_T3$Treatment=as.factor(DOC_T3$Treatment)
-m3=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment, k=8, m=1), data= DOC_T3, method= "REML")
-summary.gam(m3)
-draw(m3)
-
-
-
-
-```
-
-Not sure why T4 is being difficult...
-```{r}
-DOC_T4$Treatment=as.factor(DOC_T4$Treatment)
-m4=gam(log(DOC..mg.L) ~ Treatment +  s(plant.mass..g, by= Treatment, k=8, m=1), data= DOC_T4, method= "REML")
-summary.gam(m4)
-gam.check(m4, rep=1000)
-draw(m4)
-
-```
-
-
 
 UVBIO files and plots
 ```{r}
@@ -487,128 +334,63 @@ Assign letters (A,B,C,D) and compute the following:
 #+UV/-Bio=C
 #-UV/-Bio (NoUV,Filtered)=D
 
-#seperate by time point
-degra.df.T1<-UVBIO.df[(UVBIO.df$Time.point=="T1"),]
-degra.df.T2<-UVBIO.df[(UVBIO.df$Time.point=="T2"),]
-degra.df.T3<-UVBIO.df[(UVBIO.df$Time.point=="T3"),]
+#photodegradation
 
-degra.df=rbind(degra.df.T1,degra.df.T2, degra.df.T3)
+photo.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Time.point, UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Treatment,
+                    UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Tank,
+                    UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$plant.mass..g,
+                    UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)
+photo.df$type="photo"
+names(photo.df)[1]="Time.point"
+names(photo.df)[2]="Treatment"
+names(photo.df)[3]="Tank"
+names(photo.df)[4]="plant.mass..g"
+names(photo.df)[5]="abs.change.DOC"
 
-UVBIO.df$Filt.UV=gsub("Filtered.NoUV", "control", UVBIO.df$Filt.UV)
-UVBIO.df$Filt.UV=gsub("Unfiltered.NoUV", "microbe", UVBIO.df$Filt.UV)
-UVBIO.df$Filt.UV=gsub("Filtered.UV", "photo", UVBIO.df$Filt.UV)
-UVBIO.df$Filt.UV=gsub("Unfiltered.UV", "total", UVBIO.df$Filt.UV)
+#Microbe decomp
+microbe.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Time.point,
+                      UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Treatment,
+                      UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Tank,
+                      UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$plant.mass..g,
+                      UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)
+microbe.df$type="microbe"
+names(microbe.df)[1]="Time.point"
+names(microbe.df)[2]="Treatment"
+names(microbe.df)[3]="Tank"
+names(microbe.df)[4]="plant.mass..g"
+names(microbe.df)[5]="abs.change.DOC"
 
-degra.df.T2$Filt.UV=gsub("Filtered.NoUV", "control", degra.df.T2$Filt.UV)
-degra.df.T2$Filt.UV=gsub("Unfiltered.NoUV", "microbe", degra.df.T2$Filt.UV)
-degra.df.T2$Filt.UV=gsub("Filtered.UV", "photo", degra.df.T2$Filt.UV)
-degra.df.T2$Filt.UV=gsub("Unfiltered.UV", "total", degra.df.T2$Filt.UV)
-
-degra.df.T3$Filt.UV=gsub("Filtered.NoUV", "control", degra.df.T3$Filt.UV)
-degra.df.T3$Filt.UV=gsub("Unfiltered.NoUV", "microbe", degra.df.T3$Filt.UV)
-degra.df.T3$Filt.UV=gsub("Filtered.UV", "photo", degra.df.T3$Filt.UV)
-degra.df.T3$Filt.UV=gsub("Unfiltered.UV", "total", degra.df.T3$Filt.UV)
-
-
-
-(UVBIO.df[UVBIO.df$Filt.UV=="photo",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="control",]$DOC..mg.L)
-
-UVBIO.df %>% rowwise %>% mutate(Adj = ifelse(Day == "Mo" || Day == "Tu", 
-                           Val + 1, 
-                           Val + 2))
-
-
-
-
-
-
-
-
-photo.T1= degra.df.T1[degra.df.T1$Filter.Trt=="Filtered" & degra.df.T1$UV.Trt=="UV",]
-control.T1<-degra.df.T1[(degra.df.T1$Filter.Trt=="Filtered" & degra.df.T1$UV.Trt=="NoUV"),]
-total.T1 <-UVBIO.df.T1[UVBIO.df.T1$Filter.Trt=="Unfiltered" & UVBIO.df.T1$UV.Trt=="UV",]
-microbe.T1 <-UVBIO.df.T1[UVBIO.df.T1$Filter.Trt=="Unfiltered" & UVBIO.df.T1$UV.Trt=="NoUV",]
-
-
-#photodegradation= C-D
-
-UVBIO.df[UVBIO.df$Filt.UV=="photo",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="control",]$DOC..mg.L
-
-
-
-photo.T2=data.frame(degra.df.T2$Time.point, degra.df.T2[degra.df.T2$Filt.UV=="Filtered.UV",]$DOC..mg.L-degra.df.T2[degra.df.T2$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)
-names(photo.T2)[1]="Time.point"
-names(photo.T2)[2]="change"
-
-photo.T3=data.frame(degra.df.T3$Time.point, degra.df.T3[degra.df.T3$Filt.UV=="Filtered.UV",]$DOC..mg.L-degra.df.T3[degra.df.T3$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)
-names(photo.T3)[1]="Time.point"
-names(photo.T3)[2]="change"
-
-photo.all=rbind(photo.T1, photo.T2, photo.T3)
-
-#Microbe decomp= B-D
-microbe.T1=data.frame(degra.df.T1$Time.point, degra.df.T1[degra.df.T1$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-degra.df.T1[degra.df.T1$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)
-names(microbe.T1)[1]="Time.point"
-names(microbe.T1)[2]="change"
-
-
-microbe.T2=data.frame(degra.df.T2$Time.point,degra.df.T2[degra.df.T2$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-degra.df.T2[degra.df.T2$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)
-names(microbe.T2)[1]="Time.point"
-names(microbe.T2)[2]="change"
-
-microbe.T3=data.frame(degra.df.T3$Time.point, degra.df.T3[degra.df.T3$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-degra.df.T3[degra.df.T3$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)
-names(microbe.T3)[1]="Time.point"
-names(microbe.T3)[2]="change"
-
-microbe.all=rbind(microbe.T1, microbe.T2, microbe.T3)
 
 #Total decomp= A
-total.T1=data.frame(degra.df.T1$Time.point,degra.df.T1[degra.df.T1$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-degra.df.T1[degra.df.T1$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)
-names(total.T1)[1]="Time.point"
-names(total.T1)[2]="change"
-
-total.T2=data.frame(degra.df.T2$Time.point, degra.df.T2[degra.df.T2$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-degra.df.T2[degra.df.T2$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)
-names(total.T2)[1]="Time.point"
-names(total.T2)[2]="change"
-
-total.T3=data.frame(degra.df.T3$Time.point, degra.df.T3[degra.df.T1$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-degra.df.T3[degra.df.T3$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)
-names(total.T3)[1]="Time.point"
-names(total.T3)[2]="change"
-
-total.all=rbind(total.T1, total.T2, total.T3)
+total.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Time.point,
+                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Treatment,
+                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Tank,
+                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$plant.mass..g,
+                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)
+total.df$type="total"
+names(total.df)[1]="Time.point"
+names(total.df)[2]="Treatment"
+names(total.df)[3]="Tank"
+names(total.df)[4]="plant.mass..g"
+names(total.df)[5]="abs.change.DOC"
 
 #merge degra.df time points into one dataframe
-degra.df=cbind(photo.all, microbe.all, total.all)
-degra.df=degra.df[-c(3,5)]
-names(degra.df)[2]="photo"
-names(degra.df)[3]="microbe"
-names(degra.df)[4]="total"
-degra.df=degra.df%>%
-  pivot_longer(!Time.point, names_to = "type", values_to = "change")
-
+degra.df=rbind(photo.df, microbe.df, total.df)
 
 # remove outliers
-degra.df<-degra.df[!(degra.df$d_photo>=40),]
-degra.df<-degra.df[!(degra.df$d_microbe>=40),]
-degra.df<-degra.df[!(degra.df$d_total.decomp>=40),]
-degra.df= degra.df[!(degra.df$d_photo<=-100),]
-degra.df= degra.df[!(degra.df$d_microbe<=-100),]
-degra.df= degra.df[!(degra.df$d_total.decomp<=-100),]
+degra.df<-degra.df[!(degra.df$abs.change.DOC>=40),]
+degra.df= degra.df[!(degra.df$abs.change.DOC<=-100),]
 
-#pivot long
-degra.df=degra.df%>% pivot_longer(
-  cols = starts_with("d_"),
-     names_to = "type", 
-     values_to = "change", 
-     names_prefix = "d_")
-
-#Unburned degradation
+```
+Visualize it
+```{r}
+#Unburned treatment degradation
 unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),], 
-                       aes(x=plant.mass..g, y=change, color=type)) + 
+                       aes(x=plant.mass..g, y=abs.change.DOC, color=type)) + 
   geom_point(alpha=0.5) +
-  scale_color_manual(values = c("coral", "gold", "brown")) + 
-  scale_fill_manual(values = c("coral", "gold", "brown")) +
-  geom_smooth(method= "gam", formula= y ~ s(x, bs = "tp"), alpha=0.1)+
+  scale_color_manual(values = c("purple", "gold", "brown")) + 
+  scale_fill_manual(values = c("purple", "gold", "brown")) +
+  geom_smooth(method= "loess", alpha=0.1)+
   ggtitle("Degradation: unburned") +
   ylab(expression(paste(Delta, " DOC mg/L"))) +
   scale_y_continuous(limits = c(-8,0))+
@@ -624,11 +406,11 @@ extract.legend2 <- get_legend(
 
 #Burned degradation
 burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),], 
-                       aes(x=plant.mass..g, y=change, color=type)) + 
+                       aes(x=plant.mass..g, y=abs.change.DOC, color=type)) + 
   geom_point(alpha=0.5) +
-  scale_color_manual(values = c("coral", "gold", "brown")) + 
-  scale_fill_manual(values = c("coral", "gold", "brown")) +
-  geom_smooth(method= "gam", formula= y ~ s(x, bs = "tp"), alpha=0.1) +
+  scale_color_manual(values = c("purple", "gold", "brown")) + 
+  scale_fill_manual(values = c("purple", "gold", "brown")) +
+  geom_smooth(method= "loess", alpha=0.1) +
   ggtitle("Degradation: burned") +
   ylab(expression(paste(Delta, " DOC mg/L"))) +
   scale_y_continuous(limits = c(-8,0))+
