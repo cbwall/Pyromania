@@ -2183,7 +2183,8 @@ iso.mix<-ggplot(topes.trt, aes(x=plant.mass..g, y=100*percent.sage, color=Treatm
                      labels = c(expression(paste("> 63"~mu,"m")), 
                                 expression(paste("< 63"~mu,"m")))) +
   scale_color_manual(name="Treatments", values = c("brown1", "mediumseagreen")) +
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1, show.legend = FALSE) +
+  geom_smooth(method = "gam", formula = y ~ s(x, bs = "tp", k = 5),
+              aes(fill=Treatment), alpha=0.1, show.legend = FALSE) +
   ylab("% Sage")+
   xlab("plant material (g)") +
   coord_cartesian(ylim=c(0, 100)) +
