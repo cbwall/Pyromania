@@ -187,7 +187,7 @@ DOC.plots<-plot_grid(
 
 
 plot_grid(
-  ggdraw(add_sub(DOC.plots, "Fig 1. Measured Dissolved Organic Carbon (DOC) concentrations across five time points. Time-0 represents baseline DOC concentrations for each treatment prior to the \nstart of the experiment.", x=0.01, hjust=0)), ncol = 1)
+  ggdraw(add_sub(DOC.plots, "Fig 1. Measured dissolved organic carbon (DOC) concentrations across five time points for both treatments. Time-0 represents baseline DOC concentrations prior to the \nstart of the experiment.", x=0.01, hjust=0)), ncol = 1)
 
 
 ggsave("figures/fig1.DOC.pdf", height=5, width=15)
@@ -521,13 +521,15 @@ Calculate photo, microbe, and total degradation:
 photo.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Time.point, UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Treatment,
                     UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Tank,
                     UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$plant.mass..g,
-                    UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)
+                    UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L,
+                    (100*(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)/(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)))
 photo.df$type="photo"
 names(photo.df)[1]="Time.point"
 names(photo.df)[2]="Treatment"
 names(photo.df)[3]="Tank"
 names(photo.df)[4]="plant.mass..g"
 names(photo.df)[5]="abs.change.DOC"
+names(photo.df)[6]="percent.change.DOC"
 
 
 #Microbe decomp
@@ -535,13 +537,15 @@ microbe.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Time.point,
                       UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Treatment,
                       UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Tank,
                       UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$plant.mass..g,
-                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)
+                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L,
+                    (100*(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)/(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)))
 microbe.df$type="microbe"
 names(microbe.df)[1]="Time.point"
 names(microbe.df)[2]="Treatment"
 names(microbe.df)[3]="Tank"
 names(microbe.df)[4]="plant.mass..g"
 names(microbe.df)[5]="abs.change.DOC"
+names(microbe.df)[6]="percent.change.DOC"
 
 
 #Total decomp= A
@@ -549,13 +553,15 @@ total.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Time.point,
                     UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Treatment,
                     UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Tank,
                     UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$plant.mass..g,
-                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)
+                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L,
+                     (100*(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)/(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)))
 total.df$type="total"
 names(total.df)[1]="Time.point"
 names(total.df)[2]="Treatment"
 names(total.df)[3]="Tank"
 names(total.df)[4]="plant.mass..g"
 names(total.df)[5]="abs.change.DOC"
+names(total.df)[6]="percent.change.DOC"
 
 
 #merge degra.df time points into one dataframe
@@ -613,46 +619,48 @@ degra.plots
 ggsave("figures/Fig.2.UVBio.degra_type.plots.pdf", height=5, width=15)
 ```
 
-Absolute value of abs.change.DOC plots
+UVBIO Percent Change Plots
 ```{r}
-
 #Unburned treatment degradation
-abs.unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+ 
-   geom_point(aes(x=plant.mass..g,y=abs.change.DOC,color=type,shape=Time.point),alpha=0.5)+
-  geom_smooth(aes(x=plant.mass..g, y=abs.change.DOC, color=type), method="loess")+
+perc.unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+ 
+   geom_point(aes(x=plant.mass..g,y=percent.change.DOC,color=type),alpha=0.5)+
+  geom_smooth(aes(x=plant.mass..g, y=percent.change.DOC, color=type), method="loess", alpha=0.1)+
+  facet_grid(~Time.point)+
   scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
   ggtitle("Degradation: unburned") +
-  ylab(expression(paste(Delta, " DOC mg/L"))) +
-  xlab("plant material (g)") +
-  Fig.formatting
-abs.unburned.degra.plot
+  ylab(expression(paste("%", Delta, " DOC mg/L"))) +
+  xlab("plant material (g)")+
+  theme_cowplot(12)
+unburned.degra.plot
 
-abs.extract.legend2 <- get_legend(
+extract.legend2 <- get_legend(
   # create some space to the left of the legend
-  abs.unburned.degra.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
+  unburned.degra.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
 
 
 #Burned degradation
-abs.burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+ 
-   geom_point(aes(x=plant.mass..g,y=abs.value.DOC,color=type,shape=Time.point),alpha=0.5)+
-  geom_smooth(aes(x=plant.mass..g, y=abs.value.DOC, color=type), method="loess")+
+perc.burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+ 
+   geom_point(aes(x=plant.mass..g,y=percent.change.DOC,color=type),alpha=0.5)+
+  geom_smooth(aes(x=plant.mass..g, y=percent.change.DOC, color=type), method="loess", alpha=0.1)+
+  facet_grid(~Time.point)+
   scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
   ggtitle("Degradation: burned") +
-  ylab(expression(paste(Delta, " DOC mg/L"))) +
-  xlab("plant material (g)") +
-  Fig.formatting
-abs.burned.degra.plot
+  xlab("plant material (g)")+
+  ylab(expression(paste("%", Delta, " DOC mg/L"))) +
+  theme_cowplot(12)
+burned.degra.plot
 
 #combine them
-abs.degra.plots=plot_grid(abs.unburned.degra.plot + theme(legend.position = "none"),
-          abs.burned.degra.plot + theme(legend.position = "none"),
-          extract.legend2, 
-          rel_widths = c(8,8,3),
-          ncol=3)
-abs.degra.plots
-ggsave("figures/UVBio.abs.degra_type.plots.pdf", height=5, width=9)
+perc.degra.plots=plot_grid(perc.unburned.degra.plot + theme(legend.position = "none"), perc.burned.degra.plot + theme(legend.position = "none"),
+          extract.legend2,
+          labels = c("a)", "b)"),
+          ncol=3, rel_widths = c(12,12,3))
 
-range(degra.df[degra.df$Treatment=="unburned",]$abs.change.DOC)
+plot_grid(
+  ggdraw(add_sub(perc.degra.plots, "Fig 2. Three degradation pathways of dissolved organic carbon (DOC) across three time points during a seven day incubation period for both treatments. 'Microbe' \nrepresents the percent change in DOC due to microbial degradation, 'photo' represents the percent change in DOC due to photodegradation, and 'total' represents \nthe percent change in DOC due to both microbial and photodegradation.", x=0.01, hjust=0)), ncol = 1)
+
+degra.plots
+ggsave("figures/Fig.2.UVBio.perc.degra_type.plots.pdf", height=5, width=15)
 
 ```
 
