@@ -16,15 +16,15 @@ if (!require("pacman")) install.packages("pacman") # for rapid install if not in
 pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'magrittr', 'effects', 'plyr', 'dplyr', 
                'plotrix', 'car',"gridExtra", "cowplot", "tools")
 Fig.formatting<-(theme_classic()) +
-  theme(text=element_text(size=10),
+  theme(text=element_text(size=14),
         legend.text.align = 0,
         panel.border = element_rect(fill=NA, colour = "black", size=1),
         aspect.ratio=1, 
         axis.ticks.length=unit(0.25, "cm"),
         axis.text.y=element_text(
-          margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=10), 
+        margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=12), 
         axis.text.x=element_text(
-          margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=8)) +
+        margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=12)) +
   theme(legend.key.size = unit(0.4, "cm")) +
   theme(aspect.ratio=1.3) +
   theme(panel.spacing=unit(c(0, 0, 0, 0), "cm"))
@@ -62,10 +62,12 @@ file.names<-file_path_sans_ext(list.files(path="/Users/tobyspiegel2/Desktop/My_p
 ########## this is the end of the loop
 
 #Combine files from loop to single df
-DOC.df<-rbind(DOC_T1, DOC_T2, DOC_T3, DOC_T4)
+DOC.df<-rbind(DOC_T0, DOC_T1, DOC_T2, DOC_T3, DOC_T4)
+DOC.df2=rbind(DOC_T1, DOC_T2, DOC_T3, DOC_T4)
 DOC.df$Treatment=as.factor(DOC.df$Treatment)
 
 DOC.df$File<-substr(DOC.df$File, 64, 74) 
+DOC.df2$File<-substr(DOC.df2$File, 64, 74) 
 # alternative way to code the above
 #give the 10th-24th character of the file name, removing the rest
 #DOC.df$File<-substr(DOC.df$File, 13, 27) 
@@ -76,15 +78,24 @@ DOC.df$File<-substr(DOC.df$File, 64, 74)
 #DOC.df$File<-gsub('^.........|....$', '', DOC.df$File) 
 
 # if equals DOC_T0_11052021 then, T0, if not then T1
-DOC.df$Time.point<- as.factor(
+DOC.df$Time.point<- as.factor(ifelse(DOC.df$File=="DOC_T0.csv", "T0",
          ifelse (DOC.df$File=="DOC_T1.csv", "T1",
            ifelse (DOC.df$File=="DOC_T2.csv", "T2", 
-                   ifelse(DOC.df$File=="DOC_T3.csv", "T3", "T4"))))
+                   ifelse(DOC.df$File=="DOC_T3.csv", "T3", "T4")))))
+
+DOC.df2$Time.point<- as.factor(
+         ifelse (DOC.df2$File=="DOC_T1.csv", "T1",
+           ifelse (DOC.df2$File=="DOC_T2.csv", "T2", 
+                   ifelse(DOC.df2$File=="DOC_T3.csv", "T3", "T4"))))
 
 #rearrange
 library(dplyr)
 DOC.df<- DOC.df %>% 
   dplyr::select(File, Time.point, Treatment, Tank, plant.mass..g, DOC..mg.L, TN..mg.L) 
+
+DOC.df2<- DOC.df2 %>% 
+  dplyr::select(File, Time.point, Treatment, Tank, plant.mass..g, DOC..mg.L, TN..mg.L) 
+
 
 #visualize
 ggplot(DOC.df, aes(x = plant.mass..g, y = DOC..mg.L, colour = Treatment)) +
@@ -96,7 +107,6 @@ ggplot(DOC.df, aes(x = plant.mass..g, y = DOC..mg.L, colour = Treatment)) +
 #y doc
 #shape treatment
 #color mass
-DOC.df2=data.frame(DOC.df)
 DOC.df2=mutate(DOC.df2, oTreatment= ordered(Treatment, levels= c("burned", "unburned")))
 DOC.df2=mutate(DOC.df2, oTime.point= ordered(Time.point, levels= c("T1", "T2", "T3", "T4")))
 DOC.df2$oTreatment=as.factor(DOC.df2$oTreatment)
@@ -104,6 +114,86 @@ DOC.df2$oTime.point=as.factor(DOC.df2$oTime.point)
 
 
 
+
+```
+DOC concentration Figure
+```{r fig.cap="scatter plots for sepal length, sepal width and petal length"}
+DOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-0") +
+  xlab("")+
+  ylab("DOC (mg/L)") +
+  Fig.formatting
+
+
+DOC.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-1") +
+  xlab("")+
+  ylab("")+
+  Fig.formatting
+  
+DOC.T2<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-2") +
+  xlab("plant material (g)") +
+  ylab("")+
+  Fig.formatting
+
+  
+DOC.T3<-ggplot(DOC.df[(DOC.df$Time.point=="T3"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-3") +
+  xlab("")+
+  ylab("")+
+  Fig.formatting
+
+DOC.T4<-ggplot(DOC.df[(DOC.df$Time.point=="T4"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-4") +
+  xlab("")+
+  ylab("")+
+  Fig.formatting
+
+
+extract.legend <- get_legend(
+  # create some space to the left of the legend
+  DOC.T0 + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+
+DOC.plots<-plot_grid(
+  DOC.T0+ theme(legend.position = "none"),
+  DOC.T1+ theme(legend.position = "none"),
+  DOC.T2+ theme(legend.position = "none"),
+  DOC.T3+ theme(legend.position = "none"),
+  DOC.T4+ theme(legend.position = "none"),
+  extract.legend,
+  rel_widths = c(8,8,8,8, 8, 3), ncol=6)
+
+
+plot_grid(
+  ggdraw(add_sub(DOC.plots, "Fig 1. Measured Dissolved Organic Carbon (DOC) concentrations across five time points. Time-0 represents baseline DOC concentrations for each treatment prior to the \nstart of the experiment.", x=0.01, hjust=0)), ncol = 1)
+
+
+ggsave("figures/fig1.DOC.pdf", height=5, width=15)
+
+
+  
 
 ```
 
@@ -177,13 +267,62 @@ m10.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, Time.point, by=Treatment, 
 AIC(m9.gam, m10.gam)
 ```
 
-winner winner
+winner winner ***model 12***
 ```{r}
-m11.gam=gam(DOC..mg.L ~ Treatment*Time.point  + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point, bs="fs"), family= Gamma(link="log"), data=DOC.df2, select= T, method="REML")
+DOC.df2$oTreatment=relevel(DOC.df2$Treatment, ref="burned" ) 
+
+
+m11.gam=gam(log(DOC..mg.L) ~ Treatment*Time.point  + s(plant.mass..g, bs="cs") + s(plant.mass..g, by=oTreatment, bs="cs") + s(plant.mass..g, by=oTime.point, bs="cs"), data=DOC.df2, family= gaussian, select= T, method="REML")
+
+
+m12.gam=gam(DOC..mg.L ~ Treatment*Time.point  + s(plant.mass..g, bs="cs") + s(plant.mass..g, by=oTreatment, bs="cs") + s(plant.mass..g, by=oTime.point, bs="cs"), family= Gamma(link = "log"), data=DOC.df2, select= T, method="REML")
+
+m13.gam=gam(log(DOC..mg.L) ~ Treatment*Time.point  + s(plant.mass..g) + s(plant.mass..g, by=Treatment) + s(plant.mass..g, by=Time.point), data=DOC.df2, select= T, method="REML")
+
+m14.gam=gam(log(DOC..mg.L) ~ Treatment*Time.point  + s(plant.mass..g, k=15) + s(plant.mass..g, by=oTreatment, k=15, m=1) + s(plant.mass..g, by=oTime.point, k=15, m=1), data=DOC.df2, select= T, method="REML")
+
 summary(m11.gam)
+gam.check(m11.gam,rep=1000)
+draw(m12.gam)
+concrvity(m12.gam, terms = everything(), type=c("all"), pairwise = T)
 
-gam.check(m11.gam, rep=1000)
+test.gam=gam(Time.point ~ Treatment + s(plant.mass..g), data=DOC.df)
 
+AIC(m11.gam, m12.gam, m13.gam, m14.gam)
+
+library(sjPlot)
+library(sjmisc)
+library(ggplot2)
+plot_model(m12.gam, type = "pred")
+
+interaction.plot(x.factor     = DOC.df$Time.point,
+                 trace.factor = DOC.df$Treatment,
+                 response     = DOC.df$DOC..mg.L,
+                 fun = mean,
+                 type="b",
+                 col=c("black","red","green"),  ### Colors for levels of trace var.
+                 pch=c(19, 17, 15),             ### Symbols for levels of trace var.
+                 fixed=TRUE,                    ### Order by factor order in data
+                 leg.bty = "o")
+
+#Let’s go through each coefficient:
+
+
+
+#(Intercept): the intercept for burned in T1)
+#Treatmentunburned: the  unburned – burned DOC in T1).
+#T2: the difference in DOC between T2 versus T1 for burned
+#T3: the difference in DOC between T3 versus T` for burned.
+#T4: the difference in DOC between T4 versus T` for burned.
+#unburned:T2: the interaction of unburned and T2, the unburned effect (unburned-burned) in T2  versus the T1 effect in the burned treatment Also, the T2 effect (T2 – T1) for unburned versus the T2 effect for burned
+#etc.
+library(emmeans)
+emmeans(m12.gam, ~Treatment)
+#The last three coefficients are the most difficult to interpret. We can think of as the additional unburned effect of going from T1 to T2 and as the additional unburned effect going from T1 to T3, to T4
+
+
+
+#The first coefficient exp(2.29)= 9.9 mg/L DOC is the intercept i.e., so burned treatment for T1. The second exp(0.13)= 1.14 is the difference between mean DOC of the unburned treatment and the burned treatment. Similarly the third, fourth, and fifth exp(-0.07= 0.93, -0.26= 0.77, -0.059= 0.94) are mean DOC differences between the time points T2-T1, T3-T1, and T4-T1. The sixth, seventh, and eighth are more tricky...they are the added mean DOC for treatment unburned:T2 or T3 or T4 as compared to the intercept. For example, to get the mean DOC for unburned treatment, T2 we do: exp(2.29)+exp(0.13)+exp(-0.07) +exp(-0.20) or 9.87+1.14+0.93+0.82= 12.76 mg/L.
 
 ```
 
