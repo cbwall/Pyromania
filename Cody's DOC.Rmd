@@ -197,7 +197,7 @@ ggsave("figures/fig1.DOC.pdf", height=5, width=15)
 
 ```
 
-
+DOC analysis
 ```{r}
 library(mgcv)
 library(gratia)
@@ -529,12 +529,13 @@ names(photo.df)[3]="Tank"
 names(photo.df)[4]="plant.mass..g"
 names(photo.df)[5]="abs.change.DOC"
 
+
 #Microbe decomp
 microbe.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Time.point,
                       UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Treatment,
                       UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Tank,
                       UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$plant.mass..g,
-                      UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)
+                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)
 microbe.df$type="microbe"
 names(microbe.df)[1]="Time.point"
 names(microbe.df)[2]="Treatment"
@@ -556,32 +557,29 @@ names(total.df)[3]="Tank"
 names(total.df)[4]="plant.mass..g"
 names(total.df)[5]="abs.change.DOC"
 
+
 #merge degra.df time points into one dataframe
 degra.df=rbind(photo.df, microbe.df, total.df)
 
-# remove outliers
-degra.df<-degra.df[!(degra.df$abs.change.DOC>=40),]
-degra.df= degra.df[!(degra.df$abs.change.DOC<=-100),]
-
 #add absolute value of abs.change.DOC
 degra.df$abs.value.DOC=abs(degra.df$abs.change.DOC)
+degra.df$abs.percent.DOC=abs(degra.df$percent.change.DOC)
+
 
 ```
-Visualize it
-```{r}
-ggplot(degra.df[(degra.df$Treatment=="unburned"),])+
-  geom_point(aes(x=plant.mass..g,y=abs.change.DOC,color=type,shape=Time.point))+
-  geom_smooth(aes(x=plant.mass..g, y=abs.change.DOC, color=type), method = "gam", formula = y ~ s(x, bs="tp"))
 
+UVBIO Absolute Change Plots
+```{r}
 #Unburned treatment degradation
 unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+ 
-   geom_point(aes(x=plant.mass..g,y=abs.change.DOC,color=type,shape=Time.point),alpha=0.5)+
+   geom_point(aes(x=plant.mass..g,y=abs.change.DOC,color=type),alpha=0.5)+
   geom_smooth(aes(x=plant.mass..g, y=abs.change.DOC, color=type), method="loess", alpha=0.1)+
+  facet_grid(~Time.point)+
   scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
   ggtitle("Degradation: unburned") +
   ylab(expression(paste(Delta, " DOC mg/L"))) +
-  xlab("plant material (g)") +
-  Fig.formatting
+  xlab("plant material (g)")+
+  theme_cowplot(12)
 unburned.degra.plot
 
 extract.legend2 <- get_legend(
@@ -591,23 +589,28 @@ extract.legend2 <- get_legend(
 
 #Burned degradation
 burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+ 
-   geom_point(aes(x=plant.mass..g,y=abs.change.DOC,color=type,shape=Time.point),alpha=0.5)+
+   geom_point(aes(x=plant.mass..g,y=abs.change.DOC,color=type),alpha=0.5)+
   geom_smooth(aes(x=plant.mass..g, y=abs.change.DOC, color=type), method="loess", alpha=0.1)+
+  facet_grid(~Time.point)+
   scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
   ggtitle("Degradation: burned") +
+  xlab("plant material (g)")+
   ylab(expression(paste(Delta, " DOC mg/L"))) +
-  xlab("plant material (g)") +
-  Fig.formatting
+  theme_cowplot(12)
 burned.degra.plot
 
 #combine them
 degra.plots=plot_grid(unburned.degra.plot + theme(legend.position = "none"),
           burned.degra.plot + theme(legend.position = "none"),
-          extract.legend2, 
-          rel_widths = c(8,8,3),
-          ncol=3)
+          extract.legend2,
+          labels = c("a)", "b)"),
+          ncol=3, rel_widths = c(8,8,3))
+
+plot_grid(
+  ggdraw(add_sub(degra.plots, "Fig 2. Three degradation pathways of dissolved organic carbon (DOC) concentrations across three time points during a seven day incubation period for each treatment. \n'Microbe' represents the change in DOC due to microbial degradation, 'photo' represents the change in DOC due to photodegradation, and 'total' represents the change in \nDOC due to both microbial and photodegradation.", x=0.01, hjust=0)), ncol = 1)
+
 degra.plots
-ggsave("figures/UVBio.degra_type.plots.pdf", height=5, width=9)
+ggsave("figures/Fig.2.UVBio.degra_type.plots.pdf", height=5, width=15)
 ```
 
 Absolute value of abs.change.DOC plots
@@ -615,8 +618,8 @@ Absolute value of abs.change.DOC plots
 
 #Unburned treatment degradation
 abs.unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+ 
-   geom_point(aes(x=plant.mass..g,y=abs.value.DOC,color=type,shape=Time.point),alpha=0.5)+
-  geom_smooth(aes(x=plant.mass..g, y=abs.value.DOC, color=type), method="loess")+
+   geom_point(aes(x=plant.mass..g,y=abs.change.DOC,color=type,shape=Time.point),alpha=0.5)+
+  geom_smooth(aes(x=plant.mass..g, y=abs.change.DOC, color=type), method="loess")+
   scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
   ggtitle("Degradation: unburned") +
   ylab(expression(paste(Delta, " DOC mg/L"))) +
@@ -648,6 +651,8 @@ abs.degra.plots=plot_grid(abs.unburned.degra.plot + theme(legend.position = "non
           ncol=3)
 abs.degra.plots
 ggsave("figures/UVBio.abs.degra_type.plots.pdf", height=5, width=9)
+
+range(degra.df[degra.df$Treatment=="unburned",]$abs.change.DOC)
 
 ```
 
