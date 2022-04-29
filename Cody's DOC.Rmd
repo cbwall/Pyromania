@@ -175,13 +175,21 @@ AIC(m8.gam, m9.gam)
 m10.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, Time.point, by=Treatment, bs="fs"), family= Gamma(link="log"), data=DOC.df2, select= T, method="REML")
 
 AIC(m9.gam, m10.gam)
+```
 
-m11.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, Time.point, by=Treatment, bs="fs", k=12), family= Gamma(link="log"), data=DOC.df, select= T, method="REML")
+winner winner
+```{r}
+m11.gam=gam(DOC..mg.L ~ Treatment*Time.point  + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point, bs="fs"), family= Gamma(link="log"), data=DOC.df2, select= T, method="REML")
 summary(m11.gam)
+
 gam.check(m11.gam, rep=1000)
 
-m12.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, by=Treatment) + s(plant.mass..g, Time.point, bs="fs"), family= Gamma(link="log"), data=DOC.df, select= T, method="REML")
 
+```
+
+
+```{r}
+m12.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, by=Treatment) + s(plant.mass..g, Time.point, bs="fs"), family= Gamma(link="log"), data=DOC.df, select= T, method="REML")
 #This just confims that Gamma distribution is a better fit
 m13.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, Time.point, by=Treatment, bs="fs", k=12), family= gaussian(link="identity"), data=DOC.df, select= T, method="REML")
 summary(m13.gam)
@@ -192,11 +200,34 @@ m14.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, Time.point, by=Treatment, 
 m15.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, by=Treatment) +s(plant.mass..g, Time.point, bs="fs"), family= Gamma(link="inverse"), data=DOC.df, select= T, method="REML")
 summary(m13.gam)
 
-m16.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, by=Treatment) + s(plant.mass..g, Time.point, bs="fs", k=12), family= Gamma(link="log"), data=DOC.df, select= T, method="REML")
+m16.gam=m11.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, by=oTreatment, bs="fs", k=12) + s(plant.mass..g, Time.point, bs="fs"), family= Gamma(link="log"), data=DOC.df2, select= T, method="REML")
 
+m17.gam=gamm(DOC..mg.L~Treatment + s(plant.mass..g) ,data=DOC.df,random=list(Time.point=~1),
+          correlation=corAR1())
+summary(m17.gam$gam)
+draw(m17.gam$gam)
+gam.check(m17.gam$gam)
+
+
+
+contrasts(DOC.df2$oTreatment) <- "contr.treatment"
+
+library(lme4)
+m18.glmer=glm(log(DOC..mg.L) ~ Treatment+ plant.mass..g + (1 | Time.point), family=gaussian, data=DOC.df)
+Anova(hoops, type="III")
+summary(m18.gam)
+gam.check(m18.gam, rep=1000)
+
+
+
+concurvity(m18.gam, full = T)
+install.packages("MuMIn")
+library(MuMIn)
+options(na.action=na.fail)
+dredge(m11.gam)
 
 #additive m16 comparison
-AIC( m11.gam, m16.gam)
+AIC(m17.gam, m18.gam)
 summary(m11.gam)
 anova(m16.gam,m11.gam,test="F")
 
@@ -208,13 +239,14 @@ DOC_pred <- data.frame(
   fitted_values= fitted_values(m11.gam, scale = "response")
 )
 
-
-
 ggplot(DOC_pred)+
   geom_point(aes(x=fitted_values.plant.mass..g,y=DOC,color=fitted_values.Treatment,shape=fitted_values.Time.point))+
   geom_line(aes(x= fitted_values.plant.mass..g, y=fitted_values.fitted, color=fitted_values.Treatment))
-#DO
 
+AIC(m11.gam, m17.gam)
+
+ggplot(DOC.df)+
+  geom_point(aes(x=plant.mass..g, y=Treatment))
 
 ```
 
@@ -235,6 +267,18 @@ summary(m11.gam)
 
 #For example, having unburned = - decreases the log arithmetic mean outcome by -0.02413. The exponentiated coefficient is the factor by which the arithmetic mean outcome on the original scale is multiplied, i.e., if unburned = -, the arithmetic mean on the original scale is 0.98 times lower. This model assumes multiplicative effects on the original outcome by the predictors?
 
+#Concurvity refers to  the situation where a smooth term can be approximated by some combination of the others.
+concurvity(m11.gam, full = T)
+
+library(psych)
+pairs.panels(DOC.df, 
+             method = "pearson", # correlation method
+             hist.col = "#00AFBB",
+             density = TRUE,  # show density plots
+             ellipses = FALSE # show correlation ellipses
+             )
+
+?concrvity
 
 
 ```
@@ -397,7 +441,6 @@ unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+
   scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
   ggtitle("Degradation: unburned") +
   ylab(expression(paste(Delta, " DOC mg/L"))) +
-  scale_y_continuous(limits = c(-8,0))+
   xlab("plant material (g)") +
   Fig.formatting
 unburned.degra.plot
@@ -414,7 +457,6 @@ burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+
   scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
   ggtitle("Degradation: burned") +
   ylab(expression(paste(Delta, " DOC mg/L"))) +
-  scale_y_continuous(limits = c(-8,0))+
   xlab("plant material (g)") +
   Fig.formatting
 burned.degra.plot
@@ -435,11 +477,10 @@ Absolute value of abs.change.DOC plots
 #Unburned treatment degradation
 abs.unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+ 
    geom_point(aes(x=plant.mass..g,y=abs.value.DOC,color=type,shape=Time.point),alpha=0.5)+
-  geom_smooth(aes(x=plant.mass..g, y=abs.value.DOC, color=type), method="loess", alpha=0.1)+
+  geom_smooth(aes(x=plant.mass..g, y=abs.value.DOC, color=type), method="loess")+
   scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
   ggtitle("Degradation: unburned") +
   ylab(expression(paste(Delta, " DOC mg/L"))) +
-  scale_y_continuous(limits = c(0,8))+
   xlab("plant material (g)") +
   Fig.formatting
 abs.unburned.degra.plot
@@ -452,11 +493,10 @@ abs.extract.legend2 <- get_legend(
 #Burned degradation
 abs.burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+ 
    geom_point(aes(x=plant.mass..g,y=abs.value.DOC,color=type,shape=Time.point),alpha=0.5)+
-  geom_smooth(aes(x=plant.mass..g, y=abs.value.DOC, color=type), method="loess", alpha=0.1)+
+  geom_smooth(aes(x=plant.mass..g, y=abs.value.DOC, color=type), method="loess")+
   scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
   ggtitle("Degradation: burned") +
   ylab(expression(paste(Delta, " DOC mg/L"))) +
-  scale_y_continuous(limits = c(0,8))+
   xlab("plant material (g)") +
   Fig.formatting
 abs.burned.degra.plot
@@ -471,19 +511,66 @@ abs.degra.plots
 ggsave("figures/UVBio.abs.degra_type.plots.pdf", height=5, width=9)
 
 ```
+
+big graph
+```{r}
+#big visual
+ggplot(degra.df)+
+  geom_point(aes(x=plant.mass..g,y=abs.value.DOC,color=type,shape=Time.point))+
+  geom_smooth(aes(x=plant.mass..g, y=abs.value.DOC, color=type), method = "gam", formula = y ~ s(x, bs="tp"))
+
+
+```
+
+
+
 UVBIO models
 ```{r}
 library(mgcv)
 #make sure we have factors
 degra.df=degra.df%>%
     mutate_if(is.character,as.factor)
+degra.df2=data.frame(degra.df)
+degra.df2=degra.df2[-c(5)]
+
+
+concurvity(m11.gam, full = F)
+
 
 #fit null (similar format as total DOC)
-uv.m1.gam=gam(abs.change.DOC ~ Treatment  + type + s(plant.mass..g, Time.point, bs="fs"), data=degra.df, method="REML")
+uv.m1.gam=gam(abs.value.DOC ~ Treatment  + type + s(plant.mass..g, Time.point, bs="fs"), data=degra.df,family= gaussian(link = "log"), method="REML")
 summary(uv.m1.gam)
 
-uv.m2.gam=gam(abs.value.DOC~ Treatment  + type + s(plant.mass..g, by=type, bs="fs") + s(plant.mass..g, Time.point, by=Treatment, bs="fs"), family= Gamma(link = "log"), data=degra.df, method="REML")
+uv.m2.gam=gam(abs.value.DOC~ Treatment  + type + s(plant.mass..g, Treatment, by=type, bs="fs") + s(plant.mass..g, Time.point, by=type, bs="fs"), family= tw, data=degra.df, method="REML")
 summary(uv.m2.gam)
+gam.check(uv.m2.gam, rep=100)
+
+uv.m3.gam=gam(abs.value.DOC~ Treatment  + type + s(plant.mass..g, type, by=Treatment, bs="fs", k=15) + s(plant.mass..g, Time.point, by=type, bs="fs", k=15), family= tw, data=degra.df, method="REML")
+summary(uv.m3.gam)
+
+uv.m4.gam=gam(abs.value.DOC~ Treatment  + type + s(plant.mass..g, Treatment, by=type, bs="fs", k=15) + s(plant.mass..g, Time.point, by=type, bs="fs", k=15), family= tw, data=degra.df, method="REML")
+summary(uv.m4.gam)
+
+uv.m5.gam=gam(abs.value.DOC~ Treatment  + type + s(plant.mass..g, type, by=Treatment, bs="fs", k=15) + s(plant.mass..g, Time.point, by=type, bs="fs", k=15), family= tw(link = "log"), data=degra.df, method="REML")
+summary(uv.m5.gam)
+
+
+uv.m6.gam=gam(abs.value.DOC~ Treatment:type + s(plant.mass..g, Treatment, by=type, bs="fs") + s(plant.mass..g, Time.point, by=Treatment, bs="fs"), family=tw(link = "log"), data=degra.df, method="REML")
+summary(uv.m6.gam)
+
+?vif.gam
+
+uv.m7.gam=gam(abs.value.DOC~ Treatment + type + s(plant.mass..g, Treatment, by=type, bs="fs") + s(plant.mass..g, Time.point, by=Treatment, bs="fs"), family=tw(link = "log"), data=degra.df, method="REML")
+summary(uv.m7.gam)
+
+uv.m8.gam=uv.m7.gam=gam(abs.value.DOC~ Treatment + type + s(plant.mass..g, Treatment, by=type, bs="fs") + s(plant.mass..g, Time.point, by=Treatment, bs="fs"), family=tw(link = "log"), data=degra.df, method="REML")
+summary(uv.m8.gam)
+
+uv.m9.gam=gam(abs.value.DOC~ Treatment*type + s(plant.mass..g, type, by=Treatment, bs="fs") + s(plant.mass..g, Treatment, by=type, bs="fs") + s(plant.mass..g, Time.point, by=type, bs="fs"), family=tw(link = "log"), data=degra.df, method="REML")
+summary(uv.m9.gam)
+
+AIC(uv.m6.gam,uv.m7.gam, uv.m8.gam, uv.m9.gam)
+
 
 
 
