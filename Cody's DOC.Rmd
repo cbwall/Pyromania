@@ -654,13 +654,13 @@ burned.degra.plot
 perc.degra.plots=plot_grid(perc.unburned.degra.plot + theme(legend.position = "none"), perc.burned.degra.plot + theme(legend.position = "none"),
           extract.legend2,
           labels = c("a)", "b)"),
-          ncol=3, rel_widths = c(12,12,3))
+          ncol=3, rel_widths = c(15,15,3))
 
 plot_grid(
-  ggdraw(add_sub(perc.degra.plots, "Fig 2. Three degradation pathways of dissolved organic carbon (DOC) across three time points during a seven day incubation period for both treatments. 'Microbe' \nrepresents the percent change in DOC due to microbial degradation, 'photo' represents the percent change in DOC due to photodegradation, and 'total' represents \nthe percent change in DOC due to both microbial and photodegradation.", x=0.01, hjust=0)), ncol = 1)
+  ggdraw(add_sub(perc.degra.plots, "Fig 2. Three degradation pathways of dissolved organic carbon (DOC) across three time points during a seven \nday incubation period for both treatments. 'Microbe' represents the percent change in DOC due to microbial \ndegradation, 'photo' represents the percent change in DOC due to  photodegradation, and 'total' represents the \npercent change in DOC due to both microbial and photodegradation.", x=0.01, hjust=0)), ncol = 1)
 
 degra.plots
-ggsave("figures/Fig.2.UVBio.perc.degra_type.plots.pdf", height=5, width=15)
+ggsave("figures/Fig.2.UVBio.perc.degra_type.plots.pdf", height=5, width=10)
 
 ```
 
