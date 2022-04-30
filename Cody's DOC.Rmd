@@ -530,13 +530,15 @@ Calculate photo, microbe, and total degradation:
 #+UV/-Bio=C
 #-UV/-Bio (NoUV,Filtered)=D
 
+#This is calculating % decrease ((control-treatment)/control)*100
+
 #photodegradation
 
 photo.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Time.point, UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Treatment,
                     UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Tank,
                     UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$plant.mass..g,
                     UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L,
-                    ((UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)/(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)))
+                    (100*(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)/(abs(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L))))
 photo.df$type="photo"
 names(photo.df)[1]="Time.point"
 names(photo.df)[2]="Treatment"
@@ -552,7 +554,7 @@ microbe.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Time.point,
                       UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Tank,
                       UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$plant.mass..g,
                     UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L,
-                    ((UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)/(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)))
+                    (100*(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)/(abs(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L))))
 microbe.df$type="microbe"
 names(microbe.df)[1]="Time.point"
 names(microbe.df)[2]="Treatment"
@@ -568,7 +570,7 @@ total.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Time.point,
                     UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Tank,
                     UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$plant.mass..g,
                     UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L,
-                     ((UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)/(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)))
+                     (100*(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)/(abs(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L))))
 total.df$type="total"
 names(total.df)[1]="Time.point"
 names(total.df)[2]="Treatment"
@@ -581,9 +583,14 @@ names(total.df)[6]="percent.change.DOC"
 #merge degra.df time points into one dataframe
 degra.df=rbind(photo.df, microbe.df, total.df)
 
-#add absolute value of abs.change.DOC
-degra.df$abs.value.DOC=abs(degra.df$abs.change.DOC)
-degra.df$abs.percent.DOC=abs(degra.df$percent.change.DOC)
+#make sure we have factors
+degra.df=degra.df%>%
+    mutate_if(is.character,as.factor)
+
+#make new column of ordered factors
+degra.df=mutate(degra.df, oTreatment= ordered(Treatment, levels= c("burned","unburned")))%>%
+  mutate(degra.df, oTime.point= ordered(Time.point, levels= c("T1", "T2", "T3", "T4")))%>%
+  mutate(degra.df, otype= ordered(type, levels= c("photo", "microbe", "total")))
 
 
 ```
@@ -604,7 +611,7 @@ unburned.degra.plot
 
 extract.legend2 <- get_legend(
   # create some space to the left of the legend
-  unburned.degra.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
+  unburned.degra.plot + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
 
 
 #Burned degradation
@@ -620,20 +627,20 @@ burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+
 burned.degra.plot
 
 #combine them
-degra.plots=plot_grid(unburned.degra.plot + theme(legend.position = "none"),
+degra.plots=plot_grid(unburned.degra.plot + theme(legend.position = "none",legend.title=element_blank()),
           burned.degra.plot + theme(legend.position = "none"),
           extract.legend2,
           labels = c("a)", "b)"),
           ncol=3, rel_widths = c(8,8,3))
 
 plot_grid(
-  ggdraw(add_sub(degra.plots, "Fig 2. Three degradation pathways of dissolved organic carbon (DOC) concentrations across three time points during a seven day incubation period for each treatment. \n'Microbe' represents the change in DOC due to microbial degradation, 'photo' represents the change in DOC due to photodegradation, and 'total' represents the change in \nDOC due to both microbial and photodegradation.", x=0.01, hjust=0)), ncol = 1)
+  ggdraw(add_sub(degra.plots, "Fig 2. Three degradation pathways of dissolved organic carbon (DOC) concentrations across three time points during a seven \nday incubation period for each treatment. \n'Microbe' represents the change in DOC due to microbial degradation, 'photo' represents the change in DOC due to photodegradation, and 'total' represents the change in \nDOC due to both microbial and photodegradation.", x=0.01, hjust=0)), ncol = 1)
 
 degra.plots
 ggsave("figures/Fig.2.UVBio.degra_type.plots.pdf", height=5, width=15)
 ```
 
-UVBIO Percent Change Plots
+UVBIO Percent (decrease) Change Plots
 ```{r}
 #Unburned treatment degradation
 perc.unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+ 
@@ -642,14 +649,15 @@ perc.unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+
   facet_grid(~Time.point)+
   scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
   ggtitle("Degradation: unburned") +
-  ylab(expression(paste("Proportion", " DOC mg/L"))) +
+  ylab(expression(paste("%", Delta, "DOC (mg/L)"))) +
   xlab("plant material (g)")+
-  theme_cowplot(12)
-unburned.degra.plot
+  theme_cowplot(12)+
+  theme(legend.title=element_blank())
+perc.unburned.degra.plot
 
 extract.legend2 <- get_legend(
   # create some space to the left of the legend
-  unburned.degra.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
+  unburned.degra.plot + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
 
 
 #Burned degradation
@@ -660,18 +668,18 @@ perc.burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+
   scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
   ggtitle("Degradation: burned") +
   xlab("plant material (g)")+
-  ylab(expression(paste("Proportion", " DOC mg/L"))) +
+  ylab(expression(paste("%", Delta, "DOC (mg/L)"))) +
   theme_cowplot(12)
 burned.degra.plot
 
 #combine them
-perc.degra.plots=plot_grid(perc.unburned.degra.plot + theme(legend.position = "none"), perc.burned.degra.plot + theme(legend.position = "none"),
+perc.degra.plots=plot_grid(perc.unburned.degra.plot + theme(legend.position = "none", legend.title=element_blank()), perc.burned.degra.plot + theme(legend.position = "none"),
           extract.legend2,
           labels = c("a)", "b)"),
           ncol=3, rel_widths = c(15,15,3))
 
 plot_grid(
-  ggdraw(add_sub(perc.degra.plots, "Fig 2. Three degradation pathways of dissolved organic carbon (DOC) across three time points during a seven \nday incubation period for both treatments. 'Microbe' represents the percent change in DOC due to microbial \ndegradation, 'photo' represents the percent change in DOC due to  photodegradation, and 'total' represents the \npercent change in DOC due to both microbial and photodegradation.", x=0.01, hjust=0)), ncol = 1)
+  ggdraw(add_sub(perc.degra.plots, "Fig 2. Three degradation pathways of dissolved organic carbon (DOC) across three time points during a seven \nday incubation period for both treatments. Negative values indicate % DOC loss with 'microbe' representing \nmicrobial degradation, 'photo' representing photodegradation, and 'total' representing both microbial and \nphotodegradation. All positive values indiciate % DOC increase.", x=0.01, hjust=0)), ncol = 1)
 
 degra.plots
 ggsave("figures/Fig.2.UVBio.perc.degra_type.plots.pdf", height=5, width=10)
@@ -680,18 +688,12 @@ ggsave("figures/Fig.2.UVBio.perc.degra_type.plots.pdf", height=5, width=10)
 
 UVBIO analysis
 ```{r}
-library(mgcv)
-#make sure we have factors
-degra.df=degra.df%>%
-    mutate_if(is.character,as.factor)
-
-hist(degra.df$abs.change.DOC)
-
-#fit null (similar format as total DOC)
-uv.m1.gam=gam(abs.value.DOC ~ Treatment  + type + s(plant.mass..g, Time.point, bs="fs"), data=degra.df,family= gaussian(link = "log"), method="REML")
+#fit complex model 
+uv.m1.gam=gam(percent.change.DOC ~ Treatment*type*Time.point + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
 summary(uv.m1.gam)
+gam.check(uv.m1.gam, rep = 1000)
 
-uv.m2.gam=gam(abs.value.DOC~ Treatment  + type + s(plant.mass..g, Treatment, by=type, bs="fs") + s(plant.mass..g, Time.point, by=type, bs="fs"), family= tw, data=degra.df, method="REML")
+uv.m2.gam=gam(log(percent.change.DOC+1) ~ Treatment*type*Time.point + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
 summary(uv.m2.gam)
 gam.check(uv.m2.gam, rep=100)
 
@@ -715,12 +717,15 @@ summary(uv.m7.gam)
 uv.m8.gam=uv.m7.gam=gam(abs.value.DOC~ Treatment + type + s(plant.mass..g, Treatment, by=type, bs="fs") + s(plant.mass..g, Time.point, by=Treatment, bs="fs"), family=tw(link = "log"), data=degra.df, method="REML")
 summary(uv.m8.gam)
 
-uv.m9.gam=gam(abs.value.DOC~ Treatment*type + s(plant.mass..g, type, by=Treatment, bs="fs") + s(plant.mass..g, Treatment, by=type, bs="fs") + s(plant.mass..g, Time.point, by=type, bs="fs"), family=tw(link = "log"), data=degra.df, method="REML")
+uv.m9.gam=gam(percent.change.DOC~ Treatment*type*Time.point + s(plant.mass..g, type, by=Treatment) + s(plant.mass..g, by=type) + s(plant.mass..g, by=Time.point), 
+data=degra.df, select= T, method="REML")
+
 summary(uv.m9.gam)
 
 AIC(uv.m6.gam,uv.m7.gam, uv.m8.gam, uv.m9.gam)
 
 
+class(degra.df$percent.change.DOC)
 
 
 
