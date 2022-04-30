@@ -267,16 +267,30 @@ m10.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, Time.point, by=Treatment, 
 AIC(m9.gam, m10.gam)
 ```
 
-winner winner ***model 12***
+
 ```{r}
 DOC.df2$oTreatment=relevel(DOC.df2$Treatment, ref="burned" ) 
 
 
 m11.gam=gam(log(DOC..mg.L) ~ Treatment*Time.point  + s(plant.mass..g, bs="cs") + s(plant.mass..g, by=oTreatment, bs="cs") + s(plant.mass..g, by=oTime.point, bs="cs"), data=DOC.df2, family= gaussian, select= T, method="REML")
+```
 
-
+winner winner ***model 12***
+```{r}
 m12.gam=gam(DOC..mg.L ~ Treatment*Time.point  + s(plant.mass..g, bs="cs") + s(plant.mass..g, by=oTreatment, bs="cs") + s(plant.mass..g, by=oTime.point, bs="cs"), family= Gamma(link = "log"), data=DOC.df2, select= T, method="REML")
+summary(m12.gam)
+gam.check(m12.gam,rep=1000)
+draw(m12.gam)
+#(Intercept): the intercept for burned in T1
+#Treatmentunburned: the  unburned – burned DOC in T1.
+#T2: the difference in DOC between T2 versus T1 for burned
+#T3: the difference in DOC between T3 versus T` for burned.
+#T4: the difference in DOC between T4 versus T` for burned.
+#unburned:T2: the interaction of unburned and T2, the unburned effect (unburned-burned) in T2  versus the T1 effect in the burned treatment. Also, the T2 effect (T2 – T1) for unburned versus the T2 effect for burned
+```
 
+
+```{r}
 m13.gam=gam(log(DOC..mg.L) ~ Treatment*Time.point  + s(plant.mass..g) + s(plant.mass..g, by=Treatment) + s(plant.mass..g, by=Time.point), data=DOC.df2, select= T, method="REML")
 
 m14.gam=gam(log(DOC..mg.L) ~ Treatment*Time.point  + s(plant.mass..g, k=15) + s(plant.mass..g, by=oTreatment, k=15, m=1) + s(plant.mass..g, by=oTime.point, k=15, m=1), data=DOC.df2, select= T, method="REML")
@@ -522,7 +536,7 @@ photo.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Time.point, UVBIO
                     UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Tank,
                     UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$plant.mass..g,
                     UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L,
-                    (100*(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)/(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)))
+                    ((UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)/(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)))
 photo.df$type="photo"
 names(photo.df)[1]="Time.point"
 names(photo.df)[2]="Treatment"
@@ -538,7 +552,7 @@ microbe.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Time.point,
                       UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Tank,
                       UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$plant.mass..g,
                     UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L,
-                    (100*(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)/(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)))
+                    ((UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)/(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)))
 microbe.df$type="microbe"
 names(microbe.df)[1]="Time.point"
 names(microbe.df)[2]="Treatment"
@@ -554,7 +568,7 @@ total.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Time.point,
                     UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Tank,
                     UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$plant.mass..g,
                     UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L,
-                     (100*(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)/(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)))
+                     ((UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)/(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)))
 total.df$type="total"
 names(total.df)[1]="Time.point"
 names(total.df)[2]="Treatment"
@@ -628,7 +642,7 @@ perc.unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+
   facet_grid(~Time.point)+
   scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
   ggtitle("Degradation: unburned") +
-  ylab(expression(paste("%", Delta, " DOC mg/L"))) +
+  ylab(expression(paste("Proportion", " DOC mg/L"))) +
   xlab("plant material (g)")+
   theme_cowplot(12)
 unburned.degra.plot
@@ -646,7 +660,7 @@ perc.burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+
   scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
   ggtitle("Degradation: burned") +
   xlab("plant material (g)")+
-  ylab(expression(paste("%", Delta, " DOC mg/L"))) +
+  ylab(expression(paste("Proportion", " DOC mg/L"))) +
   theme_cowplot(12)
 burned.degra.plot
 
@@ -664,30 +678,14 @@ ggsave("figures/Fig.2.UVBio.perc.degra_type.plots.pdf", height=5, width=10)
 
 ```
 
-big graph
-```{r}
-#big visual
-ggplot(degra.df)+
-  geom_point(aes(x=plant.mass..g,y=abs.value.DOC,color=type,shape=Time.point))+
-  geom_smooth(aes(x=plant.mass..g, y=abs.value.DOC, color=type), method = "gam", formula = y ~ s(x, bs="tp"))
-
-
-```
-
-
-
-UVBIO models
+UVBIO analysis
 ```{r}
 library(mgcv)
 #make sure we have factors
 degra.df=degra.df%>%
     mutate_if(is.character,as.factor)
-degra.df2=data.frame(degra.df)
-degra.df2=degra.df2[-c(5)]
 
-
-concurvity(m11.gam, full = F)
-
+hist(degra.df$abs.change.DOC)
 
 #fit null (similar format as total DOC)
 uv.m1.gam=gam(abs.value.DOC ~ Treatment  + type + s(plant.mass..g, Time.point, bs="fs"), data=degra.df,family= gaussian(link = "log"), method="REML")
@@ -710,7 +708,6 @@ summary(uv.m5.gam)
 uv.m6.gam=gam(abs.value.DOC~ Treatment:type + s(plant.mass..g, Treatment, by=type, bs="fs") + s(plant.mass..g, Time.point, by=Treatment, bs="fs"), family=tw(link = "log"), data=degra.df, method="REML")
 summary(uv.m6.gam)
 
-?vif.gam
 
 uv.m7.gam=gam(abs.value.DOC~ Treatment + type + s(plant.mass..g, Treatment, by=type, bs="fs") + s(plant.mass..g, Time.point, by=Treatment, bs="fs"), family=tw(link = "log"), data=degra.df, method="REML")
 summary(uv.m7.gam)
