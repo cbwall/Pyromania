@@ -809,7 +809,7 @@ perc.decomp.plots=plot_grid(perc.unburned.decomp.plot + theme(legend.position = 
           ncol=3, rel_widths = c(15,15,3))
 
 plot_grid(
-  ggdraw(add_sub(perc.decomp.plots, "Fig 4. Total decomposition by plant type for both treatments.", x=0.01, hjust=0)), ncol = 1)
+  ggdraw(add_sub(perc.decomp.plots, "Fig 3. Total decomposition by plant type for both treatments.", x=0.01, hjust=0)), ncol = 1)
 
 degra.plots
 ggsave("figures/Fig.3.perc.decomp_type.plots.pdf", height=5, width=10)
