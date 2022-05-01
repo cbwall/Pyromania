@@ -287,6 +287,7 @@ draw(m12.gam)
 #T3: the difference in DOC between T3 versus T` for burned.
 #T4: the difference in DOC between T4 versus T` for burned.
 #unburned:T2: the interaction of unburned and T2, the unburned effect (unburned-burned) in T2  versus the T1 effect in the burned treatment. Also, the T2 effect (T2 – T1) for unburned versus the T2 effect for burned
+
 ```
 
 
@@ -692,19 +693,31 @@ UVBIO analysis
 uv.m1.gam=gam(percent.change.DOC ~ Treatment*type*Time.point + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
 summary(uv.m1.gam)
 gam.check(uv.m1.gam, rep = 1000)
+draw(uv.m1.gam)
 
-uv.m2.gam=gam(log(percent.change.DOC+1) ~ Treatment*type*Time.point + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
+uv.m2.gam=gam(percent.change.DOC ~ Treatment*type*Time.point + s(plant.mass..g)+ s(plant.mass..g, by=Treatment) + s(plant.mass..g, by=Time.point) + s(plant.mass..g, by= type), data=degra.df, method="REML", select= T)
 summary(uv.m2.gam)
 gam.check(uv.m2.gam, rep=100)
 
-uv.m3.gam=gam(abs.value.DOC~ Treatment  + type + s(plant.mass..g, type, by=Treatment, bs="fs", k=15) + s(plant.mass..g, Time.point, by=type, bs="fs", k=15), family= tw, data=degra.df, method="REML")
+#better to not order the factors
+AIC(uv.m1.gam, uv.m2.gam)
+
+uv.m3.gam=gam(percent.change.DOC ~ Treatment*type*Time.point + s(plant.mass..g, k=15)+ s(plant.mass..g, by=Treatment, k=15) + s(plant.mass..g, by=Time.point, k=15) + s(plant.mass..g, by= type, k=15), data=degra.df, method="REML", select= T)
 summary(uv.m3.gam)
 
-uv.m4.gam=gam(abs.value.DOC~ Treatment  + type + s(plant.mass..g, Treatment, by=type, bs="fs", k=15) + s(plant.mass..g, Time.point, by=type, bs="fs", k=15), family= tw, data=degra.df, method="REML")
-summary(uv.m4.gam)
+#knots are good
+AIC(uv.m1.gam, uv.m2.gam, uv.m3.gam)
 
-uv.m5.gam=gam(abs.value.DOC~ Treatment  + type + s(plant.mass..g, type, by=Treatment, bs="fs", k=15) + s(plant.mass..g, Time.point, by=type, bs="fs", k=15), family= tw(link = "log"), data=degra.df, method="REML")
-summary(uv.m5.gam)
+uv.m4.gam=gam(percent.change.DOC ~ Treatment*type*Time.point + s(plant.mass..g, k=15)+ s(plant.mass..g, by=Treatment, k=15, m=1) + s(plant.mass..g, by=Time.point, k=15, m=1) + s(plant.mass..g, by= type, k=15, m=1), data=degra.df, method="REML", select= T)
+summary(uv.m4.gam) 
+gam.check(uv.m4.gam, rep=1000)
+
+#more penalties are good
+AIC(uv.m1.gam, uv.m2.gam, uv.m3.gam, uv.m4.gam)
+
+uv.m5.gam=gam((percent.change.DOC/100) ~ Treatment*type*Time.point + s(plant.mass..g, k=15)+ s(plant.mass..g, by=Treatment, k=15, m=1) + s(plant.mass..g, by=Time.point, k=15, m=1) + s(plant.mass..g, by= type, k=15, m=1), data=degra.df, method="REML", select= T)
+summary(uv.m5.gam) 
+
 
 
 uv.m6.gam=gam(abs.value.DOC~ Treatment:type + s(plant.mass..g, Treatment, by=type, bs="fs") + s(plant.mass..g, Time.point, by=Treatment, bs="fs"), family=tw(link = "log"), data=degra.df, method="REML")
@@ -739,7 +752,78 @@ class(degra.df$percent.change.DOC)
 
 ```
 
+Sage and Willow Decomp data
+```{r}
+#load files and rearrange 
+decomp.df=read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/decomp.weights.csv")
+names(decomp.df)[8]= "change"
+names(decomp.df)[9]= "percent.change"
+decomp.df=decomp.df[-c(61:82), ] 
 
+#make a duplicate dataframe and convert % to decimal
+decomp2.df=data.frame(decomp.df)
+decomp2.df$percent.change=abs(decomp2.df$percent.change/100)
+#transform
+decomp2.df=decomp2.df%>% 
+ mutate(
+    across(c(9),
+           .fns = ~asin(sqrt(.))))
+
+```
+
+Plant Decomp Plots
+```{r}
+#Unburned treatment degradation
+perc.unburned.decomp.plot=ggplot(decomp.df[(decomp.df$treatment=="unburned"),])+ 
+  geom_point(aes(x=plant.specific.mass..g,y=percent.change,color=plant.type),alpha=0.5)+
+  geom_smooth(aes(x=plant.specific.mass..g, y=percent.change, color=plant.type), method="loess", alpha=0.1)+
+  scale_color_manual(values = c("springgreen1", "gold")) + 
+  ggtitle("Degradation: unburned") +
+  ylab(expression(paste("% mass loss (g)"))) +
+  xlab("plant specific mass (g)")+
+  theme_cowplot(12)+
+  theme(legend.title=element_blank())
+perc.unburned.decomp.plot
+
+
+extract.legend3 <- get_legend(
+  # create some space to the left of the legend
+  perc.unburned.decomp.plot + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
+
+
+#Burned degradation
+perc.burned.decomp.plot=ggplot(decomp.df[(decomp.df$treatment=="burned"),])+ 
+   geom_point(aes(x=plant.specific.mass..g,y=percent.change,color=plant.type),alpha=0.5)+
+  geom_smooth(aes(x=plant.specific.mass..g, y=percent.change, color=plant.type), method="loess", alpha=0.1)+
+  scale_color_manual(values = c("springgreen1", "gold")) + 
+  ggtitle("Degradation: burned") +
+  xlab("plant specific mass (g)")+
+  ylab(expression(paste("% mass loss (g)"))) +
+  theme_cowplot(12)
+burned.degra.plot
+
+#combine them
+perc.decomp.plots=plot_grid(perc.unburned.decomp.plot + theme(legend.position = "none", legend.title=element_blank()), perc.burned.decomp.plot + theme(legend.position = "none"),
+          extract.legend3,
+          labels = c("a)", "b)"),
+          ncol=3, rel_widths = c(15,15,3))
+
+plot_grid(
+  ggdraw(add_sub(perc.decomp.plots, "Fig 4. Total decomposition by plant type for both treatments.", x=0.01, hjust=0)), ncol = 1)
+
+degra.plots
+ggsave("figures/Fig.3.perc.decomp_type.plots.pdf", height=5, width=10)
+
+
+
+
+
+
+
+
+
+
+```
 
 
 
