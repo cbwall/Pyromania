@@ -36,13 +36,14 @@ Fig.formatting<-(theme_classic()) +
 import and do a loop to clean up all files and make stacked data in single df
 ```{r}
 ## import treatment IDs
-IDs<-read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/Pyromania/data/treatment.IDs.csv")
+IDs<-read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/treatment.IDs.csv")
 
 ##### grab files in a list
-Total.DOC.files <- list.files(path="/Users/tobyspiegel2/Desktop/My_pyromania/Pyromania/data/DOC.TN", pattern = "csv$", full.names = T)
-
+Total.DOC.files <- list.files(path="/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/DOC.TN", pattern = "csv$", full.names = T)
+Total.DOC.files
 ##### what are the file names, sans extensions using package 'tools'
-file.names<-file_path_sans_ext(list.files(path="/Users/tobyspiegel2/Desktop/My_pyromania/Pyromania/data/DOC.TN", pattern = "csv$", full.names = F))
+file.names<-file_path_sans_ext(list.files(path="/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/DOC.TN", pattern = "csv$", full.names = F))
+file.names
 
 ############ formatting all data in for loop
   for(i in 1:length(Total.DOC.files))
@@ -66,8 +67,9 @@ DOC.df<-rbind(DOC_T0, DOC_T1, DOC_T2, DOC_T3, DOC_T4)
 DOC.df2=rbind(DOC_T1, DOC_T2, DOC_T3, DOC_T4)
 DOC.df$Treatment=as.factor(DOC.df$Treatment)
 
-DOC.df$File<-substr(DOC.df$File, 64, 74) 
-DOC.df2$File<-substr(DOC.df2$File, 64, 74) 
+#Extract file
+DOC.df$File=sapply(strsplit(DOC.df$File, "/"), `[`, 9)
+
 # alternative way to code the above
 #give the 10th-24th character of the file name, removing the rest
 #DOC.df$File<-substr(DOC.df$File, 13, 27) 
@@ -439,11 +441,11 @@ pairs.panels(DOC.df,
 UVBIO files and plots
 ```{r}
 ##### grab files in a list
-UVBio.files <- list.files(path="/Users/tobyspiegel2/Desktop/My_pyromania/Pyromania/data/UVBIO", pattern = "csv$", full.names = T)
+UVBio.files <- list.files(path="/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/UVBIO", pattern = "csv$", full.names = T)
 UVBio.files
 
 ##### what are the file names, sans extensions using package 'tools'
-file.names<-file_path_sans_ext(list.files(path="/Users/tobyspiegel2/Desktop/My_pyromania/Pyromania/data/UVBIO", pattern = "csv$", full.names = F))
+file.names<-file_path_sans_ext(list.files(path="/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/UVBIO", pattern = "csv$", full.names = F))
 file.names
 
 
