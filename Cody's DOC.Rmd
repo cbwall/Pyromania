@@ -483,7 +483,9 @@ df.test<-cbind(Tank.fix, UVBIO.df$Tank) # yep!
 UVBIO.df$Tank<-as.factor(Tank.fix) #replace old tank names
 
 # extract out the file names
-UVBIO.df$File <- UVBIO.df$File<-substr(UVBIO.df$File, 63, 77)  # extract sample names
+#Extract file
+UVBIO.df$File=sapply(strsplit(UVBIO.df$File, "/"), `[`, 9)
+#take out redundancies
 UVBIO.df$DOC..mg.L<-gsub("NPOC:","", UVBIO.df$DOC..mg.L)
 UVBIO.df$DOC..mg.L<- gsub("mg/L", "", UVBIO.df$DOC..mg.L)
 UVBIO.df$TN..mg.L<-gsub("TN:","", UVBIO.df$TN..mg.L)
@@ -712,11 +714,11 @@ mass.unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+
   xlab("plant material (g)")+
   theme_cowplot(12)+
   theme(legend.title=element_blank())
-perc.unburned.degra.plot
+
 
 extract.legend2 <- get_legend(
   # create some space to the left of the legend
-  unburned.degra.plot + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
+  mass.unburned.degra.plot + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
 
 
 #Burned degradation
@@ -729,7 +731,7 @@ mass.burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+
   xlab("plant material (g)")+
   ylab(expression(paste("% DOC remaining (mg/L)"))) +
   theme_cowplot(12)
-burned.degra.plot
+
 
 #combine them
 mass.degra.plots=plot_grid(mass.unburned.degra.plot + theme(legend.position = "none", legend.title=element_blank()), mass.burned.degra.plot + theme(legend.position = "none"),
