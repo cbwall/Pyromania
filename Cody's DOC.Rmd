@@ -121,7 +121,7 @@ DOC.df2$oTime.point=as.factor(DOC.df2$oTime.point)
 DOC concentration Figure
 ```{r fig.cap="scatter plots for sepal length, sepal width and petal length"}
 DOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
-  geom_point() +
+  geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 60)) +
@@ -131,7 +131,7 @@ DOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=DOC..m
   theme_cowplot(12)
 
 DOC.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
-  geom_point() +
+  geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 60)) +
@@ -141,7 +141,7 @@ DOC.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=DOC..m
   theme_cowplot(12)
   
 DOC.T2<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
-  geom_point() +
+  geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 60)) +
@@ -152,7 +152,7 @@ DOC.T2<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=plant.mass..g, y=DOC..m
 
   
 DOC.T3<-ggplot(DOC.df[(DOC.df$Time.point=="T3"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
-  geom_point() +
+  geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 60)) +
@@ -162,7 +162,7 @@ DOC.T3<-ggplot(DOC.df[(DOC.df$Time.point=="T3"),], aes(x=plant.mass..g, y=DOC..m
   theme_cowplot(12)
 
 DOC.T4<-ggplot(DOC.df[(DOC.df$Time.point=="T4"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
-  geom_point() +
+  geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 60)) +
@@ -964,7 +964,7 @@ SUVA calculations
 Time point 0
 ```{r}
 #load file and rearrange
-suva.t0.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/SUVAresults/Results_T0.csv")
+suva.t0.df=read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/EEMs/Results_T0.csv")
 suva.t0.df$Sample.Name=gsub("\\..*", "", suva.t0.df$Sample.Name) 
 names(suva.t0.df)[1]="Tank"
 suva.t0.df=suva.t0.df[-1,]
@@ -986,7 +986,7 @@ Time point 1
 ```{r}
 #load file and rearrange
 library(dplyr)
-suva.t1.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/SUVAresults/Results_T1.csv")
+suva.t1.df=read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/EEMs/Results_T1.csv")
 suva.t1.df=suva.t1.df[-1,]
 suva.t1.df=suva.t1.df[-1,]
 names(suva.t1.df)[1]="Tank"
@@ -1009,7 +1009,7 @@ suva.t1.df$SUVA=(suva.t1.df$abs254/suva.t1.df$DOC..mg.L)*100
 Time point 2
 ```{r}
 #load file and rearrange
-suva.t2.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/SUVAresults/Results_T2_d1A.edit.csv")
+suva.t2.df=read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/EEMs/Results_T2_d1A.edit.csv")
 names(suva.t2.df)[1]="Tank"
 suva.t2.df$Tank=gsub("TA", "", suva.t2.df$Tank) 
 suva.t2.df$Tank=sub("(.{2})(.*)", "\\1.\\2", suva.t2.df$Tank)
@@ -1030,7 +1030,7 @@ suva.t2.df$SUVA=(suva.t2.df$abs254/suva.t2.df$DOC..mg.L)*100
 
 Time point 3
 ```{r}
-suva.t3.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/SUVAresults/Results_T3.csv")
+suva.t3.df=read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/EEMs/Results_T3.csv")
 names(suva.t3.df)[1]="Tank"
 suva.t3.df$Tank=gsub("TA", "", suva.t3.df$Tank) 
 suva.t3.df$Tank=sub("(.{2})(.*)", "\\1.\\2", suva.t3.df$Tank)
@@ -1052,7 +1052,7 @@ suva.t3.df$SUVA=(suva.t3.df$abs254/suva.t3.df$DOC..mg.L)*100
 
 Time point 4
 ```{r}
-suva.t4.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/SUVAresults/Results_T4.csv")
+suva.t4.df=read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/EEMs/Results_T4.csv")
 names(suva.t4.df)[1]="Tank"
 suva.t4.df$Tank=gsub("TA", "", suva.t4.df$Tank) 
 suva.t4.df$Tank=sub("(.{2})(.*)", "\\1.\\2", suva.t4.df$Tank)
@@ -1074,21 +1074,12 @@ suva.t4.df$SUVA=(suva.t4.df$abs254/suva.t4.df$DOC..mg.L)*100
 Combine all SUVA time points
 ```{r}
 suva.df=rbind(suva.t0.df, suva.t1.df, suva.t2.df, suva.t3.df, suva.t4.df)
-
-#visualize
-ggplot(suva, aes(x= plant.biomass, y= SUVA, color= treatment))+
-  geom_point()+
-  geom_smooth(methods= "loess")+
-  facet_grid(~Time.point, scales = "free")
-
-ggsave("/Users/tobyspiegel2/Desktop/My_pyromania/Pyromania/SUVA_plot.pdf", width = 15, height = 6)
-
 ```
 
 SUVA plots
 ```{r}
 suva.T0<-ggplot(suva.df[(suva.df$Time.point=="T0"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) +
-  geom_point() +
+  geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("Time-0") +
@@ -1098,7 +1089,7 @@ suva.T0<-ggplot(suva.df[(suva.df$Time.point=="T0"),], aes(x=plant.mass..g, y=SUV
 
 
 suva.T1<-ggplot(suva.df[(suva.df$Time.point=="T1"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
-  geom_point() +
+  geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("Time-1") +
@@ -1107,7 +1098,7 @@ suva.T1<-ggplot(suva.df[(suva.df$Time.point=="T1"),], aes(x=plant.mass..g, y=SUV
   theme_cowplot(12)
   
 suva.T2<-ggplot(suva.df[(suva.df$Time.point=="T2"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
-  geom_point() +
+  geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("Time-2") +
@@ -1117,7 +1108,7 @@ suva.T2<-ggplot(suva.df[(suva.df$Time.point=="T2"),], aes(x=plant.mass..g, y=SUV
 
   
 suva.T3<-ggplot(suva.df[(suva.df$Time.point=="T3"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
-  geom_point() +
+  geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("Time-3") +
@@ -1126,7 +1117,7 @@ suva.T3<-ggplot(suva.df[(suva.df$Time.point=="T3"),], aes(x=plant.mass..g, y=SUV
   theme_cowplot(12)
 
 suva.T4<-ggplot(suva.df[(suva.df$Time.point=="T4"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
-  geom_point() +
+  geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ggtitle("Time-4") +
