@@ -956,17 +956,132 @@ degra.plots
 ggsave("figures/Fig.3.perc.decomp_type.plots.pdf", height=5, width=10)
 
 
+```
 
+SUVA 
+SUVA calculations
+Time point 0
+```{r}
+#load file and rearrange
+suva.t0.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/SUVAresults/Results_T0.csv")
+suva.t0.df$Sample.Name=gsub("\\..*", "", suva.t0.df$Sample.Name) 
+names(suva.t0.df)[1]="Tank"
+suva.t0.df=suva.t0.df[-1,]
+suva.t0.df$Tank=gsub("T", "", suva.t0.df$Tank) 
+suva.t0.df$Tank=as.numeric(suva.t0.df$Tank)
+suva.t0.df=suva.t0.df[order(suva.t0.df$Tank),]
 
+#add important info
+suva.t0.df$DOC..mg.L=DOC_T0$DOC..mg.L
+suva.t0.df$Time.point="T0"
+suva.t0.df$Treatment=IDs$Treatment
+suva.t0.df$plant.mass..g=IDs$plant.mass..g
 
+#calculate SUVA
+suva.t0.df$SUVA=(suva.t0.df$abs254/suva.t0.df$DOC..mg.L)*100
+```
 
+Time point 1
+```{r}
+#load file and rearrange
+library(dplyr)
+suva.t1.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/SUVAresults/Results_T1.csv")
+suva.t1.df=suva.t1.df[-1,]
+suva.t1.df=suva.t1.df[-1,]
+names(suva.t1.df)[1]="Tank"
+suva.t1.df$Tank=gsub("TA", "", suva.t1.df$Tank) 
+suva.t1.df$Tank=sub("(.{2})(.*)", "\\1.\\2", suva.t1.df$Tank)
+suva.t1.df$Tank=sub("\\..*", "", suva.t1.df$Tank)
+suva.t1.df$Tank=as.numeric(suva.t1.df$Tank)
+suva.t1.df=suva.t1.df[order(suva.t1.df$Tank),]
 
+#add important info
+suva.t1.df$DOC..mg.L=DOC_T1$DOC..mg.L
+suva.t1.df$Time.point="T1"
+suva.t1.df$Treatment=IDs$Treatment
+suva.t1.df$plant.mass..g=IDs$plant.mass..g
 
+#calculate SUVA
+suva.t1.df$SUVA=(suva.t1.df$abs254/suva.t1.df$DOC..mg.L)*100
+```
 
+Time point 2
+```{r}
+#load file and rearrange
+suva.t2.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/SUVAresults/Results_T2_d1A.edit.csv")
+names(suva.t2.df)[1]="Tank"
+suva.t2.df$Tank=gsub("TA", "", suva.t2.df$Tank) 
+suva.t2.df$Tank=sub("(.{2})(.*)", "\\1.\\2", suva.t2.df$Tank)
+suva.t2.df$Tank=sub("\\..*", "", suva.t2.df$Tank)
+suva.t2.df$Tank=as.numeric(suva.t2.df$Tank)
+suva.t2.df=suva.t2.df[order(suva.t2.df$Tank),]
 
+#add important info
+suva.t2.df$DOC..mg.L=DOC_T2$DOC..mg.L
+suva.t2.df$Time.point="T2"
+suva.t2.df$Treatment=IDs$Treatment
+suva.t2.df$plant.mass..g=IDs$plant.mass..g
 
+#calculate SUVA
+suva.t2.df$SUVA=(suva.t2.df$abs254/suva.t2.df$DOC..mg.L)*100
 
+```
 
+Time point 3
+```{r}
+suva.t3.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/SUVAresults/Results_T3.csv")
+names(suva.t3.df)[1]="Tank"
+suva.t3.df$Tank=gsub("TA", "", suva.t3.df$Tank) 
+suva.t3.df$Tank=sub("(.{2})(.*)", "\\1.\\2", suva.t3.df$Tank)
+suva.t3.df$Tank=sub("\\..*", "", suva.t3.df$Tank)
+suva.t3.df$Tank=as.numeric(suva.t3.df$Tank)
+suva.t3.df=suva.t3.df[order(suva.t3.df$Tank),]
+
+#add important info
+suva.t3.df$DOC..mg.L=DOC_T3$DOC..mg.L
+suva.t3.df$Time.point="T3"
+suva.t3.df$Treatment=IDs$Treatment
+suva.t3.df$plant.mass..g=IDs$plant.mass..g
+
+#calculate SUVA
+suva.t3.df$SUVA=(suva.t3.df$abs254/suva.t3.df$DOC..mg.L)*100
+
+```
+
+Time point 4
+```{r}
+suva.t4.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/SUVAresults/Results_T4.csv")
+names(suva.t4.df)[1]="Tank"
+suva.t4.df$Tank=gsub("TA", "", suva.t4.df$Tank) 
+suva.t4.df$Tank=sub("(.{2})(.*)", "\\1.\\2", suva.t4.df$Tank)
+suva.t4.df$Tank=sub("\\..*", "", suva.t4.df$Tank)
+suva.t4.df$Tank=as.numeric(suva.t4.df$Tank)
+suva.t4.df=suva.t4.df[order(suva.t4.df$Tank),]
+suva.t4.df=suva.t4.df[-2,]
+suva.t4.df=suva.t4.df[-2,]
+
+#add important info
+suva.t4.df$DOC..mg.L=DOC_T4$DOC..mg.L
+suva.t4.df$Time.point="T4"
+suva.t4.df$Treatment=IDs$Treatment
+suva.t4.df$plant.mass..g=IDs$plant.mass..g
+
+#calculate SUVA
+suva.t4.df$SUVA=(suva.t4.df$abs254/suva.t4.df$DOC..mg.L)*100
+
+```
+
+Combine all SUVA time points
+```{r}
+suva.df=rbind(suva.t0.df, suva.t1.df, suva.t2.df, suva.t3.df, suva.t4.df)
+
+#visualize
+ggplot(suva, aes(x= plant.biomass, y= SUVA, color= treatment))+
+  geom_point()+
+  geom_smooth(methods= "loess")+
+  facet_grid(~Time.point, scales = "free")
+
+ggsave("/Users/tobyspiegel2/Desktop/My_pyromania/Pyromania/SUVA_plot.pdf", width = 15, height = 6)
 
 ```
 
