@@ -125,9 +125,8 @@ DOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=DOC..m
   coord_cartesian(ylim=c(0, 60)) +
   ggtitle("Time-0") +
   xlab("")+
-  ylab("DOC (mg/L)") +
-  Fig.formatting
-
+  ylab("DOC (mg/L)")+
+  theme_cowplot(12)
 
 DOC.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
   geom_point() +
@@ -137,7 +136,7 @@ DOC.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=DOC..m
   ggtitle("Time-1") +
   xlab("")+
   ylab("")+
-  Fig.formatting
+  theme_cowplot(12)
   
 DOC.T2<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
   geom_point() +
@@ -147,7 +146,7 @@ DOC.T2<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=plant.mass..g, y=DOC..m
   ggtitle("Time-2") +
   xlab("plant material (g)") +
   ylab("")+
-  Fig.formatting
+  theme_cowplot(12)
 
   
 DOC.T3<-ggplot(DOC.df[(DOC.df$Time.point=="T3"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
@@ -158,7 +157,7 @@ DOC.T3<-ggplot(DOC.df[(DOC.df$Time.point=="T3"),], aes(x=plant.mass..g, y=DOC..m
   ggtitle("Time-3") +
   xlab("")+
   ylab("")+
-  Fig.formatting
+  theme_cowplot(12)
 
 DOC.T4<-ggplot(DOC.df[(DOC.df$Time.point=="T4"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
   geom_point() +
@@ -168,7 +167,7 @@ DOC.T4<-ggplot(DOC.df[(DOC.df$Time.point=="T4"),], aes(x=plant.mass..g, y=DOC..m
   ggtitle("Time-4") +
   xlab("")+
   ylab("")+
-  Fig.formatting
+  theme_cowplot(12)
 
 
 extract.legend <- get_legend(
@@ -868,38 +867,36 @@ decomp2.df=decomp2.df%>%
 
 Plant Decomp Plots (% mass remaining)
 ```{r}
-#Unburned treatment degradation
-mass.unburned.decomp.plot=ggplot(plant.df[(plant.df$Treatment=="unburned"),])+ 
-  geom_point(aes(x=plant.specific.mass..g,y=mass.remaining,color=type),alpha=0.5)+
-  geom_smooth(aes(x=plant.specific.mass..g, y=mass.remaining, color=type), method="loess", alpha=0.1)+
-  scale_color_manual(values = c("olivedrab", "peru")) + 
-  ggtitle("Decomposition: unburned") +
+#Unburned treatment decomp
+mass.unburned.decomp.plot=ggplot(plant.df[(plant.df$type=="sage"),])+ 
+  geom_point(aes(x=plant.specific.mass..g,y=mass.remaining,color=Treatment),alpha=0.5)+
+  geom_smooth(aes(x=plant.specific.mass..g, y=mass.remaining, color=Treatment), method="loess", alpha=0.1)+
+  scale_color_manual(values = c("orange", "purple")) + 
+  ggtitle("Decomposition: Sage") +
   ylab(expression(paste("% mass remaining (g)"))) +
   xlab("plant specific mass (g)")+
   theme_cowplot(12)+
   theme(legend.title=element_blank())
-perc.unburned.decomp.plot
 
-
-extract.legend3 <- get_legend(
+extract.legend4 <- get_legend(
   # create some space to the left of the legend
-  perc.unburned.decomp.plot + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
+  mass.unburned.decomp.plot + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
 
 
-#Burned degradation
-mass.burned.decomp.plot=ggplot(plant.df[(plant.df$Treatment=="burned"),])+ 
-   geom_point(aes(x=plant.specific.mass..g,y=mass.remaining,color=type),alpha=0.5)+
-  geom_smooth(aes(x=plant.specific.mass..g, y=mass.remaining, color=type), method="loess", alpha=0.1)+
-  scale_color_manual(values = c("olivedrab", "peru")) + 
-  ggtitle("Decomposition: burned") +
+#Burned decomp
+mass.burned.decomp.plot=ggplot(plant.df[(plant.df$type=="willow"),])+ 
+   geom_point(aes(x=plant.specific.mass..g,y=mass.remaining,color=Treatment),alpha=0.5)+
+  geom_smooth(aes(x=plant.specific.mass..g, y=mass.remaining, color=Treatment), method="loess", alpha=0.1)+
+  scale_color_manual(values = c("orange", "purple")) + 
+  ggtitle("Decomposition: Willow") +
   xlab("plant specific mass (g)")+
   ylab(expression(paste("% mass remaining (g)"))) +
   theme_cowplot(12)
-burned.degra.plot
+
 
 #combine them
 mass.decomp.plots=plot_grid(mass.unburned.decomp.plot + theme(legend.position = "none", legend.title=element_blank()), mass.burned.decomp.plot + theme(legend.position = "none"),
-          extract.legend3,
+          extract.legend4,
           labels = c("a)", "b)"),
           ncol=3, rel_widths = c(15,15,3))
 
@@ -1037,6 +1034,7 @@ suva.t3.df$Tank=sub("\\..*", "", suva.t3.df$Tank)
 suva.t3.df$Tank=as.numeric(suva.t3.df$Tank)
 suva.t3.df=suva.t3.df[order(suva.t3.df$Tank),]
 
+
 #add important info
 suva.t3.df$DOC..mg.L=DOC_T3$DOC..mg.L
 suva.t3.df$Time.point="T3"
@@ -1057,8 +1055,6 @@ suva.t4.df$Tank=sub("(.{2})(.*)", "\\1.\\2", suva.t4.df$Tank)
 suva.t4.df$Tank=sub("\\..*", "", suva.t4.df$Tank)
 suva.t4.df$Tank=as.numeric(suva.t4.df$Tank)
 suva.t4.df=suva.t4.df[order(suva.t4.df$Tank),]
-suva.t4.df=suva.t4.df[-2,]
-suva.t4.df=suva.t4.df[-2,]
 
 #add important info
 suva.t4.df$DOC..mg.L=DOC_T4$DOC..mg.L
@@ -1082,6 +1078,81 @@ ggplot(suva, aes(x= plant.biomass, y= SUVA, color= treatment))+
   facet_grid(~Time.point, scales = "free")
 
 ggsave("/Users/tobyspiegel2/Desktop/My_pyromania/Pyromania/SUVA_plot.pdf", width = 15, height = 6)
+
+```
+
+SUVA plots
+```{r}
+suva.T0<-ggplot(suva.df[(suva.df$Time.point=="T0"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-0") +
+  xlab("")+
+  ylab(bquote(SUVA~(Lmg^-1~m^-1)))+
+  theme_cowplot(12)
+
+
+suva.T1<-ggplot(suva.df[(suva.df$Time.point=="T1"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-1") +
+  xlab("")+
+  ylab("")+
+  theme_cowplot(12)
+  
+suva.T2<-ggplot(suva.df[(suva.df$Time.point=="T2"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-2") +
+  xlab("plant material (g)") +
+  ylab("")+
+  theme_cowplot(12)
+
+  
+suva.T3<-ggplot(suva.df[(suva.df$Time.point=="T3"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-3") +
+  xlab("")+
+  ylab("")+
+  theme_cowplot(12)
+
+suva.T4<-ggplot(suva.df[(suva.df$Time.point=="T4"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-4") +
+  xlab("")+
+  ylab("")+
+  theme_cowplot(12)
+
+
+extract.legend5 <- get_legend(
+  # create some space to the left of the legend
+  suva.T0 + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+
+suva.plots<-plot_grid(
+  suva.T0+ theme(legend.position = "none"),
+  suva.T1+ theme(legend.position = "none"),
+  suva.T2+ theme(legend.position = "none"),
+  suva.T3+ theme(legend.position = "none"),
+  suva.T4+ theme(legend.position = "none"),
+  extract.legend5,
+  rel_widths = c(15,15,15,15, 15, 8), ncol=6)
+
+
+plot_grid(
+  ggdraw(add_sub(suva.plots, "Fig 4. Average specific ultraviolet absorbance (SUVA 254 ) across sampling period for both treatments. Time-0 represents baseline DOC concentrations \nprior to the start of the experiment. ", x=0.01, hjust=0)), ncol = 1)
+
+
+ggsave("figures/fig4.suva.pdf", height=5, width=14)
+
+
 
 ```
 
