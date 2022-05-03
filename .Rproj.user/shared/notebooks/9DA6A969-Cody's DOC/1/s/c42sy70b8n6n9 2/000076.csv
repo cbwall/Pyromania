@@ -1,4 +1,0 @@
-"0","uv.m7.gam=gam(abs.value.DOC~ Treatment  + type + s(plant.mass..g, Treatment, by=Type, bs=""fs"", k=15) + s(plant.mass..g, Time.point, bs=""fs"", k=15), family= tw(link = ""identity""), data=degra.df, method=""REML"")
-"
-"2","Error in eval(predvars, data, env) : object 'Type' not found
-"

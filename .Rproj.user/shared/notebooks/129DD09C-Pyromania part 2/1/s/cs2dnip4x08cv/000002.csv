@@ -1,4 +1,0 @@
-"0","z.df<-zoop"
-"0",""
-"0","z<-summaryBy(Density ~ Tank + Date.collected + Time.point + Treatment + Plant.mass..g +"
-"0","               spp, data = z.df, FUN = mean)"

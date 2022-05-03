@@ -1,6 +1,0 @@
-"0","timepoint<-""T4"""
-"0","M3 <- gam(mosquito ~ s(Plant.mass..g, k=5, bs=""tp"") +"
-"0","            s(Plant.mass..g, Treatment, k=12, bs=""re""), data=subset(z1, Time.point %in% timepoint), method=""REML"", family=""gaussian"")"
-"0","M4 <- gam(mosquito ~ s(Plant.mass..g, k=5, bs=""tp""), data=subset(z1, Time.point %in% timepoint), method=""REML"", family=""gaussian"")"
-"0",""
-"0","AIC(M3,M4) "

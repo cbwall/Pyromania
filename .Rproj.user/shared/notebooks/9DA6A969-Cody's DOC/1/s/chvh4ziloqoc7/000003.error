@@ -1,1 +1,0 @@
-{"frames":[{"func":"AIC(m11.gam, m12.gam, m13.gam, m14.gam)","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0}],"message":"Error in AIC(m11.gam, m12.gam, m13.gam, m14.gam) : \n  object 'm11.gam' not found\n"}

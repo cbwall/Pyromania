@@ -1,5 +1,0 @@
-"0","suva.df=rbind(suva.t0.df, suva.t1.df, suva.t2.df, suva.t3.df, suva.t4.df)
-"
-"2","Error in rbind(deparse.level, ...) : 
-  numbers of columns of arguments do not match
-"
