@@ -433,9 +433,6 @@ pairs.panels(DOC.df,
              ellipses = FALSE # show correlation ellipses
              )
 
-?concrvity
-<<<<<<< HEAD
-=======
 
 
 ```
@@ -746,7 +743,7 @@ mass.degra.plots=plot_grid(mass.unburned.degra.plot + theme(legend.position = "n
 plot_grid(
   ggdraw(add_sub(mass.degra.plots, "Fig 2. Three degradation pathways of dissolved organic carbon (DOC) across three time points during a seven \nday incubation period for both treatments. Values indicate % DOC remaining with 'microbe' representing \nmicrobial degradation, 'photo' representing photodegradation, and 'total' representing both microbial and \nphotodegradation. All positive values indiciate % DOC increase.", x=0.01, hjust=0)), ncol = 1)
 
-degra.plots
+
 ggsave("figures/Fig.2.UVBio.mass.degra_type.plots.pdf", height=5, width=10)
 
 
