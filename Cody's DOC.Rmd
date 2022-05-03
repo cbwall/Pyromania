@@ -1425,198 +1425,6 @@ decomp2.df=decomp2.df%>%
  mutate(
     across(c(9),
            .fns = ~asin(sqrt(.))))
-=======
-SUVA 
-SUVA calculations
-Time point 0
-```{r}
-#load file and rearrange
-suva.t0.df=read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/EEMs/Results_T0.csv")
-suva.t0.df$Sample.Name=gsub("\\..*", "", suva.t0.df$Sample.Name) 
-names(suva.t0.df)[1]="Tank"
-suva.t0.df=suva.t0.df[-1,]
-suva.t0.df$Tank=gsub("T", "", suva.t0.df$Tank) 
-suva.t0.df$Tank=as.numeric(suva.t0.df$Tank)
-suva.t0.df=suva.t0.df[order(suva.t0.df$Tank),]
-
-#add important info
-suva.t0.df$DOC..mg.L=DOC_T0$DOC..mg.L
-suva.t0.df$Time.point="T0"
-suva.t0.df$Treatment=IDs$Treatment
-suva.t0.df$plant.mass..g=IDs$plant.mass..g
-
-#calculate SUVA
-suva.t0.df$SUVA=(suva.t0.df$abs254/suva.t0.df$DOC..mg.L)*100
-```
-
-Time point 1
-```{r}
-#load file and rearrange
-library(dplyr)
-suva.t1.df=read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/EEMs/Results_T1.csv")
-suva.t1.df=suva.t1.df[-1,]
-suva.t1.df=suva.t1.df[-1,]
-names(suva.t1.df)[1]="Tank"
-suva.t1.df$Tank=gsub("TA", "", suva.t1.df$Tank) 
-suva.t1.df$Tank=sub("(.{2})(.*)", "\\1.\\2", suva.t1.df$Tank)
-suva.t1.df$Tank=sub("\\..*", "", suva.t1.df$Tank)
-suva.t1.df$Tank=as.numeric(suva.t1.df$Tank)
-suva.t1.df=suva.t1.df[order(suva.t1.df$Tank),]
-
-#add important info
-suva.t1.df$DOC..mg.L=DOC_T1$DOC..mg.L
-suva.t1.df$Time.point="T1"
-suva.t1.df$Treatment=IDs$Treatment
-suva.t1.df$plant.mass..g=IDs$plant.mass..g
-
-#calculate SUVA
-suva.t1.df$SUVA=(suva.t1.df$abs254/suva.t1.df$DOC..mg.L)*100
-```
-
-Time point 2
-```{r}
-#load file and rearrange
-suva.t2.df=read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/EEMs/Results_T2_d1A.edit.csv")
-names(suva.t2.df)[1]="Tank"
-suva.t2.df$Tank=gsub("TA", "", suva.t2.df$Tank) 
-suva.t2.df$Tank=sub("(.{2})(.*)", "\\1.\\2", suva.t2.df$Tank)
-suva.t2.df$Tank=sub("\\..*", "", suva.t2.df$Tank)
-suva.t2.df$Tank=as.numeric(suva.t2.df$Tank)
-suva.t2.df=suva.t2.df[order(suva.t2.df$Tank),]
-
-#add important info
-suva.t2.df$DOC..mg.L=DOC_T2$DOC..mg.L
-suva.t2.df$Time.point="T2"
-suva.t2.df$Treatment=IDs$Treatment
-suva.t2.df$plant.mass..g=IDs$plant.mass..g
-
-#calculate SUVA
-suva.t2.df$SUVA=(suva.t2.df$abs254/suva.t2.df$DOC..mg.L)*100
-
-```
-
-Time point 3
-```{r}
-suva.t3.df=read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/EEMs/Results_T3.csv")
-names(suva.t3.df)[1]="Tank"
-suva.t3.df$Tank=gsub("TA", "", suva.t3.df$Tank) 
-suva.t3.df$Tank=sub("(.{2})(.*)", "\\1.\\2", suva.t3.df$Tank)
-suva.t3.df$Tank=sub("\\..*", "", suva.t3.df$Tank)
-suva.t3.df$Tank=as.numeric(suva.t3.df$Tank)
-suva.t3.df=suva.t3.df[order(suva.t3.df$Tank),]
-
-
-#add important info
-suva.t3.df$DOC..mg.L=DOC_T3$DOC..mg.L
-suva.t3.df$Time.point="T3"
-suva.t3.df$Treatment=IDs$Treatment
-suva.t3.df$plant.mass..g=IDs$plant.mass..g
-
-#calculate SUVA
-suva.t3.df$SUVA=(suva.t3.df$abs254/suva.t3.df$DOC..mg.L)*100
-
-```
-
-Time point 4
-```{r}
-suva.t4.df=read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/EEMs/Results_T4.csv")
-names(suva.t4.df)[1]="Tank"
-suva.t4.df$Tank=gsub("TA", "", suva.t4.df$Tank) 
-suva.t4.df$Tank=sub("(.{2})(.*)", "\\1.\\2", suva.t4.df$Tank)
-suva.t4.df$Tank=sub("\\..*", "", suva.t4.df$Tank)
-suva.t4.df$Tank=as.numeric(suva.t4.df$Tank)
-suva.t4.df=suva.t4.df[order(suva.t4.df$Tank),]
-
-#add important info
-suva.t4.df$DOC..mg.L=DOC_T4$DOC..mg.L
-suva.t4.df$Time.point="T4"
-suva.t4.df$Treatment=IDs$Treatment
-suva.t4.df$plant.mass..g=IDs$plant.mass..g
-
-#calculate SUVA
-suva.t4.df$SUVA=(suva.t4.df$abs254/suva.t4.df$DOC..mg.L)*100
-
-```
-
-Combine all SUVA time points
-```{r}
-suva.df=rbind(suva.t0.df, suva.t1.df, suva.t2.df, suva.t3.df, suva.t4.df)
-```
-
-SUVA plots
-```{r}
-suva.T0<-ggplot(suva.df[(suva.df$Time.point=="T0"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) +
-  geom_point(alpha=0.5) +
-  scale_color_manual(values = c("orange", "purple")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  ggtitle("Time-0") +
-  xlab("")+
-  ylab(bquote(SUVA~(Lmg^-1~m^-1)))+
-  theme_cowplot(12)
-
-
-suva.T1<-ggplot(suva.df[(suva.df$Time.point=="T1"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
-  geom_point(alpha=0.5) +
-  scale_color_manual(values = c("orange", "purple")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  ggtitle("Time-1") +
-  xlab("")+
-  ylab("")+
-  theme_cowplot(12)
-  
-suva.T2<-ggplot(suva.df[(suva.df$Time.point=="T2"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
-  geom_point(alpha=0.5) +
-  scale_color_manual(values = c("orange", "purple")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  ggtitle("Time-2") +
-  xlab("plant material (g)") +
-  ylab("")+
-  theme_cowplot(12)
-
-  
-suva.T3<-ggplot(suva.df[(suva.df$Time.point=="T3"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
-  geom_point(alpha=0.5) +
-  scale_color_manual(values = c("orange", "purple")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  ggtitle("Time-3") +
-  xlab("")+
-  ylab("")+
-  theme_cowplot(12)
-
-suva.T4<-ggplot(suva.df[(suva.df$Time.point=="T4"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
-  geom_point(alpha=0.5) +
-  scale_color_manual(values = c("orange", "purple")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  ggtitle("Time-4") +
-  xlab("")+
-  ylab("")+
-  theme_cowplot(12)
-
-
-extract.legend5 <- get_legend(
-  # create some space to the left of the legend
-  suva.T0 + theme(legend.box.margin = margin(0, 0, 0, 10)))
-
-
-suva.plots<-plot_grid(
-  suva.T0+ theme(legend.position = "none"),
-  suva.T1+ theme(legend.position = "none"),
-  suva.T2+ theme(legend.position = "none"),
-  suva.T3+ theme(legend.position = "none"),
-  suva.T4+ theme(legend.position = "none"),
-  extract.legend5,
-  rel_widths = c(15,15,15,15, 15, 8), ncol=6)
-
-
-plot_grid(
-  ggdraw(add_sub(suva.plots, "Fig 4. Average specific ultraviolet absorbance (SUVA 254 ) across sampling periods for both treatments. Time-0 represents baseline DOC concentrations \nprior to the start of the experiment. ", x=0.01, hjust=0)), ncol = 1)
-
-
-ggsave("figures/fig4.suva.pdf", height=5, width=14)
-
-
->>>>>>> 057dbc9963d9ace6c887998c4e2184b96dc95b80
-
 ```
 
 Plant Decomp Plots (% mass remaining)
@@ -1629,6 +1437,7 @@ mass.unburned.decomp.plot=ggplot(plant.df[(plant.df$type=="sage"),])+
   ggtitle("Decomposition: Sage") +
   ylab(expression(paste("% mass remaining (g)"))) +
   xlab("plant specific mass (g)")+
+  coord_cartesian(ylim = c(20,90))+
   theme_cowplot(12)+
   theme(legend.title=element_blank())
 
@@ -1645,6 +1454,7 @@ mass.burned.decomp.plot=ggplot(plant.df[(plant.df$type=="willow"),])+
   ggtitle("Decomposition: Willow") +
   xlab("plant specific mass (g)")+
   ylab(expression(paste("% mass remaining (g)"))) +
+  coord_cartesian(ylim = c(20,90))+
   theme_cowplot(12)
 
 
@@ -1657,7 +1467,6 @@ mass.decomp.plots=plot_grid(mass.unburned.decomp.plot + theme(legend.position = 
 plot_grid(
   ggdraw(add_sub(mass.decomp.plots, "Fig 3. Measured plant mass remaining of each plant type for both treatments. Plant specific mass represents \ninitial plant weights at the start of the experiment", x=0.01, hjust=0)), ncol = 1)
 
-degra.plots
 ggsave("figures/Fig.3.mass.decomp_type.plots.pdf", height=5, width=10)
 
 
@@ -1835,7 +1644,9 @@ suva.T0<-ggplot(suva.df[(suva.df$Time.point=="T0"),], aes(x=plant.mass..g, y=SUV
   ggtitle("Time-0") +
   xlab("")+
   ylab(bquote(SUVA~(Lmg^-1~m^-1)))+
+  coord_cartesian(ylim = c(-6,15))+
   theme_cowplot(12)
+
 
 
 suva.T1<-ggplot(suva.df[(suva.df$Time.point=="T1"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
@@ -1845,6 +1656,7 @@ suva.T1<-ggplot(suva.df[(suva.df$Time.point=="T1"),], aes(x=plant.mass..g, y=SUV
   ggtitle("Time-1") +
   xlab("")+
   ylab("")+
+  coord_cartesian(ylim = c(-6,15))+
   theme_cowplot(12)
   
 suva.T2<-ggplot(suva.df[(suva.df$Time.point=="T2"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
@@ -1854,7 +1666,9 @@ suva.T2<-ggplot(suva.df[(suva.df$Time.point=="T2"),], aes(x=plant.mass..g, y=SUV
   ggtitle("Time-2") +
   xlab("plant material (g)") +
   ylab("")+
+  coord_cartesian(ylim = c(-6,15))+
   theme_cowplot(12)
+
 
   
 suva.T3<-ggplot(suva.df[(suva.df$Time.point=="T3"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
@@ -1864,6 +1678,7 @@ suva.T3<-ggplot(suva.df[(suva.df$Time.point=="T3"),], aes(x=plant.mass..g, y=SUV
   ggtitle("Time-3") +
   xlab("")+
   ylab("")+
+  coord_cartesian(ylim = c(-6,15))+
   theme_cowplot(12)
 
 suva.T4<-ggplot(suva.df[(suva.df$Time.point=="T4"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
@@ -1873,6 +1688,7 @@ suva.T4<-ggplot(suva.df[(suva.df$Time.point=="T4"),], aes(x=plant.mass..g, y=SUV
   ggtitle("Time-4") +
   xlab("")+
   ylab("")+
+  coord_cartesian(ylim = c(-6,15))+
   theme_cowplot(12)
 
 
