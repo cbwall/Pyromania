@@ -1070,6 +1070,7 @@ UVBIO.df$Burn.Filt.UV<-interaction(UVBIO.df$Treatment, UVBIO.df$Filter.Trt, UVBI
 UVBIO.df$Filt.UV<-interaction(UVBIO.df$Filter.Trt, UVBIO.df$UV.Trt)
 
 ```
+
 Calculate photo, microbe, and total degradation:
 ```{r}
 #+UV/+Bio=A
@@ -1297,17 +1298,17 @@ UVBIO analysis
 ```{r}
 #fit complex model 
 library(mgcv)
-uv.m1.gam=gam(mass.remaining.dec ~ Treatment*type*Time.point + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
+uv.m1.gam=gam(mass.remaining ~ Treatment*type*Time.point + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
 summary(uv.m1.gam)
 gam.check(uv.m1.gam, rep = 1000)
 draw(uv.m1.gam)
 
-uv.m2.gam=gam(mass.remaining.dec ~ Treatment*type*Time.point + s(plant.mass..g)+ s(plant.mass..g, by=Treatment) + s(plant.mass..g, by=Time.point) + s(plant.mass..g, by= type), data=degra.df, method="REML", select= T)
+uv.m2.gam=gam(mass.remaining.dec ~ Treatment*type*Time.point + s(plant.mass..g) + s(plant.mass..g)+ s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
 summary(uv.m2.gam)
 gam.check(uv.m2.gam, rep=100)
 
 #better to not order the factors
-AIC(uv.m1.gam, uv.m2.gam, uv.m3.gam)
+AIC(uv.m1.gam, uv.m2.gam)
 
 #hereon data is arcsine transformed
 uv.m3.gam=gam(mass.remaining.arc ~ Treatment*type*Time.point + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
