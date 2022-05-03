@@ -605,9 +605,9 @@ degra.df=mutate(degra.df, oTreatment= ordered(Treatment, levels= c("burned","unb
 
 #arcsine transform for later analysis
 degra.df$mass.remaining.dec=degra.df$mass.remaining/100
-degra.df$mass.remaining.dec=asin(sqrt(degra.df$mass.remaining.dec))
+degra.df$mass.remaining.arc=asin(sqrt(degra.df$mass.remaining.dec/99.95216))
 
-max(degra.df$mass.remaining.dec)
+
 ```
 
 UVBIO Absolute Change Plots
@@ -756,38 +756,54 @@ summary(uv.m1.gam)
 gam.check(uv.m1.gam, rep = 1000)
 draw(uv.m1.gam)
 
-uv.m2.gam=gam(mass.remaining ~ Treatment*type*Time.point + s(plant.mass..g)+ s(plant.mass..g, by=Treatment) + s(plant.mass..g, by=Time.point) + s(plant.mass..g, by= type), data=degra.df, method="REML", select= T)
+uv.m2.gam=gam(mass.remaining.dec ~ Treatment*type*Time.point + s(plant.mass..g)+ s(plant.mass..g, by=Treatment) + s(plant.mass..g, by=Time.point) + s(plant.mass..g, by= type), data=degra.df, method="REML", select= T)
 summary(uv.m2.gam)
 gam.check(uv.m2.gam, rep=100)
 
 #better to not order the factors
-AIC(uv.m1.gam, uv.m2.gam)
-
-uv.m3.gam=gam(mass.remaining ~ Treatment*type*Time.point + s(plant.mass..g, k=15)+ s(plant.mass..g, by=Treatment, k=15) + s(plant.mass..g, by=Time.point, k=15) + s(plant.mass..g, by= type, k=15), data=degra.df, method="REML", family=gaussian(link = "log"), select= T)
-summary(uv.m3.gam)
-gam.check(uv.m3.gam)
-
-#knots are good
 AIC(uv.m1.gam, uv.m2.gam, uv.m3.gam)
 
-uv.m4.gam=gam(mass.remaining ~ Treatment*type*Time.point + s(plant.mass..g, k=15)+ s(plant.mass..g, by=Treatment, k=15, m=1) + s(plant.mass..g, by=Time.point, k=15, m=1) + s(plant.mass..g, by= type, k=15, m=1), data=degra.df, method="REML", select= T)
-summary(uv.m4.gam) 
-gam.check(uv.m4.gam, rep=1000)
+#hereon data is arcsine transformed
+uv.m3.gam=gam(mass.remaining.arc ~ Treatment*type*Time.point + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
+summary(uv.m3.gam)
+gam.check(uv.m3.gam, rep = 1000)
+draw(uv.m3.gam)
 
-#more penalties are good
+uv.m4.gam=gam(log(mass.remaining.dec+1) ~ Treatment*type*Time.point + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
+summary(uv.m4.gam)
+gam.check(uv.m4.gam, rep = 1000)
+draw(uv.m3.gam)
+
+#knots are good
 AIC(uv.m1.gam, uv.m2.gam, uv.m3.gam, uv.m4.gam)
 
-uv.m5.gam=gam((percent.change.DOC/100) ~ Treatment*type*Time.point + s(plant.mass..g, k=15)+ s(plant.mass..g, by=Treatment, k=15, m=1) + s(plant.mass..g, by=Time.point, k=15, m=1) + s(plant.mass..g, by= type, k=15, m=1), data=degra.df, method="REML", select= T)
+uv.m5.gam=gam(mass.remaining.arc ~ Treatment*type*Time.point + s(plant.mass..g, k=3)+ s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by= Time.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
 summary(uv.m5.gam) 
+gam.check(uv.m5.gam, rep=1000)
 
 
+#better to use ordered factors and no knots
+AIC(uv.m1.gam, uv.m2.gam, uv.m3.gam, uv.m4.gam, uv.m5.gam)
 
-uv.m6.gam=gam(abs.value.DOC~ Treatment:type + s(plant.mass..g, Treatment, by=type, bs="fs") + s(plant.mass..g, Time.point, by=Treatment, bs="fs"), family=tw(link = "log"), data=degra.df, method="REML")
+#scat family
+uv.m6.gam=gam(mass.remaining.arc ~ Treatment*type*Time.point + s(plant.mass..g, k=3)+ s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by= Time.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
 summary(uv.m6.gam)
+gam.check(uv.m6.gam, rep = 1000)
+draw(uv.m6.gam)
 
+AIC(uv.m1.gam, uv.m2.gam, uv.m3.gam, uv.m4.gam, uv.m5.gam, uv.m6.gam)
 
-uv.m7.gam=gam(abs.value.DOC~ Treatment + type + s(plant.mass..g, Treatment, by=type, bs="fs") + s(plant.mass..g, Time.point, by=Treatment, bs="fs"), family=tw(link = "log"), data=degra.df, method="REML")
+uv.m7.gam=gam(mass.remaining.arc ~ Treatment*type*Time.point + s(plant.mass..g, by=oTreatment, m=1) + s(plant.mass..g, by=oTime.point, m=1) + s(plant.mass..g, by= otype, m=1), family= scat, data=degra.df, method="REML", select= T)
 summary(uv.m7.gam)
+gam.check(uv.m7.gam, rep = 1000)
+draw(uv.m7.gam)
+
+AIC(uv.m1.gam, uv.m2.gam, uv.m3.gam, uv.m4.gam, uv.m5.gam, uv.m6.gam, uv.m7.gam)
+
+
+uv.m8.gam=gam(abs.change.DOC~ Treatment*type*Time.point + s(plant.mass..g) + s(plant.mass..g, by= oTreatment) +s(plant.mass..g, by= oTime.point) + s(plant.mass..g, by=otype), data=degra.df, method="REML")
+summary(uv.m8.gam)
+gam.check(uv.m8.gam, rep = 1000)
 
 uv.m8.gam=uv.m7.gam=gam(abs.value.DOC~ Treatment + type + s(plant.mass..g, Treatment, by=type, bs="fs") + s(plant.mass..g, Time.point, by=Treatment, bs="fs"), family=tw(link = "log"), data=degra.df, method="REML")
 summary(uv.m8.gam)
@@ -1142,7 +1158,7 @@ suva.plots<-plot_grid(
 
 
 plot_grid(
-  ggdraw(add_sub(suva.plots, "Fig 4. Average specific ultraviolet absorbance (SUVA 254 ) across sampling period for both treatments. Time-0 represents baseline DOC concentrations \nprior to the start of the experiment. ", x=0.01, hjust=0)), ncol = 1)
+  ggdraw(add_sub(suva.plots, "Fig 4. Average specific ultraviolet absorbance (SUVA 254 ) across sampling periods for both treatments. Time-0 represents baseline DOC concentrations \nprior to the start of the experiment. ", x=0.01, hjust=0)), ncol = 1)
 
 
 ggsave("figures/fig4.suva.pdf", height=5, width=14)
@@ -1150,8 +1166,6 @@ ggsave("figures/fig4.suva.pdf", height=5, width=14)
 
 
 ```
-
-
 
 
 
