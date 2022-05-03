@@ -2158,6 +2158,7 @@ ggsave("figures/iso.controls.pdf", encod="MacRoman", height=5, width=10)
 ```{r, percent sage}
 # mixing model
 head(topes.trt)
+topes.trt<-droplevels(topes.trt)
 
 d15N.cont # summary mean
 sage.mean<-d15N.cont[c(3:6),]
@@ -2167,11 +2168,12 @@ F.cont<-aggregate(at.P..15N  ~ Type, topes.controls, mean)
 sage.meanF<-F.cont[c(3:6),]
 mean(sage.meanF$at.P..15N) # sage ~0.475, willow 0.371
 
-# 2 source mixing model 
+# 2 source mixing model (Post 2002)
 
-# value of consumer/pool - food source 1 [i.e., no-label food]/ (food 2 [i.e.,plants]- source 1)
-# using d15N values of 11 for algae/plankton stock 
-# using d15N value of 297 for % sage
+# alpha = percent Sage from food web 1
+# %Sage = (d15N sample - d15N base 2 [i.e., no-label food])/ (d15N sage food 1 - source 2)
+#  d15N values of base 2 = 11 permil for algae/plankton stock 
+#  d15N value of base 1 = 297 permil for sage
 
 topes.trt$percent.sage<-(topes.trt$d15N-11)/(297-11) 
 
@@ -2225,20 +2227,24 @@ summary(mod1)
 
 
 ############# all plankton
-mod1c <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp") +
+mod1c <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp")+
+            s(plant.mass..g, Treatment, k=5, bs="re")+
+            s(plant.mass..g, Type, k=2, bs="re"),
+            data=topes.trt, method="REML", family="gaussian")
+
+mod2c <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp")+
             s(plant.mass..g, Treatment, k=5, bs="re"),
             data=topes.trt, method="REML", family="gaussian")
+
 # model with biomass
-mod2c <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp"), 
+mod3c <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp"), 
             data=topes.trt, method="REML", family="gaussian")
 
-AIC(mod1c,mod2c) 
-# mod1 preferred
+AIC(mod1c, mod2c, mod3c) 
+# mod2c preferred
 # compare across
-AIC(mod1a, mod1b, mod1c) 
-# full model best
 
-summary(mod1c)
+summary(mod2c)
 
 
 
