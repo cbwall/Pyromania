@@ -1239,7 +1239,7 @@ perc.degra.plots=plot_grid(perc.unburned.degra.plot + theme(legend.position = "n
 plot_grid(
   ggdraw(add_sub(perc.degra.plots, "Fig 2. Three degradation pathways of dissolved organic carbon (DOC) across three time points during a seven \nday incubation period for both treatments. Negative values indicate % DOC loss with 'microbe' representing \nmicrobial degradation, 'photo' representing photodegradation, and 'total' representing both microbial and \nphotodegradation. All positive values indiciate % DOC increase.", x=0.01, hjust=0)), ncol = 1)
 
-degra.plots
+
 ggsave("figures/Fig.2.UVBio.perc.degra_type.plots.pdf", height=5, width=10)
 
 ```
@@ -1255,6 +1255,7 @@ mass.unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+
   ggtitle("Degradation: unburned") +
   ylab(expression(paste("% DOC remaining (mg/L)"))) +
   xlab("plant material (g)")+
+  coord_cartesian(ylim = c(40,150))+
   theme_cowplot(12)+
   theme(legend.title=element_blank())
 
@@ -1273,6 +1274,7 @@ mass.burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+
   ggtitle("Degradation: burned") +
   xlab("plant material (g)")+
   ylab(expression(paste("% DOC remaining (mg/L)"))) +
+  coord_cartesian(ylim = c(40,150))+
   theme_cowplot(12)
 
 
@@ -1285,7 +1287,7 @@ mass.degra.plots=plot_grid(mass.unburned.degra.plot + theme(legend.position = "n
 plot_grid(
   ggdraw(add_sub(mass.degra.plots, "Fig 2. Three degradation pathways of dissolved organic carbon (DOC) across three time points during a seven \nday incubation period for both treatments. Values indicate % DOC remaining with 'microbe' representing \nmicrobial degradation, 'photo' representing photodegradation, and 'total' representing both microbial and \nphotodegradation. All positive values indiciate % DOC increase.", x=0.01, hjust=0)), ncol = 1)
 
-degra.plots
+
 ggsave("figures/Fig.2.UVBio.mass.degra_type.plots.pdf", height=5, width=10)
 
 
@@ -1294,6 +1296,7 @@ ggsave("figures/Fig.2.UVBio.mass.degra_type.plots.pdf", height=5, width=10)
 UVBIO analysis
 ```{r}
 #fit complex model 
+library(mgcv)
 uv.m1.gam=gam(mass.remaining.dec ~ Treatment*type*Time.point + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
 summary(uv.m1.gam)
 gam.check(uv.m1.gam, rep = 1000)
@@ -1437,9 +1440,10 @@ mass.unburned.decomp.plot=ggplot(plant.df[(plant.df$type=="sage"),])+
   ggtitle("Decomposition: Sage") +
   ylab(expression(paste("% mass remaining (g)"))) +
   xlab("plant specific mass (g)")+
-  coord_cartesian(ylim = c(20,90))+
+  coord_cartesian(ylim = c(25,100))+
   theme_cowplot(12)+
   theme(legend.title=element_blank())
+mass.unburned.decomp.plot
 
 extract.legend4 <- get_legend(
   # create some space to the left of the legend
@@ -1454,8 +1458,9 @@ mass.burned.decomp.plot=ggplot(plant.df[(plant.df$type=="willow"),])+
   ggtitle("Decomposition: Willow") +
   xlab("plant specific mass (g)")+
   ylab(expression(paste("% mass remaining (g)"))) +
-  coord_cartesian(ylim = c(20,90))+
+  coord_cartesian(ylim = c(25,100))+
   theme_cowplot(12)
+mass.burned.decomp.plot
 
 
 #combine them
