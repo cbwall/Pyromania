@@ -712,7 +712,7 @@ mass.unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+
   ggtitle("Degradation: unburned") +
   ylab(expression(paste("% DOC remaining (mg/L)"))) +
   xlab("plant material (g)")+
-  coord_cartesian(ylim = c(50,120))+
+  coord_cartesian(ylim = c(40,150))+
   theme_cowplot(12)+
   theme(legend.title=element_blank())
 
@@ -731,7 +731,7 @@ mass.burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+
   ggtitle("Degradation: burned") +
   xlab("plant material (g)")+
   ylab(expression(paste("% DOC remaining (mg/L)"))) +
-  coord_cartesian(ylim = c(50,120))+
+  coord_cartesian(ylim = c(40,150))+
   theme_cowplot(12)
 
 
