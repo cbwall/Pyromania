@@ -1,0 +1,27 @@
+"0","library(mgcv)
+"
+"2","Warning:"
+"2"," package ‘mgcv’ was built under R version 4.0.5
+"
+"2","Loading required package: nlme
+"
+"2","
+Attaching package: ‘nlme’
+
+"
+"2","The following object is masked from ‘package:dplyr’:
+
+    collapse
+
+"
+"2","The following object is masked from ‘package:lme4’:
+
+    lmList
+
+"
+"2","This is mgcv 1.8-40. For overview type 'help(""mgcv-package"")'.
+"
+"0","library(gratia)"
+"2","Warning:"
+"2"," package ‘gratia’ was built under R version 4.0.5
+"

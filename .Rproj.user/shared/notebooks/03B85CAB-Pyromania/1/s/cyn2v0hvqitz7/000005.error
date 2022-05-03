@@ -1,0 +1,1 @@
+{"frames":[{"func":"ggplot(Filt.UV, aes(x = plant.mass..g, y = DOC..mg.L, color = Treatment))","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0}],"message":"Error in ggplot(Filt.UV, aes(x = plant.mass..g, y = DOC..mg.L, color = Treatment)) : \n  object 'Filt.UV' not found\n"}

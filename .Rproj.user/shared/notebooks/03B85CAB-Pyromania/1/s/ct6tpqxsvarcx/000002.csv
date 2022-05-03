@@ -1,0 +1,83 @@
+"0","## Time 3 plots
+Filt.UV.T3.plot<-ggplot(
+  Filt.UV.T3, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c(""brown1"", ""mediumseagreen"")) + 
+  scale_linetype_manual(values=c(""solid"", ""twodash"")) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle(""T3: -Bio, +UV"") +
+  coord_cartesian(ylim=c(-15, 15)) +
+  ylab(expression(paste(""% "", Delta, "" DOC mg/L""))) +
+  xlab(""plant material (g)"") +
+  scale_y_continuous(name = expression(paste(""%"", Delta, "" DOC mg/L"")), sec.axis = sec_axis( trans=~.*1, name=""Initial DOC mg/L"")) +
+  geom_line( aes(y=Start.DOC), size=1, linetype= ""twodash"") +
+  Fig.formatting
+
+Filt.NoUV.T3.plot<-ggplot(
+  Filt.NoUV.T3, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c(""brown1"", ""mediumseagreen"")) + 
+  scale_linetype_manual(values=c(""solid"", ""twodash"")) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle(""T3: -Bio, -UV"") +
+  coord_cartesian(ylim=c(-20, 40)) +
+  ylab(expression(paste(""% "", Delta, "" DOC mg/L""))) +
+  xlab(""plant material (g)"") +
+  scale_y_continuous(name = expression(paste(""%"", Delta, "" DOC mg/L"")), sec.axis = sec_axis( trans=~.*1, name=""Initial DOC mg/L"")) +
+  geom_line( aes(y=Start.DOC), size=1, linetype= ""twodash"") +
+  Fig.formatting
+
+NFilt.UV.T3.plot<-ggplot(
+  NFilt.UV.T3, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c(""brown1"", ""mediumseagreen"")) + 
+  scale_linetype_manual(values=c(""solid"", ""twodash"")) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle(""T3: +Bio, +UV"") +
+  coord_cartesian(ylim=c(-20, 40)) +
+  ylab(expression(paste(""% "", Delta, "" DOC mg/L""))) +
+  xlab(""plant material (g)"") +
+  scale_y_continuous(name = expression(paste(""%"", Delta, "" DOC mg/L"")), sec.axis = sec_axis( trans=~.*1, name=""Initial DOC mg/L"")) +
+  geom_line( aes(y=Start.DOC), size=1, linetype= ""twodash"") +
+  Fig.formatting
+
+NFilt.NoUV.T3.plot<-ggplot(
+  NFilt.NoUV.T3, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) + 
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c(""brown1"", ""mediumseagreen"")) + 
+  scale_linetype_manual(values=c(""solid"", ""twodash"")) +
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle(""T3: +Bio, -UV"") +
+  coord_cartesian(ylim=c(-20, 40)) +
+  ylab(expression(paste(""% "", Delta, "" DOC mg/L""))) +
+  xlab(""plant material (g)"")  +
+  scale_y_continuous(name = expression(paste(""%"", Delta, "" DOC mg/L"")), sec.axis = sec_axis( trans=~.*1, name=""Initial DOC mg/L"")) +
+  geom_line( aes(y=Start.DOC), size=1, linetype= ""twodash"") +
+  Fig.formatting
+
+UVBio.T3<-plot_grid(
+  Filt.UV.T3.plot+ theme(legend.position = ""none""), 
+  Filt.NoUV.T3.plot+ theme(legend.position = ""none""),
+  NFilt.UV.T3.plot+ theme(legend.position = ""none""),
+  NFilt.NoUV.T3.plot+ theme(legend.position = ""none""),
+  extract.legend, 
+  rel_widths = c(8,8,8,8,3), ncol=5)
+"
+"2","`geom_smooth()` using formula 'y ~ x'
+"
+"2","`geom_smooth()` using formula 'y ~ x'
+"
+"2","`geom_smooth()` using formula 'y ~ x'
+"
+"2","`geom_smooth()` using formula 'y ~ x'
+"
+"0","ggsave(""figures/UVBio.T3.pdf"", height=6, width=11)"
+"0",""
+"0","#compile all plots"
+"0","all.UV.Bio<-plot_grid("
+"0","  UVBio.T1, "
+"0","  UVBio.T2,"
+"0","  UVBio.T3,"
+"0","  ncol=1)"
+"0",""
+"0","ggsave(""figures/all.UV.Bio.pdf"", height=10, width=11)"

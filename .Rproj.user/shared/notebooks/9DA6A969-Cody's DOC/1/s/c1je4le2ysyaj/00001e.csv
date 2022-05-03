@@ -1,0 +1,5 @@
+"0","m13.gam=gam(DOC..mg.L ~ Treatment*Time.point  + s(plant.mass..g, bs=""cs"") + s(plant.mass..g, by=oTreatment, bs=""cs"") + s(plant.mass..g, by=oTime.point, bs=""cs""), family= ocat(theta= NULL, link=""log"", R= NULL), data=DOC.df2, select= T, method=""REML"")
+"
+"2","Error in ocat(theta = NULL, link = ""log"", R = NULL) : 
+  Must supply theta or R to ocat
+"

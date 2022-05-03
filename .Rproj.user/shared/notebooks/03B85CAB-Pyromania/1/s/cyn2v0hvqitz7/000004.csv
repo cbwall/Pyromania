@@ -1,0 +1,14 @@
+"0","################## plots for total DOC concentration over incubation period"
+"0",""
+"0","# filtered UV plot"
+"0","Filt.UV.fig<-ggplot(Filt.UV, aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + "
+"0","  geom_point() +"
+"0","   facet_grid(.~ Time.point) +"
+"0","  scale_color_manual(values = c(""brown1"", ""mediumseagreen"")) + "
+"0","  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +"
+"0","  ggtitle(""Filt:UV"") +"
+"0","  ylab(expression(paste("" DOC mg/L""))) +"
+"0","  xlab(""plant material (g)"") "
+"2","Error in ggplot(Filt.UV, aes(x = plant.mass..g, y = DOC..mg.L, color = Treatment)) : 
+  object 'Filt.UV' not found
+"

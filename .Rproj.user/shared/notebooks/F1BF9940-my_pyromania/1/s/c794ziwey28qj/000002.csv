@@ -1,0 +1,5 @@
+"0","degra.df.T1$photo=degra.df.T1[degra.df.T1$Filt.UV==""Filtered.UV"",]$DOC..mg.L-degra.df.T1[degra.df.T1$Filt.UV==""Filtered.NoUV"",]$DOC..mg.L
+"
+"2","Error in `$<-.data.frame`(`*tmp*`, photo, value = numeric(0)) : 
+  replacement has 0 rows, data has 120
+"

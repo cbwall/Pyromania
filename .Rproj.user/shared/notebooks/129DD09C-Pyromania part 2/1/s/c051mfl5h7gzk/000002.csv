@@ -1,0 +1,9 @@
+"0","#Mosquito"
+"0","p2<-ggplot(z1,aes(y=mosquito, x=Plant.mass..g, color = factor(Treatment))) +"
+"0","  geom_point(size=2)+"
+"0","  facet_grid(rows=vars(Date.collected), scales=""free_y"")+"
+"0","  labs(x = ""G plants added"",y=""Density (#/L)"", title = ""Mosquitoes"")+"
+"0","  geom_smooth(method = loess)"
+"0","p2"
+"2","`geom_smooth()` using formula 'y ~ x'
+"
