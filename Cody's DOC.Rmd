@@ -753,23 +753,25 @@ ggsave("figures/Fig.2.UVBio.mass.degra_type.plots.pdf", height=5, width=10)
 UVBIO analysis
 ```{r}
 #fit complex model 
-uv.m1.gam=gam(mass.remaining.dec ~ Treatment*type*Time.point + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
+uv.m1.gam=gam(mass.remaining ~ Treatment*type*Time.point + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
 summary(uv.m1.gam)
 gam.check(uv.m1.gam, rep = 1000)
 draw(uv.m1.gam)
 
-uv.m2.gam=gam(mass.remaining.dec ~ Treatment*type*Time.point + s(plant.mass..g)+ s(plant.mass..g, by=Treatment) + s(plant.mass..g, by=Time.point) + s(plant.mass..g, by= type), data=degra.df, method="REML", select= T)
+uv.m2.gam=gam((mass.remaining)^1/2 ~ Treatment*type*Time.point + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
 summary(uv.m2.gam)
 gam.check(uv.m2.gam, rep=100)
 
 #better to not order the factors
-AIC(uv.m1.gam, uv.m2.gam, uv.m3.gam)
+AIC(uv.m1.gam, uv.m2.gam)
 
 #hereon data is arcsine transformed
-uv.m3.gam=gam(mass.remaining.arc ~ Treatment*type*Time.point + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
+uv.m3.gam=gam(log10(mass.remaining) ~ Treatment*type*Time.point + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), family= gaussian, data=degra.df, method="REML", select= T)
 summary(uv.m3.gam)
 gam.check(uv.m3.gam, rep = 1000)
 draw(uv.m3.gam)
+
+AIC(uv.m1.gam, uv.m2.gam, uv.m3.gam)
 
 uv.m4.gam=gam(log(mass.remaining.dec+1) ~ Treatment*type*Time.point + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
 summary(uv.m4.gam)
@@ -784,10 +786,9 @@ summary(uv.m5.gam)
 gam.check(uv.m5.gam, rep=1000)
 
 
-#better to use ordered factors and no knots
 AIC(uv.m1.gam, uv.m2.gam, uv.m3.gam, uv.m4.gam, uv.m5.gam)
 
-#scat family
+
 uv.m6.gam=gam(mass.remaining.arc ~ Treatment*type*Time.point + s(plant.mass..g, k=3)+ s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by= Time.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
 summary(uv.m6.gam)
 gam.check(uv.m6.gam, rep = 1000)
