@@ -1468,7 +1468,7 @@ mass.burned.decomp.plot
 mass.decomp.plots=plot_grid(mass.unburned.decomp.plot + theme(legend.position = "none", legend.title=element_blank()), mass.burned.decomp.plot + theme(legend.position = "none"),
           extract.legend4,
           labels = c("a)", "b)"),
-          ncol=3, rel_widths = c(15,15,3))
+          ncol=3, rel_widths = c(15,15,4))
 
 plot_grid(
   ggdraw(add_sub(mass.decomp.plots, "Fig 3. Measured plant mass remaining of each plant type for both treatments. Plant specific mass represents \ninitial plant weights at the start of the experiment", x=0.01, hjust=0)), ncol = 1)
