@@ -128,7 +128,8 @@ DOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=DOC..m
   ggtitle("Time-0") +
   xlab("")+
   ylab("DOC (mg/L)")+
-  theme_cowplot(12)
+  theme_cowplot(12)+
+  theme(legend.title=element_blank())
 
 DOC.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
   geom_point(alpha=0.5) +
@@ -1891,7 +1892,7 @@ suva.plots<-plot_grid(
 
 
 plot_grid(
-  ggdraw(add_sub(suva.plots, "Fig 4. Average specific ultraviolet absorbance (SUVA 254 ) across sampling periods for both treatments. Time-0 represents baseline DOC concentrations \nprior to the start of the experiment. ", x=0.01, hjust=0)), ncol = 1)
+  ggdraw(add_sub(suva.plots, "Fig 4. Average specific ultraviolet absorbance (SUVA 254 ) across sampling periods for both treatments. Time-0 represents baseline measurements prior to the \nstart of the experiment. ", x=0.01, hjust=0)), ncol = 1)
 
 
 ggsave("figures/fig4.suva.pdf", height=5, width=14)
