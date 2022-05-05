@@ -270,7 +270,7 @@ m10.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, Time.point, by=Treatment, 
 AIC(m9.gam, m10.gam)
 ```
 
-model 26 wins
+model 28 wins
 ```{r}
 m12.gam=gam(DOC..mg.L ~ Treatment*Time.point  + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point), family= Gamma(link = "log"), data=DOC.df2, select= T, method="REML")
 summary(m12.gam)
@@ -348,8 +348,15 @@ AIC(m26.gam, m27.gam)
 
 
 m28.gam=gam(DOC..mg.L ~ Treatment*Time.point + s(plant.mass..g, k=6) + s(plant.mass..g, by= Treatment, k=4) + s(plant.mass..g, by= Time.point), select= T, data=DOC.df2, family=Gamma(link = "log"), method="REML")
+summary(m28.gam)
+concurvity(m28.gam)
 
-AIC(m26.gam, m27.gam, m28.gam)
+
+m29.gam=gam(DOC..mg.L ~ Treatment*Time.point + s(plant.mass..g, k=6) + s(plant.mass..g, by= oTreatment, k=4) + s(plant.mass..g, by= oTime.point), select= T, data=DOC.df2, family=Gamma(link = "log"), method="REML")
+summary(m29.gam)
+concrvity(m29.gam)
+
+AIC(m26.gam, m27.gam, m28.gam, m29.gam)
 
 ggplot(DOC.df2, aes(x=predict(m26.gam), y=DOC..mg.L), color=predict(m26.gam)) + 
   geom_point() +
@@ -369,9 +376,9 @@ effect_plot(m27.gam, pred = plant.mass..g, interval = TRUE, partial.residuals = 
 #unburned:T2: the interaction of unburned and T2, the unburned effect (unburned-burned) in T2  versus the T1 effect in the burned treatment. Also, the T2 effect (T2 – T1) for unburned versus the T2 effect for burned
 
 ```
-DOC model 14 intepretation
+DOC model 28 intepretation
 ```{r}
-summary(m14.gam)
+summary(m28.gam)
 #Let’s go through each coefficient:
 
 #(Intercept): exp(2.28823)= 9.86 mean DOC for T1 burned
@@ -398,17 +405,19 @@ library(visreg)
 vis.burn.plot=visreg(m28.gam, "plant.mass..g", ylab="DOC..mg.L", gg=TRUE, by="Time.point", overlay=T, partial=FALSE, rug=F, cond=list(Treatment="burned")) +
   geom_point(alpha=0.5) +
   ggtitle("Burned") +
-  ylab("DOC (mg/L)")+
+  ylab("log(DOC) (mg/L)")+
   xlab("plant mass (g)")+
-  theme_cowplot(12)
+  theme_cowplot(12)+
+  theme(legend.title=element_blank())
 
 
 vis.unburn.plot=visreg(m28.gam, "plant.mass..g", ylab="DOC..mg.L", gg=TRUE, by="Time.point", overlay=T, partial=FALSE, rug=F, cond=list(Treatment="unburned")) +
   geom_point(alpha=0.5) +
   ggtitle("Unburned") +
-  ylab("DOC (mg/L)")+
+  ylab("log(DOC) (mg/L)")+
   xlab("plant mass (g)")+
   theme_cowplot(12)
+  
 
 
 extract.legend.vis <- get_legend(
@@ -425,7 +434,7 @@ vis.plots<-plot_grid(
 vis.plots
 
 plot_grid(
-  ggdraw(add_sub(vis.plots, "Fig 5. The estimated relationship of dissolved organic carbon (DOC) across sampling period for a) burned treatment and b) unburned treatment. Plots show \na confidence band about the estimates, and the partial residuals to assess the model fit.", x=0.01, hjust=0)), ncol = 1)
+  ggdraw(add_sub(vis.plots, "Fig 5. The estimated relationship of dissolved organic carbon (DOC) across sampling period for a) burned and b) unburned treatments. Plots show \na confidence band about the estimates, and the partial residuals to assess the model fit.", x=0.01, hjust=0)), ncol = 1)
 
 
 ggsave("figures/fig5.DOC.visplot.pdf", height=5, width=14)
