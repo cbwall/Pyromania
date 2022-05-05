@@ -425,7 +425,7 @@ vis.plots<-plot_grid(
 vis.plots
 
 plot_grid(
-  ggdraw(add_sub(vis.plots, "Fig 5. The estimated relationship of dissolved organic carbon (DOC) across sampling period for a) burned treatment and b) unburned treatment. Plots show a confidence band about the estimates, and the partial residuals to assess the model fit.", x=0.01, hjust=0)), ncol = 1)
+  ggdraw(add_sub(vis.plots, "Fig 5. The estimated relationship of dissolved organic carbon (DOC) across sampling period for a) burned treatment and b) unburned treatment. Plots show \na confidence band about the estimates, and the partial residuals to assess the model fit.", x=0.01, hjust=0)), ncol = 1)
 
 
 ggsave("figures/fig5.DOC.visplot.pdf", height=5, width=14)
