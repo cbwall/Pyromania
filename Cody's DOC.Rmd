@@ -66,9 +66,11 @@ file.names
 DOC.df<-rbind(DOC_T0, DOC_T1, DOC_T2, DOC_T3, DOC_T4)
 DOC.df2=rbind(DOC_T1, DOC_T2, DOC_T3, DOC_T4)
 DOC.df$Treatment=as.factor(DOC.df$Treatment)
+DOC.df2$Treatment=as.factor(DOC.df2$Treatment)
 
 #Extract file
 DOC.df$File=sapply(strsplit(DOC.df$File, "/"), `[`, 9)
+DOC.df2$File=sapply(strsplit(DOC.df2$File, "/"), `[`, 9)
 
 # alternative way to code the above
 #give the 10th-24th character of the file name, removing the rest
@@ -79,7 +81,7 @@ DOC.df$File=sapply(strsplit(DOC.df$File, "/"), `[`, 9)
 # remove the 4 letters (.$') at end
 #DOC.df$File<-gsub('^.........|....$', '', DOC.df$File) 
 
-# if equals DOC_T0_11052021 then, T0, if not then T1
+# if equals DOC_T0 then, T0, if not then T1..etc
 DOC.df$Time.point<- as.factor(ifelse(DOC.df$File=="DOC_T0.csv", "T0",
          ifelse (DOC.df$File=="DOC_T1.csv", "T1",
            ifelse (DOC.df$File=="DOC_T2.csv", "T2", 
@@ -118,8 +120,8 @@ DOC.df2$oTime.point=as.factor(DOC.df2$oTime.point)
 
 
 ```
-DOC concentration Figure
-```{r fig.cap="scatter plots for sepal length, sepal width and petal length"}
+DOC plots
+```{r}
 DOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
@@ -198,7 +200,6 @@ ggsave("figures/fig1.DOC.pdf", height=5, width=14)
   
 
 ```
-
 DOC analysis
 ```{r}
 library(mgcv)
@@ -269,20 +270,97 @@ m10.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, Time.point, by=Treatment, 
 AIC(m9.gam, m10.gam)
 ```
 
-
+model 26 wins
 ```{r}
-DOC.df2$oTreatment=relevel(DOC.df2$Treatment, ref="burned" ) 
-
-
-m11.gam=gam(log(DOC..mg.L) ~ Treatment*Time.point  + s(plant.mass..g, bs="cs") + s(plant.mass..g, by=oTreatment, bs="cs") + s(plant.mass..g, by=oTime.point, bs="cs"), data=DOC.df2, family= gaussian, select= T, method="REML")
-```
-
-winner winner ***model 12***
-```{r}
-m12.gam=gam(DOC..mg.L ~ Treatment*Time.point  + s(plant.mass..g, bs="cs") + s(plant.mass..g, by=oTreatment, bs="cs") + s(plant.mass..g, by=oTime.point, bs="cs"), family= Gamma(link = "log"), data=DOC.df2, select= T, method="REML")
+m12.gam=gam(DOC..mg.L ~ Treatment*Time.point  + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point), family= Gamma(link = "log"), data=DOC.df2, select= T, method="REML")
 summary(m12.gam)
-gam.check(m12.gam,rep=1000)
-draw(m12.gam)
+
+m13.gam=gam(DOC..mg.L ~ Treatment*Time.point  + s(plant.mass..g, k=5) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point), family= Gamma(link = "log"), data=DOC.df2, select= T, method="REML")
+summary(m13.gam)
+
+AIC(m12.gam, m13.gam)
+
+
+m14.gam=gam(DOC..mg.L ~ Treatment*Time.point  + s(plant.mass..g, k=15) + s(plant.mass..g, by=oTreatment, k=4) + s(plant.mass..g, by=oTime.point, k=4), family= Gamma(link = "log"), data=DOC.df2, select= T, method="REML", drop.unused.levels = F)
+summary(m14.gam)
+concurvity(m14.gam)
+gam.check(m14.gam, rep=1000)
+draw(m14.gam)
+
+
+
+m14.gam=gam(DOC..mg.L ~ Treatment*Time.point  + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point), data=DOC.df2, select= T, method="REML")
+summary(m14.gam)
+concurvity(m14.gam)
+gam.check(m14.gam, rep=1000)
+
+AIC(m14.gam, m17.gam)
+
+
+
+m15.gam=gam(DOC..mg.L ~ Treatment*Time.point  + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point), family= Gamma(link = "log"), data=DOC.df2, select= T, method="REML")
+summary(m15.gam)
+draw(m15.gam)
+gam.check(m15.gam, rep=1000)
+concrvity(m15.gam)
+
+
+
+
+concurvity(m15.gam)
+
+AIC(m15.gam, m16.gam)
+
+m16.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g) + s(plant.mass..g, by= oTreatment) + s(plant.mass..g, Time.point, bs="fs"), data=DOC.df2, method="REML")
+summary(m16.gam)
+gam.check(m16.gam, rep=1000)
+
+
+m17.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, k=15) + s(plant.mass..g, by= oTreatment, k=4, m=1) + s(plant.mass..g, Time.point, bs="fs"), data=DOC.df2, family= Gamma(link = "log"), method="REML")
+draw(m17.gam)
+summary(m17.gam)
+gam.check(m17.gam, rep=1000)
+concrvity(m17.gam)
+
+appraise(m19.gam)
+
+
+
+
+
+m18.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, k=15) + s(plant.mass..g, by= Treatment, k=4, m=1) + s(plant.mass..g, Time.point, bs="fs"), data=DOC.df2, family= Gamma(link = "log"), method="REML")
+draw(m18.gam)
+summary(m18.gam)
+
+m19.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, k=15) + s(plant.mass..g, by= oTreatment, k=4, m=1) + s(plant.mass..g, Time.point, bs="fs"), data=DOC.df2, family= Gamma(link = "log"), method="REML")
+summary(m19.gam)
+draw(m19.gam)
+
+m26.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, k=6) + s(plant.mass..g, Time.point, by= Treatment, k=4, bs="fs"), data=DOC.df2, select= T, family=Gamma(link = "log"), method="REML")
+summary(m26.gam)
+draw(m26.gam)
+
+m27.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, k=6) + s(plant.mass..g, by= Treatment, k=4) + s(plant.mass..g, Time.point, bs="fs"), select= T, data=DOC.df2, family=Gamma(link = "log"), method="REML")
+summary(m27.gam)
+draw(m27.gam)
+
+AIC(m26.gam, m27.gam)
+
+
+m28.gam=gam(DOC..mg.L ~ Treatment*Time.point + s(plant.mass..g, k=6) + s(plant.mass..g, by= Treatment, k=4) + s(plant.mass..g, by= Time.point), select= T, data=DOC.df2, family=Gamma(link = "log"), method="REML")
+
+AIC(m26.gam, m27.gam, m28.gam)
+
+ggplot(DOC.df2, aes(x=predict(m26.gam), y=DOC..mg.L), color=predict(m26.gam)) + 
+  geom_point() +
+  geom_smooth()+
+  labs(x='Predicted Values', y='Actual Values', title='Predicted vs. Actual Values')
+
+library(jtools)
+effect_plot(m27.gam, pred = plant.mass..g, interval = TRUE, partial.residuals = TRUE)
+
+
+
 #(Intercept): the intercept for burned in T1
 #Treatmentunburned: the  unburned – burned DOC in T1.
 #T2: the difference in DOC between T2 versus T1 for burned
@@ -291,50 +369,19 @@ draw(m12.gam)
 #unburned:T2: the interaction of unburned and T2, the unburned effect (unburned-burned) in T2  versus the T1 effect in the burned treatment. Also, the T2 effect (T2 – T1) for unburned versus the T2 effect for burned
 
 ```
-
-
+DOC model 14 intepretation
 ```{r}
-m13.gam=gam(log(DOC..mg.L) ~ Treatment*Time.point  + s(plant.mass..g) + s(plant.mass..g, by=Treatment) + s(plant.mass..g, by=Time.point), data=DOC.df2, select= T, method="REML")
-
-m14.gam=gam(log(DOC..mg.L) ~ Treatment*Time.point  + s(plant.mass..g, k=15) + s(plant.mass..g, by=oTreatment, k=15, m=1) + s(plant.mass..g, by=oTime.point, k=15, m=1), data=DOC.df2, select= T, method="REML")
-
-summary(m11.gam)
-gam.check(m11.gam,rep=1000)
-draw(m12.gam)
-concrvity(m12.gam, terms = everything(), type=c("all"), pairwise = T)
-
-test.gam=gam(Time.point ~ Treatment + s(plant.mass..g), data=DOC.df)
-
-AIC(m11.gam, m12.gam, m13.gam, m14.gam)
-
-library(sjPlot)
-library(sjmisc)
-library(ggplot2)
-plot_model(m12.gam, type = "pred")
-
-interaction.plot(x.factor     = DOC.df$Time.point,
-                 trace.factor = DOC.df$Treatment,
-                 response     = DOC.df$DOC..mg.L,
-                 fun = mean,
-                 type="b",
-                 col=c("black","red","green"),  ### Colors for levels of trace var.
-                 pch=c(19, 17, 15),             ### Symbols for levels of trace var.
-                 fixed=TRUE,                    ### Order by factor order in data
-                 leg.bty = "o")
-
+summary(m14.gam)
 #Let’s go through each coefficient:
 
-
-
-#(Intercept): the intercept for burned in T1)
-#Treatmentunburned: the  unburned – burned DOC in T1).
-#T2: the difference in DOC between T2 versus T1 for burned
+#(Intercept): exp(2.28823)= 9.86 mean DOC for T1 burned
+#Treatmentunburned: difference between mean DOC T1 unburned exp(0.13288) vs T1 burned = 9.86-1.14= 8.72
+#T2: the difference in DOC between T2 exp(-0.17301) versus T1 for burned = 9.86-0.84= 9.02
 #T3: the difference in DOC between T3 versus T` for burned.
 #T4: the difference in DOC between T4 versus T` for burned.
 #unburned:T2: the interaction of unburned and T2, the unburned effect (unburned-burned) in T2  versus the T1 effect in the burned treatment Also, the T2 effect (T2 – T1) for unburned versus the T2 effect for burned
 #etc.
-library(emmeans)
-emmeans(m12.gam, ~Treatment)
+
 #The last three coefficients are the most difficult to interpret. We can think of as the additional unburned effect of going from T1 to T2 and as the additional unburned effect going from T1 to T3, to T4
 
 
@@ -343,78 +390,48 @@ emmeans(m12.gam, ~Treatment)
 
 ```
 
-
-```{r}
-m12.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, by=Treatment) + s(plant.mass..g, Time.point, bs="fs"), family= Gamma(link="log"), data=DOC.df, select= T, method="REML")
-#This just confims that Gamma distribution is a better fit
-m13.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, Time.point, by=Treatment, bs="fs", k=12), family= gaussian(link="identity"), data=DOC.df, select= T, method="REML")
-summary(m13.gam)
-
-m14.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, Time.point, by=Treatment, bs="fs", k=12), family= Gamma(link="identity"), data=DOC.df, select= T, method="REML")
-
-#Setting fs just for time point with by level treatment
-m15.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, by=Treatment) +s(plant.mass..g, Time.point, bs="fs"), family= Gamma(link="inverse"), data=DOC.df, select= T, method="REML")
-summary(m13.gam)
-
-m16.gam=m11.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, by=oTreatment, bs="fs", k=12) + s(plant.mass..g, Time.point, bs="fs"), family= Gamma(link="log"), data=DOC.df2, select= T, method="REML")
-
-m17.gam=gamm(DOC..mg.L~Treatment + s(plant.mass..g) ,data=DOC.df,random=list(Time.point=~1),
-          correlation=corAR1())
-summary(m17.gam$gam)
-draw(m17.gam$gam)
-gam.check(m17.gam$gam)
-
-
-
-contrasts(DOC.df2$oTreatment) <- "contr.treatment"
-
-library(lme4)
-m18.glmer=glm(log(DOC..mg.L) ~ Treatment+ plant.mass..g + (1 | Time.point), family=gaussian, data=DOC.df)
-Anova(hoops, type="III")
-summary(m18.gam)
-gam.check(m18.gam, rep=1000)
-
-
-
-concurvity(m18.gam, full = T)
-install.packages("MuMIn")
-library(MuMIn)
-options(na.action=na.fail)
-dredge(m11.gam)
-
-#additive m16 comparison
-AIC(m17.gam, m18.gam)
-summary(m11.gam)
-anova(m16.gam,m11.gam,test="F")
-
-
-termplot(exp(m16.gam))
-
-DOC_pred <- data.frame(
-  DOC=DOC.df$DOC..mg.L,
-  fitted_values= fitted_values(m11.gam, scale = "response")
-)
-
-ggplot(DOC_pred)+
-  geom_point(aes(x=fitted_values.plant.mass..g,y=DOC,color=fitted_values.Treatment,shape=fitted_values.Time.point))+
-  geom_line(aes(x= fitted_values.plant.mass..g, y=fitted_values.fitted, color=fitted_values.Treatment))
-
-AIC(m11.gam, m17.gam)
-
-ggplot(DOC.df)+
-  geom_point(aes(x=plant.mass..g, y=Treatment))
-
-```
-
-
+MODEL 28 visualization of fitted
 ```{r}
 #we can see what this looks like
 library(visreg)
-visreg(m11.gam, xvar = "plant.mass..g",
-       by = "Treatment", data = DOC.df2,
-       method = "REML", gg=T)
-gam.check(m11.gam, resid=T)
-summary(m11.gam)
+
+vis.burn.plot=visreg(m28.gam, "plant.mass..g", ylab="DOC..mg.L", gg=TRUE, by="Time.point", overlay=T, partial=FALSE, rug=F, cond=list(Treatment="burned")) +
+  geom_point(alpha=0.5) +
+  ggtitle("Burned") +
+  ylab("DOC (mg/L)")+
+  xlab("plant mass (g)")+
+  theme_cowplot(12)
+
+
+vis.unburn.plot=visreg(m28.gam, "plant.mass..g", ylab="DOC..mg.L", gg=TRUE, by="Time.point", overlay=T, partial=FALSE, rug=F, cond=list(Treatment="unburned")) +
+  geom_point(alpha=0.5) +
+  ggtitle("Unburned") +
+  ylab("DOC (mg/L)")+
+  xlab("plant mass (g)")+
+  theme_cowplot(12)
+
+
+extract.legend.vis <- get_legend(
+  # create some space to the left of the legend
+  vis.burn.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+
+vis.plots<-plot_grid(
+  vis.burn.plot+ theme(legend.position = "none"),
+  vis.unburn.plot+ theme(legend.position = "none"),
+  extract.legend.vis,
+  labels = c("a)", "b)"),
+  rel_widths = c(18,18,8), ncol=3)
+vis.plots
+
+plot_grid(
+  ggdraw(add_sub(vis.plots, "Fig 5. The estimated relationship of dissolved organic carbon (DOC) across sampling period for a) burned treatment and b) unburned treatment. Plots show a confidence band about the estimates, and the partial residuals to assess the model fit.", x=0.01, hjust=0)), ncol = 1)
+
+
+ggsave("figures/fig5.DOC.visplot.pdf", height=5, width=14)
+
+
+
 #exp(2.12999)=8.41
 #the conditional mean when all the explanatory variables are 0: burned treatment has a mean DOC of 8.41 
 #Unburned mean DOC is exp(-0.02413)= 0.976 less than the burned treatment
@@ -423,22 +440,9 @@ summary(m11.gam)
 
 #For example, having unburned = - decreases the log arithmetic mean outcome by -0.02413. The exponentiated coefficient is the factor by which the arithmetic mean outcome on the original scale is multiplied, i.e., if unburned = -, the arithmetic mean on the original scale is 0.98 times lower. This model assumes multiplicative effects on the original outcome by the predictors?
 
-#Concurvity refers to  the situation where a smooth term can be approximated by some combination of the others.
-concurvity(m11.gam, full = T)
-
-library(psych)
-pairs.panels(DOC.df, 
-             method = "pearson", # correlation method
-             hist.col = "#00AFBB",
-             density = TRUE,  # show density plots
-             ellipses = FALSE # show correlation ellipses
-             )
-
-
-
 ```
 
-UVBIO files and plots
+UVBIO files
 ```{r}
 ##### grab files in a list
 UVBio.files <- list.files(path="/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/UVBIO", pattern = "csv$", full.names = T)
@@ -527,6 +531,7 @@ UVBIO.df$Burn.Filt.UV<-interaction(UVBIO.df$Treatment, UVBIO.df$Filter.Trt, UVBI
 UVBIO.df$Filt.UV<-interaction(UVBIO.df$Filter.Trt, UVBIO.df$UV.Trt)
 
 ```
+
 Calculate photo, microbe, and total degradation:
 ```{r}
 #+UV/+Bio=A
@@ -605,7 +610,7 @@ degra.df=mutate(degra.df, oTreatment= ordered(Treatment, levels= c("burned","unb
 
 #arcsine transform for later analysis
 degra.df$mass.remaining.dec=degra.df$mass.remaining/100
-degra.df$mass.remaining.arc=asin(sqrt(degra.df$mass.remaining.dec/99.95216))
+degra.df$mass.remaining.arc=asin(sqrt(degra.df$mass.remaining.dec))
 
 
 ```
@@ -653,52 +658,6 @@ plot_grid(
 
 degra.plots
 ggsave("figures/Fig.2.UVBio.degra_type.plots.pdf", height=5, width=15)
-```
-
-UVBIO Percent (decrease) Change Plots
-```{r}
-#Unburned treatment degradation
-perc.unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+ 
-   geom_point(aes(x=plant.mass..g,y=percent.change.DOC,color=type),alpha=0.5)+
-  geom_smooth(aes(x=plant.mass..g, y=percent.change.DOC, color=type), method="loess", alpha=0.1)+
-  facet_grid(~Time.point)+
-  scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
-  ggtitle("Degradation: unburned") +
-  ylab(expression(paste("%", Delta, "DOC (mg/L)"))) +
-  xlab("plant material (g)")+
-  theme_cowplot(12)+
-  theme(legend.title=element_blank())
-perc.unburned.degra.plot
-
-extract.legend2 <- get_legend(
-  # create some space to the left of the legend
-  unburned.degra.plot + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
-
-
-#Burned degradation
-perc.burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+ 
-   geom_point(aes(x=plant.mass..g,y=percent.change.DOC,color=type),alpha=0.5)+
-  geom_smooth(aes(x=plant.mass..g, y=percent.change.DOC, color=type), method="loess", alpha=0.1)+
-  facet_grid(~Time.point)+
-  scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
-  ggtitle("Degradation: burned") +
-  xlab("plant material (g)")+
-  ylab(expression(paste("%", Delta, "DOC (mg/L)"))) +
-  theme_cowplot(12)
-burned.degra.plot
-
-#combine them
-perc.degra.plots=plot_grid(perc.unburned.degra.plot + theme(legend.position = "none", legend.title=element_blank()), perc.burned.degra.plot + theme(legend.position = "none"),
-          extract.legend2,
-          labels = c("a)", "b)"),
-          ncol=3, rel_widths = c(15,15,3))
-
-plot_grid(
-  ggdraw(add_sub(perc.degra.plots, "Fig 2. Three degradation pathways of dissolved organic carbon (DOC) across three time points during a seven \nday incubation period for both treatments. Negative values indicate % DOC loss with 'microbe' representing \nmicrobial degradation, 'photo' representing photodegradation, and 'total' representing both microbial and \nphotodegradation. All positive values indiciate % DOC increase.", x=0.01, hjust=0)), ncol = 1)
-
-degra.plots
-ggsave("figures/Fig.2.UVBio.perc.degra_type.plots.pdf", height=5, width=10)
-
 ```
 
 UVBIO % mass remaining plot
@@ -753,7 +712,9 @@ ggsave("figures/Fig.2.UVBio.mass.degra_type.plots.pdf", height=5, width=10)
 UVBIO analysis
 ```{r}
 #fit complex model 
-uv.m1.gam=gam(mass.remaining ~ Treatment*type*Time.point + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
+
+
+uv.m1.gam=gam(mass.remaining.arc ~ Treatment*type + s(plant.mass..g) + s(plant.mass..g, by=Treatment) + s(plant.mass..g, by=type) +s(plant.mass..g, Time.point, bs="fs"), data=degra.df, method="REML", select= T)
 summary(uv.m1.gam)
 gam.check(uv.m1.gam, rep = 1000)
 draw(uv.m1.gam)
@@ -888,7 +849,7 @@ decomp2.df=decomp2.df%>%
 
 ```
 
-Plant Decomp Plots (% mass remaining)
+Sage and Willow Decomp Plots (% mass remaining)
 ```{r}
 #Unburned treatment decomp
 mass.unburned.decomp.plot=ggplot(plant.df[(plant.df$type=="sage"),])+ 
@@ -975,554 +936,11 @@ plot_grid(
 
 degra.plots
 ggsave("figures/Fig.3.perc.decomp_type.plots.pdf", height=5, width=10)
->>>>>>> 057dbc9963d9ace6c887998c4e2184b96dc95b80
-
-
-```
-
-<<<<<<< HEAD
-UVBIO files and plots
-```{r}
-##### grab files in a list
-UVBio.files <- list.files(path="/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/UVBIO", pattern = "csv$", full.names = T)
-UVBio.files
-
-##### what are the file names, sans extensions using package 'tools'
-file.names<-file_path_sans_ext(list.files(path="/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/UVBIO", pattern = "csv$", full.names = F))
-file.names
-
-
-############ formatting all data in for loop
-  for(i in 1:length(UVBio.files))
-    {
-  data<-read.csv(UVBio.files[i], sep=",") #skip 13 rows where standards are
-  data<-data[,c(1,3,4)] # removed columns we don't need
-  data$File<-UVBio.files[i]
-  colnames(data)<-c("Tank", "DOC..mg.L", "TN..mg.L", "File") 
-  data$Tank<-as.character(data$Tank)
-  data$Treatment<-IDs$Treatment # add treatment info
-  data$plant.mass..g<-IDs$plant.mass..g # add plant biomass info
-  make.names(assign(paste(file.names[i], sep=""), data)) # make the file name the name of new df for loop df
-  }
-########## this is the end of the loop
-
-ls() #see all dfs you've made, the above will be df matching their file names
-
-#Combine files from loop to single df
-UVBIO.df<-rbind(DOC_NoUV_T1, DOC_UV_T1, DOC_NoUV_T2, DOC_UV_T2, DOC_NoUV_T3, DOC_UV_T3)
-
-# make new factors for filtered (F/NF) and UV (+/-)
-# ** caution! Make sure this matches sheet layout after the loop!
-
-UVBIO.df$Filter.Trt<-rep(c("Filtered", "Unfiltered"), each=30) # repeat 30 times
-UVBIO.df$UV.Trt<-rep(c("NoUV", "UV"), each=60) # repeat 60 times
-
-# check tank names in DF and make sure they are what you think they are (i.e 1-30 but w/ weird names)
-Tank.fix<-rep(c(1:30), times=12) # repeat 12 times to fix all the strange tank names 
-
-#compare tank IDS
-df.test<-cbind(Tank.fix, UVBIO.df$Tank) # yep!
-
-UVBIO.df$Tank<-as.factor(Tank.fix) #replace old tank names
-
-# extract out the file names
-#Extract file
-UVBIO.df$File=sapply(strsplit(UVBIO.df$File, "/"), `[`, 9)
-#take out redundancies
-UVBIO.df$DOC..mg.L<-gsub("NPOC:","", UVBIO.df$DOC..mg.L)
-UVBIO.df$DOC..mg.L<- gsub("mg/L", "", UVBIO.df$DOC..mg.L)
-UVBIO.df$TN..mg.L<-gsub("TN:","", UVBIO.df$TN..mg.L)
-UVBIO.df$TN..mg.L<- gsub("mg/L", "", UVBIO.df$TN..mg.L)
-
-#convert DOC and TN to numeric
-UVBIO.df$DOC..mg.L<-as.numeric(as.character(UVBIO.df$DOC..mg.L))
-UVBIO.df$TN..mg.L<- as.numeric(as.character(UVBIO.df$TN..mg.L))
-
-# add a time point
-# if equals DOC_UV_T1_111721 then, T1, if not then "nothing"
-UVBIO.df$Time.point<- as.factor(ifelse(UVBIO.df$File=="DOC_UV_T1.csv", "T1",
-  ifelse(UVBIO.df$File=="DOC_NoUV_T1.csv", "T1",
-          ifelse(UVBIO.df$File=="DOC_UV_T2.csv", "T2",
-                ifelse(UVBIO.df$File=="DOC_NoUV_T2.csv", "T2", "T3")))))
-
-#rearrange
-UVBIO.df<- UVBIO.df %>% 
-  dplyr::select(File, Time.point, Treatment, Filter.Trt, UV.Trt, Tank, plant.mass..g, DOC..mg.L, TN..mg.L)
-
-
-# make levels for plotting and stats
-# add in starting DOC and TN
-# original data is... DOC_T0, DOC_T1, DOC_T2, DOC_T3, DOC_T4 -- but no need for DOC T0 and T4
-# repeat 4x to account for the 4 treatments in each tank
-DOC_T1.start<-rep(DOC_T1$DOC..mg.L, times=4)
-DOC_T2.start<-rep(DOC_T2$DOC..mg.L, times=4)
-DOC_T3.start<-rep(DOC_T3$DOC..mg.L, times=4)
-
-TN_T1.start<-rep(DOC_T1$TN..mg.L, times=4)
-TN_T2.start<-rep(DOC_T2$TN..mg.L, times=4)
-TN_T3.start<-rep(DOC_T3$TN..mg.L, times=4)
-
-# compile and add in as a new column
-UVBIO.df$Start.DOC<-c(DOC_T1.start, DOC_T2.start, DOC_T3.start)
-UVBIO.df$Start.TN<-c(TN_T1.start, TN_T2.start, TN_T3.start)
-
-UVBIO.df$Burn.Filt.UV<-interaction(UVBIO.df$Treatment, UVBIO.df$Filter.Trt, UVBIO.df$UV.Trt)
-UVBIO.df$Filt.UV<-interaction(UVBIO.df$Filter.Trt, UVBIO.df$UV.Trt)
-
-```
-
-Calculate photo, microbe, and total degradation:
-```{r}
-#+UV/+Bio=A
-#-UV/+Bio=B
-#+UV/-Bio=C
-#-UV/-Bio (NoUV,Filtered)=D
-
-#This is calculating % decrease ((control-treatment)/control)*100
-
-#photodegradation
-
-photo.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Time.point, UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Treatment,
-                    UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Tank,
-                    UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$plant.mass..g,
-                    UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L,
-                    (100*(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)/(abs(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L))))
-photo.df$type="photo"
-names(photo.df)[1]="Time.point"
-names(photo.df)[2]="Treatment"
-names(photo.df)[3]="Tank"
-names(photo.df)[4]="plant.mass..g"
-names(photo.df)[5]="abs.change.DOC"
-names(photo.df)[6]="percent.change.DOC"
-photo.df$mass.remaining=100-abs(photo.df[photo.df$type=="photo",]$percent.change)
-
-
-
-
-#Microbe decomp
-microbe.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Time.point,
-                      UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Treatment,
-                      UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Tank,
-                      UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$plant.mass..g,
-                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L,
-                    (100*(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)/(abs(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L))))
-microbe.df$type="microbe"
-names(microbe.df)[1]="Time.point"
-names(microbe.df)[2]="Treatment"
-names(microbe.df)[3]="Tank"
-names(microbe.df)[4]="plant.mass..g"
-names(microbe.df)[5]="abs.change.DOC"
-names(microbe.df)[6]="percent.change.DOC"
-microbe.df$mass.remaining=100-abs(microbe.df[microbe.df$type=="microbe",]$percent.change)
-
-
-
-#Total decomp= A
-total.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Time.point,
-                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Treatment,
-                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Tank,
-                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$plant.mass..g,
-                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L,
-                     (100*(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L)/(abs(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$DOC..mg.L))))
-total.df$type="total"
-names(total.df)[1]="Time.point"
-names(total.df)[2]="Treatment"
-names(total.df)[3]="Tank"
-names(total.df)[4]="plant.mass..g"
-names(total.df)[5]="abs.change.DOC"
-names(total.df)[6]="percent.change.DOC"
-total.df$mass.remaining=100-abs(total.df[total.df$type=="total",]$percent.change)
-
-
-
-#merge degra.df time points into one dataframe
-degra.df=rbind(photo.df, microbe.df, total.df)
-
-#make sure we have factors
-degra.df=degra.df%>%
-    mutate_if(is.character,as.factor)
-
-#make new column of ordered factors
-degra.df=mutate(degra.df, oTreatment= ordered(Treatment, levels= c("burned","unburned")))%>%
-  mutate(degra.df, oTime.point= ordered(Time.point, levels= c("T1", "T2", "T3", "T4")))%>%
-  mutate(degra.df, otype= ordered(type, levels= c("photo", "microbe", "total")))
-
-#arcsine transform for later analysis
-degra.df$mass.remaining.dec=degra.df$mass.remaining/100
-degra.df$mass.remaining.arc=asin(sqrt(degra.df$mass.remaining.dec/99.95216))
-
-
-```
-
-UVBIO Absolute Change Plots
-```{r}
-#Unburned treatment degradation
-unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+ 
-   geom_point(aes(x=plant.mass..g,y=abs.change.DOC,color=type),alpha=0.5)+
-  geom_smooth(aes(x=plant.mass..g, y=abs.change.DOC, color=type), method="loess", alpha=0.1)+
-  facet_grid(~Time.point)+
-  scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
-  ggtitle("Degradation: unburned") +
-  ylab(expression(paste(Delta, " DOC mg/L"))) +
-  xlab("plant material (g)")+
-  theme_cowplot(12)
-unburned.degra.plot
-
-extract.legend2 <- get_legend(
-  # create some space to the left of the legend
-  unburned.degra.plot + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
-
-
-#Burned degradation
-burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+ 
-   geom_point(aes(x=plant.mass..g,y=abs.change.DOC,color=type),alpha=0.5)+
-  geom_smooth(aes(x=plant.mass..g, y=abs.change.DOC, color=type), method="loess", alpha=0.1)+
-  facet_grid(~Time.point)+
-  scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
-  ggtitle("Degradation: burned") +
-  xlab("plant material (g)")+
-  ylab(expression(paste(Delta, " DOC mg/L"))) +
-  theme_cowplot(12)
-burned.degra.plot
-
-#combine them
-degra.plots=plot_grid(unburned.degra.plot + theme(legend.position = "none",legend.title=element_blank()),
-          burned.degra.plot + theme(legend.position = "none"),
-          extract.legend2,
-          labels = c("a)", "b)"),
-          ncol=3, rel_widths = c(8,8,3))
-
-plot_grid(
-  ggdraw(add_sub(degra.plots, "Fig 2. Three degradation pathways of dissolved organic carbon (DOC) concentrations across three time points during a seven \nday incubation period for each treatment. \n'Microbe' represents the change in DOC due to microbial degradation, 'photo' represents the change in DOC due to photodegradation, and 'total' represents the change in \nDOC due to both microbial and photodegradation.", x=0.01, hjust=0)), ncol = 1)
-
-degra.plots
-ggsave("figures/Fig.2.UVBio.degra_type.plots.pdf", height=5, width=15)
-```
-
-UVBIO Percent (decrease) Change Plots
-```{r}
-#Unburned treatment degradation
-perc.unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+ 
-   geom_point(aes(x=plant.mass..g,y=percent.change.DOC,color=type),alpha=0.5)+
-  geom_smooth(aes(x=plant.mass..g, y=percent.change.DOC, color=type), method="loess", alpha=0.1)+
-  facet_grid(~Time.point)+
-  scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
-  ggtitle("Degradation: unburned") +
-  ylab(expression(paste("%", Delta, "DOC (mg/L)"))) +
-  xlab("plant material (g)")+
-  theme_cowplot(12)+
-  theme(legend.title=element_blank())
-perc.unburned.degra.plot
-
-extract.legend2 <- get_legend(
-  # create some space to the left of the legend
-  unburned.degra.plot + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
-
-
-#Burned degradation
-perc.burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+ 
-   geom_point(aes(x=plant.mass..g,y=percent.change.DOC,color=type),alpha=0.5)+
-  geom_smooth(aes(x=plant.mass..g, y=percent.change.DOC, color=type), method="loess", alpha=0.1)+
-  facet_grid(~Time.point)+
-  scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
-  ggtitle("Degradation: burned") +
-  xlab("plant material (g)")+
-  ylab(expression(paste("%", Delta, "DOC (mg/L)"))) +
-  theme_cowplot(12)
-burned.degra.plot
-
-#combine them
-perc.degra.plots=plot_grid(perc.unburned.degra.plot + theme(legend.position = "none", legend.title=element_blank()), perc.burned.degra.plot + theme(legend.position = "none"),
-          extract.legend2,
-          labels = c("a)", "b)"),
-          ncol=3, rel_widths = c(15,15,3))
-
-plot_grid(
-  ggdraw(add_sub(perc.degra.plots, "Fig 2. Three degradation pathways of dissolved organic carbon (DOC) across three time points during a seven \nday incubation period for both treatments. Negative values indicate % DOC loss with 'microbe' representing \nmicrobial degradation, 'photo' representing photodegradation, and 'total' representing both microbial and \nphotodegradation. All positive values indiciate % DOC increase.", x=0.01, hjust=0)), ncol = 1)
-
-
-ggsave("figures/Fig.2.UVBio.perc.degra_type.plots.pdf", height=5, width=10)
-
-```
-
-UVBIO % mass remaining plot
-```{r}
-#Unburned treatment degradation
-mass.unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+ 
-   geom_point(aes(x=plant.mass..g,y=mass.remaining,color=type),alpha=0.5)+
-  geom_smooth(aes(x=plant.mass..g, y=mass.remaining, color=type), method="loess", alpha=0.1)+
-  facet_grid(~Time.point)+
-  scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
-  ggtitle("Degradation: unburned") +
-  ylab(expression(paste("% DOC remaining (mg/L)"))) +
-  xlab("plant material (g)")+
-  coord_cartesian(ylim = c(40,150))+
-  theme_cowplot(12)+
-  theme(legend.title=element_blank())
-
-
-extract.legend2 <- get_legend(
-  # create some space to the left of the legend
-  mass.unburned.degra.plot + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
-
-
-#Burned degradation
-mass.burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+ 
-   geom_point(aes(x=plant.mass..g,y=mass.remaining,color=type),alpha=0.5)+
-  geom_smooth(aes(x=plant.mass..g, y=mass.remaining, color=type), method="loess", alpha=0.1)+
-  facet_grid(~Time.point)+
-  scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
-  ggtitle("Degradation: burned") +
-  xlab("plant material (g)")+
-  ylab(expression(paste("% DOC remaining (mg/L)"))) +
-  coord_cartesian(ylim = c(40,150))+
-  theme_cowplot(12)
-
-
-#combine them
-mass.degra.plots=plot_grid(mass.unburned.degra.plot + theme(legend.position = "none", legend.title=element_blank()), mass.burned.degra.plot + theme(legend.position = "none"),
-          extract.legend2,
-          labels = c("a)", "b)"),
-          ncol=3, rel_widths = c(15,15,3))
-
-plot_grid(
-  ggdraw(add_sub(mass.degra.plots, "Fig 2. Three degradation pathways of dissolved organic carbon (DOC) across three time points during a seven \nday incubation period for both treatments. Values indicate % DOC remaining with 'microbe' representing \nmicrobial degradation, 'photo' representing photodegradation, and 'total' representing both microbial and \nphotodegradation. All positive values indiciate % DOC increase.", x=0.01, hjust=0)), ncol = 1)
-
-
-ggsave("figures/Fig.2.UVBio.mass.degra_type.plots.pdf", height=5, width=10)
-
-
-```
-
-UVBIO analysis
-```{r}
-#fit complex model 
-library(mgcv)
-uv.m1.gam=gam(mass.remaining ~ Treatment*type*Time.point + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
-summary(uv.m1.gam)
-gam.check(uv.m1.gam, rep = 1000)
-draw(uv.m1.gam)
-
-uv.m2.gam=gam(mass.remaining.dec ~ Treatment*type*Time.point + s(plant.mass..g) + s(plant.mass..g)+ s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
-summary(uv.m2.gam)
-gam.check(uv.m2.gam, rep=100)
-
-#better to not order the factors
-AIC(uv.m1.gam, uv.m2.gam)
-
-#hereon data is arcsine transformed
-uv.m3.gam=gam(mass.remaining.arc ~ Treatment*type*Time.point + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
-summary(uv.m3.gam)
-gam.check(uv.m3.gam, rep = 1000)
-draw(uv.m3.gam)
-
-uv.m4.gam=gam(log(mass.remaining.dec+1) ~ Treatment*type*Time.point + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
-summary(uv.m4.gam)
-gam.check(uv.m4.gam, rep = 1000)
-draw(uv.m3.gam)
-
-#knots are good
-AIC(uv.m1.gam, uv.m2.gam, uv.m3.gam, uv.m4.gam)
-
-uv.m5.gam=gam(mass.remaining.arc ~ Treatment*type*Time.point + s(plant.mass..g, k=3)+ s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by= Time.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
-summary(uv.m5.gam) 
-gam.check(uv.m5.gam, rep=1000)
-
-
-#better to use ordered factors and no knots
-AIC(uv.m1.gam, uv.m2.gam, uv.m3.gam, uv.m4.gam, uv.m5.gam)
-
-#scat family
-uv.m6.gam=gam(mass.remaining.arc ~ Treatment*type*Time.point + s(plant.mass..g, k=3)+ s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by= Time.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
-summary(uv.m6.gam)
-gam.check(uv.m6.gam, rep = 1000)
-draw(uv.m6.gam)
-
-AIC(uv.m1.gam, uv.m2.gam, uv.m3.gam, uv.m4.gam, uv.m5.gam, uv.m6.gam)
-
-uv.m7.gam=gam(mass.remaining.arc ~ Treatment*type*Time.point + s(plant.mass..g, by=oTreatment, m=1) + s(plant.mass..g, by=oTime.point, m=1) + s(plant.mass..g, by= otype, m=1), family= scat, data=degra.df, method="REML", select= T)
-summary(uv.m7.gam)
-gam.check(uv.m7.gam, rep = 1000)
-draw(uv.m7.gam)
-
-AIC(uv.m1.gam, uv.m2.gam, uv.m3.gam, uv.m4.gam, uv.m5.gam, uv.m6.gam, uv.m7.gam)
-
-
-uv.m8.gam=gam(abs.change.DOC~ Treatment*type*Time.point + s(plant.mass..g) + s(plant.mass..g, by= oTreatment) +s(plant.mass..g, by= oTime.point) + s(plant.mass..g, by=otype), data=degra.df, method="REML")
-summary(uv.m8.gam)
-gam.check(uv.m8.gam, rep = 1000)
-
-uv.m8.gam=uv.m7.gam=gam(abs.value.DOC~ Treatment + type + s(plant.mass..g, Treatment, by=type, bs="fs") + s(plant.mass..g, Time.point, by=Treatment, bs="fs"), family=tw(link = "log"), data=degra.df, method="REML")
-summary(uv.m8.gam)
-
-uv.m9.gam=gam(percent.change.DOC~ Treatment*type*Time.point + s(plant.mass..g, type, by=Treatment) + s(plant.mass..g, by=type) + s(plant.mass..g, by=Time.point), 
-data=degra.df, select= T, method="REML")
-
-summary(uv.m9.gam)
-
-AIC(uv.m6.gam,uv.m7.gam, uv.m8.gam, uv.m9.gam)
-
-
-class(degra.df$percent.change.DOC)
-
-
-
-
-
-
-
-
 
 
 
 ```
 
-Sage and Willow Decomp data
-```{r}
-#load files and rearrange 
-decomp.df=read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/decomp.weights.csv")
-names(decomp.df)[8]= "change"
-names(decomp.df)[9]= "percent.change"
-decomp.df=decomp.df[-c(61:82), ] 
-
-#make a duplicate dataframe and convert % to decimal
-decomp2.df=data.frame(decomp.df)
-
-#create a sage dataframe
-sage.df=data.frame(decomp.df[decomp.df$plant.type=="sage",]$treatment,
-                    decomp.df[decomp.df$plant.type=="sage",]$tank,
-                    decomp.df[decomp.df$plant.type=="sage",]$plant.specific.mass..g,
-                    decomp.df[decomp.df$plant.type=="sage",]$dry.mass..g..w.o.litter.bag.or.foil.-decomp.df[decomp.df$plant.type=="sage",]$plant.specific.mass..g,
-                     (100*(decomp.df[decomp.df$plant.type=="sage",]$dry.mass..g..w.o.litter.bag.or.foil.-decomp.df[decomp.df$plant.type=="sage",]$plant.specific.mass..g)/(decomp.df[decomp.df$plant.type=="sage",]$plant.specific.mass..g)))
-sage.df$type="sage"
-names(sage.df)[1]="Treatment"
-names(sage.df)[2]="Tank"
-names(sage.df)[3]="plant.specific.mass..g"
-names(sage.df)[4]="abs.change"
-names(sage.df)[5]="percent.change"
-sage.df[is.na(sage.df)] = 0
-sage.df$mass.remaining=100-abs(sage.df[sage.df$type=="sage",]$percent.change)
-
-#create a willow dataframe
-willow.df=data.frame(decomp.df[decomp.df$plant.type=="willow",]$treatment,
-                    decomp.df[decomp.df$plant.type=="willow",]$tank,
-                    decomp.df[decomp.df$plant.type=="willow",]$plant.specific.mass..g,
-                    decomp.df[decomp.df$plant.type=="willow",]$dry.mass..g..w.o.litter.bag.or.foil.-decomp.df[decomp.df$plant.type=="willow",]$plant.specific.mass..g,
-                     (100*(decomp.df[decomp.df$plant.type=="willow",]$dry.mass..g..w.o.litter.bag.or.foil.-decomp.df[decomp.df$plant.type=="willow",]$plant.specific.mass..g)/(decomp.df[decomp.df$plant.type=="willow",]$plant.specific.mass..g)))
-willow.df$type="willow"
-names(willow.df)[1]="Treatment"
-names(willow.df)[2]="Tank"
-names(willow.df)[3]="plant.specific.mass..g"
-names(willow.df)[4]="abs.change"
-names(willow.df)[5]="percent.change"
-willow.df[is.na(willow.df)] = 0
-willow.df$mass.remaining=100-abs(willow.df[willow.df$type=="willow",]$percent.change)
-
-#bind them
-plant.df=rbind(sage.df, willow.df)
-
-#remove mass remaining > 100 since those are the 'no biomass' tanks
-plant.df=plant.df[!(plant.df$mass.remaining>=100),]
-
-#transform for analysis
-decomp2.df=decomp2.df%>% 
- mutate(
-    across(c(9),
-           .fns = ~asin(sqrt(.))))
-```
-
-Plant Decomp Plots (% mass remaining)
-```{r}
-#Unburned treatment decomp
-mass.unburned.decomp.plot=ggplot(plant.df[(plant.df$type=="sage"),])+ 
-  geom_point(aes(x=plant.specific.mass..g,y=mass.remaining,color=Treatment),alpha=0.5)+
-  geom_smooth(aes(x=plant.specific.mass..g, y=mass.remaining, color=Treatment), method="loess", alpha=0.1)+
-  scale_color_manual(values = c("orange", "purple")) + 
-  ggtitle("Decomposition: Sage") +
-  ylab(expression(paste("% mass remaining (g)"))) +
-  xlab("plant specific mass (g)")+
-  coord_cartesian(ylim = c(25,100))+
-  theme_cowplot(12)+
-  theme(legend.title=element_blank())
-mass.unburned.decomp.plot
-
-extract.legend4 <- get_legend(
-  # create some space to the left of the legend
-  mass.unburned.decomp.plot + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
-
-
-#Burned decomp
-mass.burned.decomp.plot=ggplot(plant.df[(plant.df$type=="willow"),])+ 
-   geom_point(aes(x=plant.specific.mass..g,y=mass.remaining,color=Treatment),alpha=0.5)+
-  geom_smooth(aes(x=plant.specific.mass..g, y=mass.remaining, color=Treatment), method="loess", alpha=0.1)+
-  scale_color_manual(values = c("orange", "purple")) + 
-  ggtitle("Decomposition: Willow") +
-  xlab("plant specific mass (g)")+
-  ylab(expression(paste("% mass remaining (g)"))) +
-  coord_cartesian(ylim = c(25,100))+
-  theme_cowplot(12)
-mass.burned.decomp.plot
-
-
-#combine them
-mass.decomp.plots=plot_grid(mass.unburned.decomp.plot + theme(legend.position = "none", legend.title=element_blank()), mass.burned.decomp.plot + theme(legend.position = "none"),
-          extract.legend4,
-          labels = c("a)", "b)"),
-          ncol=3, rel_widths = c(15,15,4))
-
-plot_grid(
-  ggdraw(add_sub(mass.decomp.plots, "Fig 3. Measured plant mass remaining of each plant type for both treatments. Plant specific mass represents \ninitial plant weights at the start of the experiment", x=0.01, hjust=0)), ncol = 1)
-
-ggsave("figures/Fig.3.mass.decomp_type.plots.pdf", height=5, width=10)
-
-
-```
-
-Plant decomp plots (% change)
-```{r}
-#Unburned treatment degradation
-perc.unburned.decomp.plot=ggplot(plant.df[(plant.df$Treatment=="unburned"),])+ 
-  geom_point(aes(x=plant.specific.mass..g,y=percent.change,color=type),alpha=0.5)+
-  geom_smooth(aes(x=plant.specific.mass..g, y=percent.change, color=type), method="loess", alpha=0.1)+
-  scale_color_manual(values = c("olivedrab", "peru")) + 
-  ggtitle("Decomposition: unburned") +
-  ylab(expression(paste("%", Delta, "change (g)"))) +
-  xlab("plant specific mass (g)")+
-  theme_cowplot(12)+
-  theme(legend.title=element_blank())
-perc.unburned.decomp.plot
-
-
-extract.legend3 <- get_legend(
-  # create some space to the left of the legend
-  perc.unburned.decomp.plot + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
-
-
-#Burned degradation
-perc.burned.decomp.plot=ggplot(plant.df[(plant.df$Treatment=="burned"),])+ 
-   geom_point(aes(x=plant.specific.mass..g,y=percent.change,color=type),alpha=0.5)+
-  geom_smooth(aes(x=plant.specific.mass..g, y=percent.change, color=type), method="loess", alpha=0.1)+
-  scale_color_manual(values = c("olivedrab", "peru")) + 
-  ggtitle("Decomposition: burned") +
-  xlab("plant specific mass (g)")+
-  ylab(expression(paste("%", Delta, "change (g)"))) +
-  theme_cowplot(12)
-burned.degra.plot
-
-#combine them
-perc.decomp.plots=plot_grid(perc.unburned.decomp.plot + theme(legend.position = "none", legend.title=element_blank()), perc.burned.decomp.plot + theme(legend.position = "none"),
-          extract.legend3,
-          labels = c("a)", "b)"),
-          ncol=3, rel_widths = c(15,15,3))
-
-plot_grid(
-  ggdraw(add_sub(perc.decomp.plots, "Fig 3. Percent change of decomposition by plant type for both treatments over the course of the experiment.", x=0.01, hjust=0)), ncol = 1)
-
-degra.plots
-ggsave("figures/Fig.3.perc.decomp_type.plots.pdf", height=5, width=10)
-
-
-```
 
 SUVA 
 SUVA calculations
@@ -1722,15 +1140,3 @@ ggsave("figures/fig4.suva.pdf", height=5, width=14)
 
 
 ```
-
-
-
-
-
-
-
-
-
-
-
-
