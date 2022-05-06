@@ -378,7 +378,8 @@ effect_plot(m27.gam, pred = plant.mass..g, interval = TRUE, partial.residuals = 
 ```
 DOC model 28 intepretation
 ```{r}
-summary(m28.gam)
+summary(m28.gam)$coefficient
+
 #Let’s go through each coefficient:
 
 #(Intercept): exp(2.28823)= 9.86 mean DOC for T1 burned
@@ -402,19 +403,26 @@ MODEL 28 visualization of fitted
 #we can see what this looks like
 library(visreg)
 
-vis.burn.plot=visreg(m28.gam, "plant.mass..g", ylab="DOC..mg.L", gg=TRUE, by="Time.point", overlay=T, partial=FALSE, rug=F, cond=list(Treatment="burned")) +
+#backtransform exp
+
+
+vis.burn.plot=visreg(m28.gam, "plant.mass..g", ylab="DOC..mg.L", trans=exp, gg=TRUE, by="Time.point", overlay=T, partial=FALSE, rug=F, cond=list(Treatment="burned")) +
   geom_point(alpha=0.5) +
   ggtitle("Burned") +
-  ylab("log(DOC) (mg/L)")+
+  ylab("DOC (mg/L)")+
   xlab("plant mass (g)")+
   theme_cowplot(12)+
   theme(legend.title=element_blank())
+vis.burn.plot
 
 
-vis.unburn.plot=visreg(m28.gam, "plant.mass..g", ylab="DOC..mg.L", gg=TRUE, by="Time.point", overlay=T, partial=FALSE, rug=F, cond=list(Treatment="unburned")) +
+
+
+
+vis.unburn.plot=visreg(m28.gam, "plant.mass..g", ylab="DOC..mg.L", gg=TRUE, trans=exp, by="Time.point", overlay=T, partial=FALSE, rug=F, cond=list(Treatment="unburned")) +
   geom_point(alpha=0.5) +
   ggtitle("Unburned") +
-  ylab("log(DOC) (mg/L)")+
+  ylab("DOC (mg/L)")+
   xlab("plant mass (g)")+
   theme_cowplot(12)
   
@@ -434,20 +442,11 @@ vis.plots<-plot_grid(
 vis.plots
 
 plot_grid(
-  ggdraw(add_sub(vis.plots, "Fig 5. The estimated relationship of dissolved organic carbon (DOC) across sampling period for a) burned and b) unburned treatments. Plots show \na confidence band about the estimates, and the partial residuals to assess the model fit.", x=0.01, hjust=0)), ncol = 1)
+  ggdraw(add_sub(vis.plots, "Fig 5. The estimated relationship of dissolved organic carbon (DOC) across sampling period for a) burned and b) unburned \ntreatments. Plots show a confidence band about the exponentiated estimates, and the partial residuals to assess the model fit.", x=0.01, hjust=0)), ncol = 1)
 
 
-ggsave("figures/fig5.DOC.visplot.pdf", height=5, width=14)
+ggsave("figures/fig5.DOC.visplot.pdf", height=5, width=11)
 
-
-
-#exp(2.12999)=8.41
-#the conditional mean when all the explanatory variables are 0: burned treatment has a mean DOC of 8.41 
-#Unburned mean DOC is exp(-0.02413)= 0.976 less than the burned treatment
-
-#If the outcome is skewed and always positive, it can be modeled using the gamma distribution. The link function is log() to be consistent with the previous linear model, thus the model is modeling the following.
-
-#For example, having unburned = - decreases the log arithmetic mean outcome by -0.02413. The exponentiated coefficient is the factor by which the arithmetic mean outcome on the original scale is multiplied, i.e., if unburned = -, the arithmetic mean on the original scale is 0.98 times lower. This model assumes multiplicative effects on the original outcome by the predictors?
 
 ```
 
