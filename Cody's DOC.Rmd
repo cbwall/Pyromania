@@ -200,173 +200,78 @@ ggsave("figures/fig1.DOC.pdf", height=5, width=14)
   
 
 ```
-DOC analysis
+DOC analysis: model 4 is just looking at treatment effect with time point as random effect
 ```{r}
 library(mgcv)
 library(gratia)
-#####
-ggplot(DOC.df)+
-  geom_point(aes(x=plant.mass..g,y=DOC..mg.L,color=Treatment,shape=Time.point))+
-  geom_smooth(aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment), method = "gam", formula = y ~ s(x, bs="tp"))
-#DOC plant mass varying by treatment and sampling period. The main question is how do treatment and plant mass affect DOC while controlling for the time period. 
-#We can use this model to answer our question: 
-#In lme4, a random slope with correlated random intercept is included with the syntax (1+Treatment|Time.point), and a random slope with no variation in intercept is included with the syntax (0+Treatment|Time.point) where time point is the random effect in question, and the random slope is built for each level of Treatment). 
 
-#In mgcv, a random slope is included with the syntax s(Time.point,Treatment, bs=“re”). Here, time point is the random effect, the random slope is being built over treatment, and bs=“re” tells R that the basis function here is a random effect structure. Note that this is the analog of (0+Treamtment|TIme.point) for lme4 syntax. The structure (1+Treatment|Time.point) is not possible in mgcv, so a random slope and random intercept must be specified.
-#This will be our null model
-m1.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g, by = Treatment) + s(Time.point, bs = "re"), data = DOC.df, method = "REML")
+m1.lme=lmer(DOC..mg.L ~  1 + Treatment + (1 + Treatment | Time.point), data=DOC.df2)
+summary(m1.lme)
+plot(m1.lme)
+
+
+m1.gam=gam(log(DOC..mg.L)~ Treatment + s(plant.mass..g) + s(Time.point, bs = "re"), data = DOC.df2, method = "REML")
+gam.check(m1.gam, rep=1000)
 summary(m1.gam)
 draw(m1.gam)
+concrvity(m2.gam)
 
-m2.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g, by = Treatment)+ s(Time.point, Treatment, bs = "re"), data = DOC.df, method = "REML")
+m2.gam=gam(log(DOC..mg.L)~ Treatment + s(plant.mass..g, by=Treatment) + s(Time.point, bs="re"), data = DOC.df2, select=T, method = "REML")
+gam.check(m2.gam, rep=1000) 
 summary(m2.gam)
+draw(m2.gam)
 
-m3.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g, by = Treatment) + s(Time.point, bs = "re")+ s(Time.point, Treatment, bs = "re"), data = DOC.df, method = "REML")
+m3.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment) + s(Time.point, bs="re"), data = DOC.df2, family= Gamma(link = "log"), select= T, method = "REML")
+gam.check(m3.gam, rep=1000) 
 summary(m3.gam)
+draw(m3.gam)
+concrvity(m3.gam)
 
-AIC(m1.gam, m2.gam, m3.gam)
-```
-
-
-```{r}
-#So far, the random effects included all have had the same general shape across random variables. That is, the random intercepts move the splines up and down, but have the same shape. Random slopes tilt the splines, but do not change their general shape.
-
-#With GAMs, we can actually include non-linear random effects i.e., individual variability can be taken into account across plant mass or another smoothed predictor. These non-linear random effects are called “factor smooths” and shown as s(plant.mass..g, Time.point, bs = “fs”). Here, “fs” (standing for “factor smooth”) is the basis function. We are replacing the random intercept with the factor smooth, as this included the intercept shift implicitly (as the factor smooth is not centered).
-
-#While including non-linear differences over plant mass is important, the models thus far have only included one non-linearity per time point, rather than looking at individual variability in each treatment over plant mass, per time point Therefore, we can replace the random slope of s(Time.point, Treatment, bs = “re”) with an edit made to the random factor smooth: s(plant.mass..g, Time.point, by = Treatment, bs = “fs”). This is replacing the random slope because the difference between treatment conditions are taken into account by the (non-centered) factor smooth. That is, the random factor smooth incorporates a non-centered smooth per treatment condition per time point, which accounts for both the random intercept and random slope, as well as non-linear differences between categories across plant mass.
-
-m4.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g, by = Treatment) + s(Time.point, Treatment, bs = "re") + s(plant.mass..g, Time.point, bs = "fs"), data = DOC.df, method = "REML")
+#smooth across plant mass for each level of treatment with time period as random effect—this answers the question: what is treatment effect on DOC while smoothing over plant mass and accounting for variation in random effect of time point?
+m4.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment, k=4) + s(Time.point, bs="re"), data = DOC.df2, family= Gamma(link = "log"), select= T, method = "REML")
+gam.check(m3.gam, rep=1000) 
 summary(m4.gam)
+draw(m4.gam)
+concrvity(m4.gam)
 
-m5.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g, by = Treatment)  + s(plant.mass..g, Time.point, by = Treatment, bs = "fs"), data = DOC.df, method = "REML")
+#time and treatment effects with smooth over plant mass for each level of treatment
+m5.gam=gam(DOC..mg.L ~ Treatment+ Time.point + s(plant.mass..g, Treatment, by=Time.point, bs="fs",k=4), data = DOC.df2, family= Gamma(link = "log"), select= T, method = "REML")
+gam.check(m5.gam, rep=1000) 
 summary(m5.gam)
+draw(m5.gam)
+concrvity(m5.gam)
+visreg(m5.gam)
 
-AIC(m4.gam, m5.gam)
-
-#now lets account the for positively skewed data with gamma distribution and log link. Gamma distributions have variance as a quadratic function of the mean.
-#There variance is not constant and the data is heteroscedastic...transforming seems to only account for one of those. Gamma works best since if we  expect to see a small value of DOC we should also expect only a small amount of variability in observed values. On the other hand, if we expect a huge value of DOC, we should expect a lot of variability.
-m6.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment) + s(plant.mass..g, Time.point, by= Treatment, bs="fs"), family= Gamma(link="log"), data=DOC.df2, method="REML")
+m6.gam=gam(DOC..mg.L ~ Treatment* Time.point + s(plant.mass..g, Treatment, by=Time.point, bs="fs",k=4), data = DOC.df2, family= Gamma(link = "log"), select= T, method = "REML")
+gam.check(m5.gam, rep=1000) 
 summary(m6.gam)
 
-AIC(m4.gam, m5.gam, m6.gam)
-
-###now we seem to have created a model that fit the original question, how does burning and loading affect DOC while accounting for variation in the random effect of sampling period...let's play with the model to see if we can get a better fit using AIC as our guide
-
-#choose a k value
-m7.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, by=Treatment, k=12) + s(plant.mass..g, Time.point, by=Treatment, bs="fs",k=12), family= Gamma(link="log"), data=DOC.df2, select= T, method="REML")
-
-#better fit with less
-m8.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, by=Treatment, k=8) + s(plant.mass..g, Time.point, by=Treatment, bs="fs",k=8), family= Gamma(link="log"), data=DOC.df2, select= T, method="REML")
-
-AIC(m7.gam, m8.gam)
-
-#remove potential redundancies
-m9.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, Time.point, by=Treatment, bs="fs",k=8), family= Gamma(link="log"), data=DOC.df2, select= T, method="REML")
-
-AIC(m8.gam, m9.gam)
-
-m10.gam=gam(DOC..mg.L ~ Treatment  + s(plant.mass..g, Time.point, by=Treatment, bs="fs"), family= Gamma(link="log"), data=DOC.df2, select= T, method="REML")
-
-AIC(m9.gam, m10.gam)
+AIC(m3.gam, m4.gam, m5.gam, m6.gam)
 ```
 
+DOC analysis: looking at the effect of time point on DOC without treatment effect
+```{r}
+m5.gam=gam(DOC..mg.L ~ Time.point + s(plant.mass..g, by=Time.point), data= DOC.df2, method = "REML", select=T, family= Gamma(link = "log"))
+summary(m5.gam)
+draw(m5.gam)
+concrvity(m5.gam)
+
+
+
+
+```
 model 28 wins
 ```{r}
-m12.gam=gam(DOC..mg.L ~ Treatment*Time.point  + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point), family= Gamma(link = "log"), data=DOC.df2, select= T, method="REML")
-summary(m12.gam)
 
-m13.gam=gam(DOC..mg.L ~ Treatment*Time.point  + s(plant.mass..g, k=5) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point), family= Gamma(link = "log"), data=DOC.df2, select= T, method="REML")
-summary(m13.gam)
-
-AIC(m12.gam, m13.gam)
-
-
-m14.gam=gam(DOC..mg.L ~ Treatment*Time.point  + s(plant.mass..g, k=15) + s(plant.mass..g, by=oTreatment, k=4) + s(plant.mass..g, by=oTime.point, k=4), family= Gamma(link = "log"), data=DOC.df2, select= T, method="REML", drop.unused.levels = F)
-summary(m14.gam)
-concurvity(m14.gam)
-gam.check(m14.gam, rep=1000)
-draw(m14.gam)
-
-
-
-m14.gam=gam(DOC..mg.L ~ Treatment*Time.point  + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point), data=DOC.df2, select= T, method="REML")
-summary(m14.gam)
-concurvity(m14.gam)
-gam.check(m14.gam, rep=1000)
-
-AIC(m14.gam, m17.gam)
-
-
-
-m15.gam=gam(DOC..mg.L ~ Treatment*Time.point  + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point), family= Gamma(link = "log"), data=DOC.df2, select= T, method="REML")
-summary(m15.gam)
-draw(m15.gam)
-gam.check(m15.gam, rep=1000)
-concrvity(m15.gam)
-
-
-
-
-concurvity(m15.gam)
-
-AIC(m15.gam, m16.gam)
-
-m16.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g) + s(plant.mass..g, by= oTreatment) + s(plant.mass..g, Time.point, bs="fs"), data=DOC.df2, method="REML")
-summary(m16.gam)
-gam.check(m16.gam, rep=1000)
-
-
-m17.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, k=15) + s(plant.mass..g, by= oTreatment, k=4, m=1) + s(plant.mass..g, Time.point, bs="fs"), data=DOC.df2, family= Gamma(link = "log"), method="REML")
-draw(m17.gam)
-summary(m17.gam)
-gam.check(m17.gam, rep=1000)
-concrvity(m17.gam)
-
-appraise(m19.gam)
-
-
-
-
-
-m18.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, k=15) + s(plant.mass..g, by= Treatment, k=4, m=1) + s(plant.mass..g, Time.point, bs="fs"), data=DOC.df2, family= Gamma(link = "log"), method="REML")
-draw(m18.gam)
-summary(m18.gam)
-
-m19.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, k=15) + s(plant.mass..g, by= oTreatment, k=4, m=1) + s(plant.mass..g, Time.point, bs="fs"), data=DOC.df2, family= Gamma(link = "log"), method="REML")
-summary(m19.gam)
-draw(m19.gam)
-
-m26.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, k=6) + s(plant.mass..g, Time.point, by= Treatment, k=4, bs="fs"), data=DOC.df2, select= T, family=Gamma(link = "log"), method="REML")
-summary(m26.gam)
-draw(m26.gam)
-
-m27.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, k=6) + s(plant.mass..g, by= Treatment, k=4) + s(plant.mass..g, Time.point, bs="fs"), select= T, data=DOC.df2, family=Gamma(link = "log"), method="REML")
-summary(m27.gam)
-draw(m27.gam)
-
-AIC(m26.gam, m27.gam)
-
-
-m28.gam=gam(DOC..mg.L ~ Treatment*Time.point + s(plant.mass..g, k=6) + s(plant.mass..g, by= Treatment, k=4) + s(plant.mass..g, by= Time.point), select= T, data=DOC.df2, family=Gamma(link = "log"), method="REML")
-summary(m28.gam)
-concurvity(m28.gam)
-
-
-m29.gam=gam(DOC..mg.L ~ Treatment*Time.point + s(plant.mass..g, k=6) + s(plant.mass..g, by= oTreatment, k=4) + s(plant.mass..g, by= oTime.point), select= T, data=DOC.df2, family=Gamma(link = "log"), method="REML")
-summary(m29.gam)
-concrvity(m29.gam)
-
-AIC(m26.gam, m27.gam, m28.gam, m29.gam)
-
-ggplot(DOC.df2, aes(x=predict(m26.gam), y=DOC..mg.L), color=predict(m26.gam)) + 
-  geom_point() +
+ggplot(DOC.df2, aes(x=exp(predict(m5.gam)), y=DOC..mg.L)) + 
+  geom_point(aes(color=exp(predict(m5.gam)))) +
   geom_smooth()+
   labs(x='Predicted Values', y='Actual Values', title='Predicted vs. Actual Values')
 
 library(jtools)
-effect_plot(m27.gam, pred = plant.mass..g, interval = TRUE, partial.residuals = TRUE)
+effect_plot(m29.gam, pred = Time.point, interval = TRUE, partial.residuals = TRUE)
 
-
+gam.check(m29.gam, rep=1000)
 
 #(Intercept): the intercept for burned in T1
 #Treatmentunburned: the  unburned – burned DOC in T1.
@@ -396,6 +301,18 @@ summary(m28.gam)$coefficient
 
 #The first coefficient exp(2.29)= 9.9 mg/L DOC is the intercept i.e., so burned treatment for T1. The second exp(0.13)= 1.14 is the difference between mean DOC of the unburned treatment and the burned treatment. Similarly the third, fourth, and fifth exp(-0.07= 0.93, -0.26= 0.77, -0.059= 0.94) are mean DOC differences between the time points T2-T1, T3-T1, and T4-T1. The sixth, seventh, and eighth are more tricky...they are the added mean DOC for treatment unburned:T2 or T3 or T4 as compared to the intercept. For example, to get the mean DOC for unburned treatment, T2 we do: exp(2.29)+exp(0.13)+exp(-0.07) +exp(-0.20) or 9.87+1.14+0.93+0.82= 12.76 mg/L.
 
+draw(m28.gam, residuals = TRUE)
+summary(m28.gam)
+
+visreg(m5.gam, "plant.mass..g", ylab="DOC..mg.L", trans=exp, gg=TRUE, by="Time.point", overlay=F, partial=F, rug=F, cond = list(Treatment="unburned")) +
+  geom_point(alpha=0.5) +
+  ggtitle("Burned") +
+  ylab("DOC (mg/L)")+
+  xlab("plant mass (g)")+
+  theme_cowplot(12)+
+  theme(legend.title=element_blank())
+
+
 ```
 
 MODEL 28 visualization of fitted
@@ -403,10 +320,8 @@ MODEL 28 visualization of fitted
 #we can see what this looks like
 library(visreg)
 
-#backtransform exp
 
-
-vis.burn.plot=visreg(m28.gam, "plant.mass..g", ylab="DOC..mg.L", trans=exp, gg=TRUE, by="Time.point", overlay=T, partial=FALSE, rug=F, cond=list(Treatment="burned")) +
+vis.burn.plot=visreg(m32.gam, "plant.mass..g", ylab="DOC..mg.L", trans=exp, gg=TRUE, by="Time.point", overlay=T, partial=T, rug=T, cond=list(Treatment="burned")) +
   geom_point(alpha=0.5) +
   ggtitle("Burned") +
   ylab("DOC (mg/L)")+
@@ -419,7 +334,7 @@ vis.burn.plot
 
 
 
-vis.unburn.plot=visreg(m28.gam, "plant.mass..g", ylab="DOC..mg.L", gg=TRUE, trans=exp, by="Time.point", overlay=T, partial=FALSE, rug=F, cond=list(Treatment="unburned")) +
+vis.unburn.plot=visreg(m28.gam, "plant.mass..g", ylab="DOC..mg.L", gg=TRUE, trans=exp, by="Time.point", overlay=T, partial=F, rug=F, cond=list(Treatment="unburned")) +
   geom_point(alpha=0.5) +
   ggtitle("Unburned") +
   ylab("DOC (mg/L)")+
@@ -567,7 +482,6 @@ photo.df$mass.remaining=100-abs(photo.df[photo.df$type=="photo",]$percent.change
 
 
 
-
 #Microbe decomp
 microbe.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Time.point,
                       UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Treatment,
@@ -623,7 +537,7 @@ degra.df$mass.remaining.arc=asin(sqrt(degra.df$mass.remaining.dec))
 
 ```
 
-UVBIO Absolute Change Plots
+UVBIO % Change Plots
 ```{r}
 #Unburned treatment degradation
 unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+ 
@@ -679,9 +593,10 @@ mass.unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+
   ggtitle("Degradation: unburned") +
   ylab(expression(paste("% DOC remaining (mg/L)"))) +
   xlab("plant material (g)")+
-  coord_cartesian(ylim = c(40,150))+
+  coord_cartesian(ylim = c(10,150))+
   theme_cowplot(12)+
   theme(legend.title=element_blank())
+
 
 
 extract.legend2 <- get_legend(
@@ -698,7 +613,7 @@ mass.burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+
   ggtitle("Degradation: burned") +
   xlab("plant material (g)")+
   ylab(expression(paste("% DOC remaining (mg/L)"))) +
-  coord_cartesian(ylim = c(40,150))+
+  coord_cartesian(ylim = c(10,150))+
   theme_cowplot(12)
 
 
