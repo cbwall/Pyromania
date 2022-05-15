@@ -194,10 +194,8 @@ plot_grid(
   ggdraw(add_sub(DOC.plots, "Fig 1. Measured dissolved organic carbon (DOC) concentrations across five time points for both treatments. Time-0 represents baseline DOC concentrations \nprior to the start of the experiment.", x=0.01, hjust=0)), ncol = 1)
 
 
-ggsave("figures/fig1.DOC.pdf", height=5, width=14)
+ggsave("figures/DOC.concentration.pdf", height=5, width=14)
 
-
-  
 
 ```
 DOC analysis: model 4 is just looking at treatment effect with time point as random effect
@@ -627,7 +625,7 @@ plot_grid(
   ggdraw(add_sub(mass.degra.plots, "Fig 2. Three degradation pathways of dissolved organic carbon (DOC) across three time points during a seven \nday incubation period for both treatments. Values indicate % DOC remaining with 'microbe' representing \nmicrobial degradation, 'photo' representing photodegradation, and 'total' representing both microbial and \nphotodegradation. All positive values indiciate % DOC increase.", x=0.01, hjust=0)), ncol = 1)
 
 
-ggsave("figures/Fig.2.UVBio.mass.degra_type.plots.pdf", height=5, width=10)
+ggsave("figures/UVBio.mass.degra_type.plots.pdf", height=5, width=10)
 
 
 ```
@@ -812,7 +810,7 @@ plot_grid(
   ggdraw(add_sub(mass.decomp.plots, "Fig 3. Measured plant mass remaining of each plant type for both treatments. Plant specific mass represents \ninitial plant weights at the start of the experiment", x=0.01, hjust=0)), ncol = 1)
 
 degra.plots
-ggsave("figures/Fig.3.mass.decomp_type.plots.pdf", height=5, width=10)
+ggsave("figures/mass.decomp_type.plots.pdf", height=5, width=10)
 
 
 ```
@@ -1058,7 +1056,7 @@ plot_grid(
   ggdraw(add_sub(suva.plots, "Fig 4. Average specific ultraviolet absorbance (SUVA 254 ) across sampling periods for both treatments. Time-0 represents baseline measurements prior to the \nstart of the experiment. ", x=0.01, hjust=0)), ncol = 1)
 
 
-ggsave("figures/fig4.suva.pdf", height=5, width=14)
+ggsave("figures/suva.pdf", height=5, width=14)
 
 
 
