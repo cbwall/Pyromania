@@ -198,90 +198,83 @@ ggsave("figures/DOC.concentration.pdf", height=5, width=14)
 
 
 ```
-DOC analysis: model 4 is just looking at treatment effect with time point as random effect
+DOC analysis: 
+T1 model
 ```{r}
 library(mgcv)
 library(gratia)
-
-m1.lme=lmer(DOC..mg.L ~  1 + Treatment + (1 + Treatment | Time.point), data=DOC.df2)
-summary(m1.lme)
-plot(m1.lme)
-
-
-m1.gam=gam(log(DOC..mg.L)~ Treatment + s(plant.mass..g) + s(Time.point, bs = "re"), data = DOC.df2, method = "REML")
-gam.check(m1.gam, rep=1000)
+m1.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T1", family= Gamma(link = "log"), data = DOC.df2, method = "REML")
 summary(m1.gam)
+gam.check(m1.gam, rep=1000)
 draw(m1.gam)
 concrvity(m2.gam)
 
-m2.gam=gam(log(DOC..mg.L)~ Treatment + s(plant.mass..g, by=Treatment) + s(Time.point, bs="re"), data = DOC.df2, select=T, method = "REML")
-gam.check(m2.gam, rep=1000) 
-summary(m2.gam)
-draw(m2.gam)
+###########
+m1b.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T1", family= Gamma(link = "log"), data = DOC.df2, method = "REML", select=T)
+summary(m1b.gam)
+draw(m1b.gam)
+gam.check(m1b.gam, rep=1000)
+anova(m1b.gam)
 
-m3.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment) + s(Time.point, bs="re"), data = DOC.df2, family= Gamma(link = "log"), select= T, method = "REML")
-gam.check(m3.gam, rep=1000) 
+###########
+m1c.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g, by=Treatment, bs="cs"), subset = Time.point=="T1", family= Gamma(link = "log"), data = DOC.df2, method = "REML", select=T)
+summary(m1c.gam)
+
+
+m1d.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g) + s(plant.mass..g, by=Treatment,m=1), subset = Time.point=="T1", family= Gamma(link = "log"), data = DOC.df2, method = "REML", select=T)
+summary(m1d.gam)
+draw(m1d.gam)
+
+AIC(m1b.gam,m1c.gam,m1d.gam )
+```
+
+T2 model
+```{r}
+m2.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g, by=Treatment, bs="cr"), subset = Time.point=="T2", family= Gamma(link = "log"), data = DOC.df2, method = "REML", select = T)
+summary(m2.gam)
+gam.check(m2.gam, rep=1000)
+
+#######
+m2b.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g, by=Treatment, bs="cr"), subset = Time.point=="T2", family= Gamma(link = "log"), data = DOC.df2, method = "REML")
+######
+
+AIC(m2.gam, m2b.gam)
+
+```
+
+T3 model
+```{r}
+#####
+m3.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g, by=Treatment, bs="cr", k=6), subset = Time.point=="T3", family= Gamma(link = "log"), data = DOC.df2, method = "REML", select = T)
 summary(m3.gam)
 draw(m3.gam)
-concrvity(m3.gam)
+######
 
-#smooth across plant mass for each level of treatment with time period as random effect—this answers the question: what is treatment effect on DOC while smoothing over plant mass and accounting for variation in random effect of time point?
-m4.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment, k=4) + s(Time.point, bs="re"), data = DOC.df2, family= Gamma(link = "log"), select= T, method = "REML")
-gam.check(m3.gam, rep=1000) 
+m3b.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g, by=Treatment, bs="cs"), subset = Time.point=="T3", family= Gamma(link = "log"), data = DOC.df2, method = "REML", select=T)
+summary(m3.gam)
+
+m3c.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g) + s(plant.mass..g, by=Treatment, bs="ps", m=1), subset = Time.point=="T3", family= Gamma(link = "log"), data = DOC.df2, method = "REML")
+
+AIC(m3.gam, m3b.gam, m3c.gam)
+```
+
+T4 model
+```{r}
+
+m4.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g, by=Treatment, bs="ps", k=4), subset = Time.point=="T4", family= Gamma(link = "log"), data = DOC.df2, method = "REML")
 summary(m4.gam)
-draw(m4.gam)
-concrvity(m4.gam)
+gam.check(m4.gam, rep=1000)
 
-#time and treatment effects with smooth over plant mass for each level of treatment
-m5.gam=gam(DOC..mg.L ~ Treatment+ Time.point + s(plant.mass..g, Treatment, by=Time.point, bs="fs",k=4), data = DOC.df2, family= Gamma(link = "log"), select= T, method = "REML")
-gam.check(m5.gam, rep=1000) 
-summary(m5.gam)
-draw(m5.gam)
-concrvity(m5.gam)
-visreg(m5.gam)
 
-m6.gam=gam(DOC..mg.L ~ Treatment* Time.point + s(plant.mass..g, Treatment, by=Time.point, bs="fs",k=4), data = DOC.df2, family= Gamma(link = "log"), select= T, method = "REML")
-gam.check(m5.gam, rep=1000) 
-summary(m6.gam)
-
-AIC(m3.gam, m4.gam, m5.gam, m6.gam)
+####
+m4b.gam=gam(DOC..mg.L~ Treatment + s(plant.mass..g, by=Treatment, k=6, bs="ps"), subset = Time.point=="T4", family= Gamma(link = "log"), data = DOC.df2, method = "REML", select=T)
+summary(m4b.gam)
+#####
+AIC(m4.gam, m4b.gam)
 ```
 
-DOC analysis: looking at the effect of time point on DOC without treatment effect
 ```{r}
-m5.gam=gam(DOC..mg.L ~ Time.point + s(plant.mass..g, by=Time.point), data= DOC.df2, method = "REML", select=T, family= Gamma(link = "log"))
-summary(m5.gam)
-draw(m5.gam)
-concrvity(m5.gam)
-
-
-
-
-```
-model 28 wins
-```{r}
-
-ggplot(DOC.df2, aes(x=exp(predict(m5.gam)), y=DOC..mg.L)) + 
-  geom_point(aes(color=exp(predict(m5.gam)))) +
-  geom_smooth()+
-  labs(x='Predicted Values', y='Actual Values', title='Predicted vs. Actual Values')
-
-library(jtools)
-effect_plot(m29.gam, pred = Time.point, interval = TRUE, partial.residuals = TRUE)
-
-gam.check(m29.gam, rep=1000)
-
-#(Intercept): the intercept for burned in T1
-#Treatmentunburned: the  unburned – burned DOC in T1.
-#T2: the difference in DOC between T2 versus T1 for burned
-#T3: the difference in DOC between T3 versus T` for burned.
-#T4: the difference in DOC between T4 versus T` for burned.
-#unburned:T2: the interaction of unburned and T2, the unburned effect (unburned-burned) in T2  versus the T1 effect in the burned treatment. Also, the T2 effect (T2 – T1) for unburned versus the T2 effect for burned
-
-```
-DOC model 28 intepretation
-```{r}
-summary(m28.gam)$coefficient
+summary(m5.gam)$coefficient
 
 #Let’s go through each coefficient:
 
@@ -299,16 +292,15 @@ summary(m28.gam)$coefficient
 
 #The first coefficient exp(2.29)= 9.9 mg/L DOC is the intercept i.e., so burned treatment for T1. The second exp(0.13)= 1.14 is the difference between mean DOC of the unburned treatment and the burned treatment. Similarly the third, fourth, and fifth exp(-0.07= 0.93, -0.26= 0.77, -0.059= 0.94) are mean DOC differences between the time points T2-T1, T3-T1, and T4-T1. The sixth, seventh, and eighth are more tricky...they are the added mean DOC for treatment unburned:T2 or T3 or T4 as compared to the intercept. For example, to get the mean DOC for unburned treatment, T2 we do: exp(2.29)+exp(0.13)+exp(-0.07) +exp(-0.20) or 9.87+1.14+0.93+0.82= 12.76 mg/L.
 
-draw(m28.gam, residuals = TRUE)
-summary(m28.gam)
-
-visreg(m5.gam, "plant.mass..g", ylab="DOC..mg.L", trans=exp, gg=TRUE, by="Time.point", overlay=F, partial=F, rug=F, cond = list(Treatment="unburned")) +
+library(visreg)
+visreg(m1b.gam, "plant.mass..g", ylab="DOC..mg.L", trans=exp, gg=TRUE, by="Treatment", overlay=F, partial=F, rug=F, cond = list(Treatment="burned")) +
   geom_point(alpha=0.5) +
   ggtitle("Burned") +
   ylab("DOC (mg/L)")+
   xlab("plant mass (g)")+
   theme_cowplot(12)+
   theme(legend.title=element_blank())
+
 
 
 ```
@@ -518,15 +510,11 @@ total.df$mass.remaining=100-abs(total.df[total.df$type=="total",]$percent.change
 
 #merge degra.df time points into one dataframe
 degra.df=rbind(photo.df, microbe.df, total.df)
+degra.df=pivot_longer(degra.df, cols=c("type"), names_to="type", values_to="effect")
 
 #make sure we have factors
 degra.df=degra.df%>%
     mutate_if(is.character,as.factor)
-
-#make new column of ordered factors
-degra.df=mutate(degra.df, oTreatment= ordered(Treatment, levels= c("burned","unburned")))%>%
-  mutate(degra.df, oTime.point= ordered(Time.point, levels= c("T1", "T2", "T3", "T4")))%>%
-  mutate(degra.df, otype= ordered(type, levels= c("photo", "microbe", "total")))
 
 #arcsine transform for later analysis
 degra.df$mass.remaining.dec=degra.df$mass.remaining/100
@@ -539,13 +527,14 @@ UVBIO % Change Plots
 ```{r}
 #Unburned treatment degradation
 unburned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="unburned"),])+ 
-   geom_point(aes(x=plant.mass..g,y=abs.change.DOC,color=type),alpha=0.5)+
-  geom_smooth(aes(x=plant.mass..g, y=abs.change.DOC, color=type), method="loess", alpha=0.1)+
+   geom_point(aes(x=plant.mass..g,y=percent.change.DOC,color=type),alpha=0.5)+
+  geom_smooth(aes(x=plant.mass..g, y=percent.change.DOC, color=type), method="loess", alpha=0.1)+
   facet_grid(~Time.point)+
   scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
   ggtitle("Degradation: unburned") +
-  ylab(expression(paste(Delta, " DOC mg/L"))) +
+  ylab(expression(paste("%", Delta, " DOC mg/L"))) +
   xlab("plant material (g)")+
+  coord_cartesian(ylim = c(-100, 50))+
   theme_cowplot(12)
 unburned.degra.plot
 
@@ -556,13 +545,14 @@ extract.legend2 <- get_legend(
 
 #Burned degradation
 burned.degra.plot=ggplot(degra.df[(degra.df$Treatment=="burned"),])+ 
-   geom_point(aes(x=plant.mass..g,y=abs.change.DOC,color=type),alpha=0.5)+
-  geom_smooth(aes(x=plant.mass..g, y=abs.change.DOC, color=type), method="loess", alpha=0.1)+
+   geom_point(aes(x=plant.mass..g,y=percent.change.DOC,color=type),alpha=0.5)+
+  geom_smooth(aes(x=plant.mass..g, y=percent.change.DOC, color=type), method="loess", alpha=0.1)+
   facet_grid(~Time.point)+
   scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
   ggtitle("Degradation: burned") +
   xlab("plant material (g)")+
-  ylab(expression(paste(Delta, " DOC mg/L"))) +
+  ylab(expression(paste("%", Delta, " DOC mg/L"))) +
+  coord_cartesian(ylim = c(-100, 50))+
   theme_cowplot(12)
 burned.degra.plot
 
@@ -577,7 +567,7 @@ plot_grid(
   ggdraw(add_sub(degra.plots, "Fig 2. Three degradation pathways of dissolved organic carbon (DOC) concentrations across three time points during a seven \nday incubation period for each treatment. \n'Microbe' represents the change in DOC due to microbial degradation, 'photo' represents the change in DOC due to photodegradation, and 'total' represents the change in \nDOC due to both microbial and photodegradation.", x=0.01, hjust=0)), ncol = 1)
 
 degra.plots
-ggsave("figures/Fig.2.UVBio.degra_type.plots.pdf", height=5, width=15)
+ggsave("figures/UVBio.perc.degra_type.plots.pdf", height=5, width=15)
 ```
 
 UVBIO % mass remaining plot
@@ -631,24 +621,247 @@ ggsave("figures/UVBio.mass.degra_type.plots.pdf", height=5, width=10)
 ```
 
 UVBIO analysis
+
+T1 model
 ```{r}
-#fit complex model 
 
-
-uv.m1.gam=gam(mass.remaining.arc ~ Treatment*type + s(plant.mass..g) + s(plant.mass..g, by=Treatment) + s(plant.mass..g, by=type) +s(plant.mass..g, Time.point, bs="fs"), data=degra.df, method="REML", select= T)
+uv.m1.gam=gam(mass.remaining.arc ~ effect*Treatment + s(plant.mass..g, by=effect, k=6, bs="cr"), data=degra.df, method="REML", select= T, subset= Time.point=="T1")
 summary(uv.m1.gam)
-gam.check(uv.m1.gam, rep = 1000)
-draw(uv.m1.gam)
+concrvity(uv.m1.gam)
 
-uv.m2.gam=gam((mass.remaining)^1/2 ~ Treatment*type*Time.point + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), data=degra.df, method="REML", select= T)
+
+
+uv.m1b.gam=gam(mass.remaining.arc ~ effect*Treatment +  s(plant.mass..g, by=effect, k=4, bs="cr") + s(plant.mass..g, by= Treatment, bs="cr"), data=degra.df, method="REML", select= T, subset= Time.point=="T1")
+summary(uv.m1b.gam)
+draw(uv.m1b.gam)
+gam.check(uv.m1b.gam, rep= 1000)
+mgcv::concurvity(uv.m1b.gam, full=F)
+plot(uv.m1b.gam, pages = 1)
+
+#########
+uv.m1c.gam=gam(mass.remaining.arc ~ effect*Treatment + s(plant.mass..g, bs="cr", k=4) + s(plant.mass..g, by=effect, k=4, bs="cr", m=1) + s(plant.mass..g, by= Treatment, bs="cr", m=1), data=degra.df, method="REML", select= T, subset= Time.point=="T1")
+mgcv::concurvity(uv.m1c.gam, full=F)
+summary(uv.m1c.gam)
+draw(uv.m1c.gam)
+gam.check(uv.m1c.gam, rep=1000)
+########3
+
+uv.m1d.gam=gam(abs.change.DOC^2 ~ effect*Treatment + s(plant.mass..g, bs="cr", k=4) + s(plant.mass..g, by=effect, k=4, bs="cr", m=1) + s(plant.mass..g, by= Treatment, bs="cr", m=1), data=degra.df, method="REML", select= T, subset= Time.point=="T1")
+gam.check(uv.m1d.gam, rep=1000)
+summary(uv.m1d.gam)
+draw(uv.m1d.gam)
+
+
+uv.m1e.gam=gam(mass.remaining.arc ~ effect*Treatment + s(plant.mass..g) + s(plant.mass..g, by=Treatment, m=1, k=6) + s(plant.mass..g, by=effect, m=1, k=6), data=degra.df, method="REML", select= T, subset= Time.point=="T1")
+gam.check(uv.m1e)
+summary(uv.m1e.gam)
+draw(uv.m1e.gam)
+plot(uv.m1e.gam, residuals = T)
+concurvity(uv.m1e.gam)
+
+
+uv.m1f.gam=gam(mass.remaining.arc ~ effect*Treatment + s(plant.mass..g) + s(plant.mass..g, by=Treatment, m=1, k=12) + s(plant.mass..g, by=effect, m=1, k=12), data=degra.df, method="REML", select= T, subset= Time.point=="T1")
+summary(uv.m1d.gam)
+gam.check(uv.m1f.gam, rep=1000)
+plot(uv.m1d.gam)
+
+uv.m1g.gam=gam(mass.remaining.arc ~ effect*Treatment  + s(plant.mass..g, by=Treatment, k=12) + s(plant.mass..g, by=effect, k=12), data=degra.df, method="REML", select= T, subset= Time.point=="T1")
+
+
+AIC( uv.m1.gam, uv.m1b.gam, uv.m1c.gam)
+
+
+plot(x, y)
+curve(predict(model, newdata = data.frame(x = x)), add = TRUE)
+n <- length(x)
+nboot <- 100
+for (i in 1:nboot) {
+k.star <- sample(n, replace = TRUE)
+x.star <- x[k.star]
+y.star <- y[k.star]
+model.star <- gam(y.star ~ s(x.star, bs = "cr"))
+curve(predict(model.star, data.frame(x.star = x)),
+add = TRUE, col = "grey")
+}
+points(x, y, pch = 16)
+curve(predict(model, newdata = data.frame(x = x)), add = TRUE, lwd = 2)
+```
+
+visualize uv.model1c
+```{r}
+uv.t1.burned=visreg(uv.m1c.gam, "plant.mass..g", gg=TRUE, by="effect", overlay=T, partial=F, rug=F, cond=list(Treatment="burned")) +
+  ggtitle("T1: Burned") +
+  xlab("plant mass (g)")+
+  theme_cowplot(12)
+
+uv.t1.unburned=visreg(uv.m1c.gam, "plant.mass..g", gg=TRUE, by="effect", overlay=T, partial=F, rug=F, cond=list(Treatment="unburned")) +
+  ggtitle("T1: Unburned") +
+  xlab("plant mass (g)")+
+  theme_cowplot(12)
+
+
+#get legend
+extract.legend.uv.t1 <- get_legend(
+  # create some space to the left of the legend
+  uv.t1.burned + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
+
+
+#combine them
+uv.t1.plots=plot_grid(uv.t1.burned + theme(legend.position = "none", legend.title=element_blank()), uv.t1.unburned + theme(legend.position = "none"),
+          extract.legend.uv.t1,
+          labels = c("a)", "b)"),
+          ncol=3, rel_widths = c(15,15,3))
+
+
+uv.t1.plots
+
+```
+predicting
+```{r}
+plot.gam(uv.m1c.gam)
+
+
+
+
+hist(log10(DOC.df2[DOC.df2$Time.point=="T4",]$DOC..mg.L))
+
+
+friedman.test(mass.remaining.arc~type|plant.mass..g, data=degra.df, subset = degra.df$Time.point=="T1")
+
+
+
+```
+
+
+
+
+
+
+T2 model
+```{r}
+uv.m2.gam=gam(mass.remaining.arc ~ effect*Treatment + s(plant.mass..g, by=effect, k=4, bs="ts"), data=degra.df, method="REML", select= T, subset= Time.point=="T2")
 summary(uv.m2.gam)
-gam.check(uv.m2.gam, rep=100)
+mgcv::concurvity(uv.m2b.gam, full=F)
+draw(uv.m2.gam)
 
+
+uv.m2b.gam=gam(mass.remaining.arc ~ effect*Treatment + s(plant.mass..g, by=effect, k=4, bs="ts") + s(plant.mass..g, by=Treatment, k=4, bs="cr"), data=degra.df, method="REML", select= T, subset= Time.point=="T2")
+concurvity(uv.m2b.gam)
+draw(uv.m2b.gam)
+gam.check(uv.m2b.gam)
+summary(uv.m2b.gam)
+
+
+uv.m2c.gam=gam(mass.remaining.arc ~ effect*Treatment + s(plant.mass..g, by=effect, k=4, bs="ts") + s(plant.mass..g, by= Treatment, bs="ts"), data=degra.df, method="REML", select= T, subset= Time.point=="T2")
+summary(uv.m2c.gam)
+gam.check(uv.m2c.gam, rep=1000)
+mgcv::concurvity(uv.m2c.gam, full=F)
+
+
+#######
+uv.m2d.gam=gam(mass.remaining.arc ~ effect*Treatment + s(plant.mass..g, bs="ps", k=4) +s(plant.mass..g, by=effect, k=4, bs="ts", m=1) + s(plant.mass..g, by= Treatment, bs="ts", m=1), data=degra.df, method="REML", select= T, subset= Time.point=="T2")
+summary(uv.m2d.gam)
+gam.check(uv.m2d.gam, rep=1000)
+mgcv::concurvity(uv.m2d.gam, full=F)
+######
+
+uv.m2e.gam=gam(mass.remaining.arc ~ effect*Treatment + s(plant.mass..g, bs="ps", k=4) +s(plant.mass..g, by=effect, k=4, bs="ts", m=1) + s(plant.mass..g, by= Treatment, bs="ts", m=1), data=degra.df, method="REML", select= T, subset= Time.point=="T2")
+summary(uv.m2e.gam)
+gam.check(uv.m2e.gam, rep=1000)
+
+AIC(uv.m2d.gam, uv.m2e.gam)
+```
+Visualize T2 uv.model2d
+```{r}
+uv.t2.burned=visreg(uv.m2d.gam, "plant.mass..g", gg=TRUE, by="effect", overlay=T, partial=F, rug=F, cond=list(Treatment="burned")) +
+  ggtitle("T2: Burned") +
+  xlab("plant mass (g)")+
+  theme_cowplot(12)
+
+uv.t2.unburned=visreg(uv.m2d.gam, "plant.mass..g", gg=TRUE, by="effect", overlay=T, partial=F, rug=F, cond=list(Treatment="unburned")) +
+  ggtitle("T2: Unburned") +
+  xlab("plant mass (g)")+
+  theme_cowplot(12)
+
+
+#combine them
+uv.t2.plots=plot_grid(uv.t2.burned + theme(legend.position = "none", legend.title=element_blank()), uv.t2.unburned + theme(legend.position = "none"),
+          extract.legend.uv.t1,
+          labels = c("a)", "b)"),
+          ncol=3, rel_widths = c(15,15,3))
+
+
+uv.t2.plots
+
+```
+T3 model
+```{r}
+uv.m3.gam=gam(mass.remaining.arc ~ effect*Treatment + s(plant.mass..g, by=effect, k=4, bs="ts") + s(plant.mass..g, by= Treatment, bs="ts"), data=degra.df, method="REML", select= T, subset= Time.point=="T3")
+summary(uv.m3.gam)
+mgcv::concurvity(uv.m2c.gam, full=F)
+
+######
+uv.m3b.gam=gam(mass.remaining.arc ~ effect*Treatment + s(plant.mass..g, by=effect, k=4, bs="cr") + s(plant.mass..g, by= Treatment, bs="ps"), data=degra.df, method="REML", select= T, subset= Time.point=="T3")
+summary(uv.m3b.gam)
+mgcv::concurvity(uv.m3b.gam, full=F)
+gam.check(uv.m3b.gam, rep=1000)
+
+#####
+
+uv.m3c.gam=gam(mass.remaining.arc~ effect*Treatment + s(plant.mass..g, bs="cr", k=4) + s(plant.mass..g, by=effect, k=4, bs="cr", m=1) + s(plant.mass..g, by= Treatment, bs="ps",m=1), data=degra.df, method="REML", select= T, subset= Time.point=="T3")
+summary(uv.m3c.gam)
+mgcv::concurvity(uv.m3c.gam, full=F)
+gam.check(uv.m3c.gam, rep=1000)
+
+
+AIC(uv.m3.gam, uv.m3b.gam, uv.m3c.gam)
+
+
+
+
+```
+Visualize T3 uv.model3b
+```{r}
+uv.t3.burned=visreg(uv.m3b.gam, "plant.mass..g", gg=TRUE, by="effect", overlay=T, partial=F, rug=F, cond=list(Treatment="burned")) +
+  ggtitle("T3: Burned") +
+  xlab("plant mass (g)")+
+  theme_cowplot(12)
+
+uv.t3.unburned=visreg(uv.m3b.gam, "plant.mass..g", gg=TRUE, by="effect", overlay=T, partial=F, rug=F, cond=list(Treatment="unburned")) +
+  ggtitle("T3: Unburned") +
+  xlab("plant mass (g)")+
+  theme_cowplot(12)
+
+
+#combine them
+uv.t3.plots=plot_grid(uv.t3.burned + theme(legend.position = "none", legend.title=element_blank()), uv.t3.unburned + theme(legend.position = "none"),
+          extract.legend.uv.t1,
+          labels = c("a)", "b)"),
+          ncol=3, rel_widths = c(15,15,3))
+
+
+uv.t3.plots
+
+
+
+```
+
+
+
+
+
+
+```{r}
+gam.check(uv.m2.gam, rep=100)
+plot(uv.m2.gam)
+concrvity(uv.m2.gam)
+
+class(degra.df$type)
 #better to not order the factors
 AIC(uv.m1.gam, uv.m2.gam)
 
 #hereon data is arcsine transformed
-uv.m3.gam=gam(log10(mass.remaining) ~ Treatment*type*Time.point + s(plant.mass..g) + s(plant.mass..g, by=oTreatment) + s(plant.mass..g, by=oTime.point) + s(plant.mass..g, by= otype), family= gaussian, data=degra.df, method="REML", select= T)
+uv.m3.gam=gam(mass.remaining.arc ~ type * Treatment + s(plant.mass..g, type, by=Treatment, bs="fs") + s(plant.mass..g, Time.point, bs="fs"), data=degra.df, family= gaussian(), method="REML", select= T)
 summary(uv.m3.gam)
 gam.check(uv.m3.gam, rep = 1000)
 draw(uv.m3.gam)
