@@ -1,0 +1,25 @@
+﻿Sample Name,type,plant,treatment,rep,analysis,N,P,K,S,ZN
+A1,leaf,sage,unburned,1,PT-3,1.67,0.306,1.73,0.474,38.8
+A1,leaf,sage,unburned,2,PT-3,1.59,0.301,1.5,0.472,35.6
+A1,leaf,sage,unburned,3,PT-3,1.74,0.297,1.66,0.455,34.5
+A2,stem,sage,unburned,1,PT-3,0.97,0.223,1.66,0.176,29
+A2,stem,sage,unburned,2,PT-3,0.974,0.217,1.51,0.166,29
+A2,stem,sage,unburned,3,PT-3,0.886,0.225,1.62,0.173,32.4
+A3,leaf,sage,burned,1,PT-3,1.6,0.312,2,0.456,43.7
+A3,leaf,sage,burned,2,PT-3,1.48,0.305,1.87,0.438,36
+A3,leaf,sage,burned,3,PT-3,1.51,0.355,2.26,0.532,165
+A4,stem,sage,burned,1,PT-3,1.08,0.223,1.38,0.179,30.2
+A4,stem,sage,burned,2,PT-3,1.12,0.279,1.86,0.225,38.4
+A4,stem,sage,burned,3,PT-3,1.14,0.257,1.85,0.204,35.8
+B1,leaf,willow,unburned,1,PT-3,1.29,0.136,0.943,0.205,44.1
+B1,leaf,willow,unburned,2,PT-3,1.66,0.196,1.05,0.211,130
+B1,leaf,willow,unburned,3,PT-3,1.47,0.158,1.09,0.231,70.6
+B2,stem,willow,unburned,1,PT-3,0.697,0.121,0.617,0.0743,31.6
+B2,stem,willow,unburned,2,PT-3,0.545,0.132,0.713,0.0788,48.3
+B2,stem,willow,unburned,3,PT-3,0.643,0.113,0.486,0.0654,27.5
+B3,leaf,willow,burned,1,PT-3,1.74,0.245,1.35,0.27,210
+B3,leaf,willow,burned,2,PT-3,1.61,0.217,1.18,0.252,194
+B3,leaf,willow,burned,3,PT-3,1.77,0.224,1.19,0.248,207
+B4,stem,willow,burned,1,PT-3,0.597,0.152,0.811,0.0739,77.8
+B4,stem,willow,burned,2,PT-3,0.615,0.15,0.731,0.0636,59
+B4,stem,willow,burned,3,PT-3,NA,NA,NA,NA,NA
