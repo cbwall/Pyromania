@@ -1,0 +1,33 @@
+﻿Date,Time.Point,Treatment,plant.mass..g,Tank,Vial.ID,TP.umol..l,notes
+12/6/2021,T2,unburned,400,1,T2 Tank 1,31.04,
+12/6/2021,T2,unburned,300,3,T2 Tank 3,NA,The vial was broken in transit
+12/6/2021,T2,burned,5,4,T2 Tank 4,1.17,
+12/6/2021,T2,unburned,250,5,T2 Tank 5,21.73,
+12/6/2021,T2,unburned,225,7,T2 Tank 7,19.51,
+12/6/2021,T2,burned,25,8,T2 Tank 8,1.51,
+12/6/2021,T2,burned,50,10,T2 Tank 10,1.70,
+12/6/2021,T2,burned,75,12,T2 Tank 12,1.64,
+12/6/2021,T2,burned,125,16,T2 Tank 16,10.82,
+12/6/2021,T2,unburned,100,17,T2 Tank 17,6.94,cracked up analyzed
+12/6/2021,T2,unburned,100,17,T2 Tank 17,6.99,duplicate
+12/6/2021,T2,burned,150,18,T2 Tank 18,10.27,
+12/6/2021,T2,unburned,75,19,T2 Tank 19,0.83,
+12/6/2021,T2,burned,175,20,T2 Tank 20,9.24,
+12/6/2021,T2,unburned,50,21,T2 Tank 21,0.86,
+12/6/2021,T2,burned,200,22,T2 Tank 22,15.54,
+12/6/2021,T2,unburned,25,23,T2 Tank 23,0.48,
+12/6/2021,T2,burned,225,24,T2 Tank 24,19.91,
+12/6/2021,T2,unburned,10,25,T2 Tank 25,0.29,
+12/6/2021,T2,burned,250,26,T2 Tank 26,19.69,
+12/6/2021,T2,unburned,5,27,T2 Tank 27,0.19,
+12/6/2021,T2,unburned,5,27,T2 Tank 27,0.19,duplicate
+12/6/2021,T2,burned,300,28,T2 Tank 28,NA,The vial was broken in transit
+12/6/2021,T2,unburned,0,29,T2 Tank 29,0.62,
+12/6/2021,T2,burned,400,30,T2 Tank 30,44.30,
+12/6/2021,T2,burned,0,2,T2 Tank 2,NA,
+12/6/2021,T2,burned,10,6,T2 Tank 6,NA,
+12/6/2021,T2,unburned,200,9,T2 Tank 9,NA,
+12/6/2021,T2,unburned,175,11,T2 Tank 11,NA,
+12/6/2021,T2,unburned,150,13,T2 Tank 13,NA,
+12/6/2021,T2,burned,100,14,T2 Tank 14,NA,
+12/6/2021,T2,unburned,125,15,T2 Tank 15,NA,

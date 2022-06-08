@@ -30,7 +30,7 @@ rm(list=ls())
 ```
 ### Plant material
 
-```{r plant elemental}
+```{r, plant elemental}
 plant.nut<-read.csv("data/Pyro_plant material_elemental.csv")
 
 fac<-c("sample.name", "type", "plant", "treatment", "rep") # make factors
@@ -123,6 +123,33 @@ nutrients<-plot_grid(
 
 nutrients
 ggsave("figures/leaf.nutrients.pdf", height=4, width=12)
+
+```
+  
+### Phosphorus
+
+```{r, water phosphorus}
+phos<-read.csv("data/Pyro_water.phosph.csv")
+
+fac2<-c("Time.Point", "Treatment", "Tank") # make factors
+phos[fac2]<-lapply(phos[fac2],factor)
+
+phos<-na.omit(phos)
+
+T2.phos<-ggplot(phos, aes(x=plant.mass..g, y=TP.umol..l, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("T2.Phosphorus") +
+  coord_cartesian(ylim=c(0, 50)) +
+  ylab(expression(paste("Total Phosphorus ","(umol/l)"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T2.phos
+ggsave("figures/phosp.plot.pdf", height=5, width=7)
+
+
 
 ```
 
