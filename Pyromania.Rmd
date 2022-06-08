@@ -2140,6 +2140,7 @@ iso.plot.control.CN<-ggplot(data=iso.cont.CN,  aes(x=Type, y=C.N, fill=Type)) +
   xlab("control types") +  Fig.formatting +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
 
+
 ####### combine plots
 # legend
 extract.legend3 <- get_legend(
