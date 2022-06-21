@@ -1339,7 +1339,102 @@ gam.check(suva.gam4, rep=1000)
 
 ```
 
+Other indices
+```{r}
+# Time 0
+index.T0.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/Indexresults/T0_indices.csv")
+index.T0.df$Time.point="T0"
+names(index.T0.df)[6]="Humification.Index"
+index.T0.df=index.T0.df[-c(7:11,13,14)]
+
+
+#Time 1
+index.T1.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/Indexresults/T1_indices.csv")
+index.T1.df$Time.point="T1"
+index.T1.df=index.T1.df[-c(7:11,13,14)]
+
+#Time 3
+index.T3.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/Indexresults/T3_indices.csv")
+index.T3.df$Time.point="T3"
+index.T3.df=index.T3.df[-c(7:11,13,14)]
+
+
+#Time 4
+index.T4.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/Indexresults/T4_indicies.csv")
+index.T4.df$Time.point="T4"
+index.T4.df=index.T4.df[-c(7:11,13,14)]
+
+#combine all index time points
+index.df=rbind(index.T0.df, index.T1.df, index.T3.df, index.T4.df)
+
+
+```
+
+Index plots 
+```{r}
+library(mgcv)
+fluoro.plot<-ggplot(index.df, aes(x=plant.mass..g., y=Fluroscence.Index, color=Treatment)) +
+  geom_point(alpha=0.5) +
+  facet_grid(~Time.point)+
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
+  ylab("Fluorescence Index")+
+  theme_cowplot(12)
+fluoro.plot
+
+
+
+fresh.plot<-ggplot(index.df, aes(x=plant.mass..g., y=Freshness.Index, color=Treatment)) +
+  geom_point(alpha=0.5) +
+  facet_grid(~Time.point)+
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
+  ylab("Freshness Index")+
+  theme_cowplot(12)
+
+
+humic.plot<-ggplot(index.df, aes(x=plant.mass..g., y=Humification.Index, color=Treatment)) +
+  geom_point(alpha=0.5) +
+  facet_grid(~Time.point)+
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
+  ylab("Humification Index")+
+  theme_cowplot(12)
+
+
+cdom.plot<-ggplot(index.df, aes(x=plant.mass..g., y=CDOM.ex325.em470., color=Treatment)) +
+  geom_point(alpha=0.5) +
+  facet_grid(~Time.point)+
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
+  xlab("Plant Mass (g)")+
+  ylab("CDOM Index")+
+  theme_cowplot(12)
+  
+
+
+extract.legend.index <- get_legend(
+  # create some space to the left of the legend
+  fluoro.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+
+index.plots<-plot_grid(
+  fluoro.plot+ theme(legend.position = "none"),
+  fresh.plot+ theme(legend.position = "none"),
+  humic.plot+ theme(legend.position = "none"),
+  cdom.plot+ theme(legend.position = "none"),
+  extract.legend.index,
+  rel_widths = c(15,15,15,15, 15, 8), ncol=1, nrow =4 )
+index.plots
 
 
 
 
+ggsave("figures/indices.pdf", height=10, width=8)
+
+
+
+
+```
+
+Combine the ind
