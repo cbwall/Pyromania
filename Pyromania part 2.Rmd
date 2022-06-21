@@ -28,6 +28,130 @@ pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'magrittr', 'effects', 
 rm(list=ls())
 
 ```
+### Plant material
+
+```{r, plant elemental}
+plant.nut<-read.csv("data/Pyro_plant material_elemental.csv")
+
+fac<-c("sample.name", "type", "plant", "treatment", "rep") # make factors
+plant.nut[fac]<-lapply(plant.nut[fac],factor)
+
+plant.nut$int.fac<-interaction(plant.nut$plant, plant.nut$type)
+
+plant.N<-lm(N~type*plant*treatment, data=plant.nut)
+anova(plant.N) # 3 way interaction
+
+plant.P<-lm(P~type+plant+treatment, data=plant.nut)
+anova(plant.P) # main effects only
+
+plant.K<-lm(K~type+plant+treatment, data=plant.nut)
+anova(plant.K) # main effects only
+
+plant.S<-lm(S~type*plant +treatment, data=plant.nut)
+anova(plant.S) # type:plant, main effects
+
+plant.ZN<-lm(N~type*plant*treatment, data=plant.nut)
+anova(plant.ZN) # 3 way interaction, type and plant most key
+
+
+
+
+####### figures
+N.plot<- ggplot(plant.nut, aes(x=int.fac, y=N, fill=treatment)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("coral", "darkseagreen3")) +
+  geom_dotplot(binaxis='y', stackdir='center', alpha=0.5, dotsize=0.5,
+                 position=position_dodge(0.75))+
+  xlab("Plant:Tissue")+
+  ylab("%N")+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+P.plot<- ggplot(plant.nut, aes(x=int.fac, y=P, fill=treatment)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("coral", "darkseagreen3")) +
+  geom_dotplot(binaxis='y', stackdir='center', alpha=0.5, dotsize=0.5,
+                 position=position_dodge(0.75))+
+  xlab("Plant:Tissue")+
+  ylab("%P")+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+K.plot<- ggplot(plant.nut, aes(x=int.fac, y=K, fill=treatment)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("coral", "darkseagreen3")) +
+  geom_dotplot(binaxis='y', stackdir='center', alpha=0.5, dotsize=0.5,
+                 position=position_dodge(0.75))+
+  xlab("Plant:Tissue")+
+  ylab("%K")+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+
+S.plot<- ggplot(plant.nut, aes(x=int.fac, y=S, fill=treatment)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("coral", "darkseagreen3")) +
+  geom_dotplot(binaxis='y', stackdir='center', alpha=0.5, dotsize=0.5,
+                 position=position_dodge(0.75))+
+  xlab("Plant:Tissue")+
+  ylab("%S")+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+Zn.plot<- ggplot(plant.nut, aes(x=int.fac, y=ZN, fill=treatment)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("coral", "darkseagreen3")) +
+  geom_dotplot(binaxis='y', stackdir='center', alpha=0.5, dotsize=0.5,
+                 position=position_dodge(0.75)) +
+  xlab("Plant:Tissue")+
+  ylab("Zn ppm")+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+  
+extract.legend.nut <- get_legend(
+  # create some space to the left of the legend
+  Zn.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+nutrients<-plot_grid(
+  N.plot+ theme(legend.position = "none"),
+  P.plot+ theme(legend.position = "none"),
+  K.plot+ theme(legend.position = "none"), 
+  S.plot+ theme(legend.position = "none"), 
+  Zn.plot+ theme(legend.position = "none"),
+  extract.legend.nut, 
+  rel_widths = c(8,8,8,8,8,3), ncol=6)
+
+nutrients
+ggsave("figures/leaf.nutrients.pdf", height=4, width=12)
+
+```
+  
+### Phosphorus
+
+```{r, water phosphorus}
+phos<-read.csv("data/Pyro_water.phosph.csv")
+
+fac2<-c("Time.Point", "Treatment", "Tank") # make factors
+phos[fac2]<-lapply(phos[fac2],factor)
+
+phos<-na.omit(phos)
+
+T2.phos<-ggplot(phos, aes(x=plant.mass..g, y=TP.umol..l, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ggtitle("T2.Phosphorus") +
+  coord_cartesian(ylim=c(0, 50)) +
+  ylab(expression(paste("Total Phosphorus ","(umol/l)"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T2.phos
+ggsave("figures/phosp.plot.pdf", height=5, width=7)
+
+
+
+```
 
 ### Zooplankton
 integrating the zooplankton counting data and code from Jon into the markdown.
@@ -102,7 +226,7 @@ write.csv(zoop, "data/zooplankton/Pyro_zoop_cleaned.csv")
 ```
 
 
-```{r, zooplankton sumary}
+```{r, zooplankton summary}
 z.df<-zoop
 
 z<-summaryBy(Density ~ Tank + Date.collected + Time.point + Treatment + Plant.mass..g +

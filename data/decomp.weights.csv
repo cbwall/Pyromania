@@ -1,4 +1,4 @@
-tank,treatment,total.plant.mass..g,plant.type,plant.specific.mass..g,dry.mass..g (w/ litter bag),dry.mass..g (w/o litter bag or foil),∆ dry.mass..g,% ∆ dry.mass..g 
+tank,treatment,total.plant.mass..g,plant.type,plant.specific.mass..g,dry.mass..g.w.bag,dry.mass..g.bag.corrected,delta.dry.mass..g,percent.delta.dry.mass..g 
 1,unburned,400,sage,200,135.9,125.875,-74.125,-37.0625
 2,burned,0,sage,0,0,0,0,0
 3,unburned,300,sage,150,103.8,89.65,-60.35,-40.23333333
