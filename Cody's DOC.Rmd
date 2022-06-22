@@ -123,6 +123,7 @@ DOC.df2$oTime.point=as.factor(DOC.df2$oTime.point)
 DOC plots: biomass is a proxy for DOC 
 ```{r}
 library(ggtext)
+library(mgcv)
 
 DOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
   geom_point(alpha=0.5) +
@@ -131,7 +132,7 @@ DOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=DOC..m
   coord_cartesian(ylim=c(0, 60)) +
   ggtitle("Time-0") +
   xlab("")+
-  ylab("Dissolved Organic Carbon (mg/L)")+
+  ylab("DOC concentration (mg/L)")+
   theme_cowplot(12)+
   theme(legend.title=element_blank())
 
@@ -198,11 +199,13 @@ DOC.plots<-plot_grid(
   rel_widths = c(50,50,50,50, 50, 20), ncol=6)
 DOC.plots
 
+ggsave("figures/DOC.concentration.pdf", height=5, width=17.5)
+
+
 plot_grid(
   ggdraw(add_sub(DOC.plots, "Fig 3. Measured dissolved organic carbon (DOC) concentrations across five sampling periods. Color and line type included to distinguish individual plant trends. Time-0 represents baseline DOC concentrations before the addition of plant material with Time-1 (p< 0.49), Time-2 (p= 0.83), Time-3 (p< 0.01), and Time-4 were sampled for both treatments in November 2021, December 2021, January 2022, and February 2022, respectively. ", x=0.01, hjust=0)), ncol = 1)
 
 
-ggsave("figures/DOC.concentration.pdf", height=5, width=17.5)
 
 
 ```
@@ -553,15 +556,16 @@ ggsave("figures/UVBio.mass.degra_type.plots.pdf", height=5, width=10)
 UVBIO with just T1
 ```{r}
 
-UVBIO.T1<-ggplot(degra.df[(degra.df$Time.point=="T1"),], aes(x=plant.mass..g, y=percent.change.DOC, color=effect))+
+UVBIO.T1<-ggplot(degra.df[(degra.df$Time.point=="T1"),], aes(x=Start.DOC, y=percent.change.DOC, color=effect))+
   facet_grid(~Treatment)+
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("midnightblue", "gold", "springgreen1")) + 
-  geom_smooth(method=loess, aes(fill=effect), alpha=0.1) +
+  geom_smooth(method=gam, formula= y~s(x), aes(fill=effect), alpha=0.1) +
   ylab(expression(paste("%", Delta, "DOC (mg/L)")))+
-  ggtitle("Time-1") +
-  xlab("Plant Mass (g)")+
-  theme_cowplot(12)
+  xlab("Initial DOC concentration (mg/L)")+
+  theme_cowplot(12)+
+  coord_cartesian(xlim = c(5,55))+
+  theme(legend.title=element_blank())
 
 UVBIO.T1
 
@@ -682,9 +686,11 @@ UVBIO analysis
 
 T1 model
 ```{r}
+library(gratia)
 #####
-uv.m1.gam=gam(abs.change.DOC ~ effect*Treatment +s(plant.mass..g, by= effect) , data=degra.df, method="REML", select= T, subset= Time.point=="T1")
+uv.m1.gam=gam(abs.change.DOC ~ effect*Treatment +s(Start.DOC, by=effect, bs="cr") , data=degra.df, method="REML", select= T, subset= Time.point=="T1")
 summary(uv.m1.gam)
+anova(uv.m1.gam)
 draw(uv.m1.gam)
 concrvity(uv.m1.gam)
 gam.check(uv.m1.gam, rep=1000)
@@ -693,7 +699,7 @@ gam.check(uv.m1.gam, rep=1000)
 T4 model
 ```{r}
 #####
-uv.m3.gam=gam(abs.change.DOC ~ effect*Treatment +s(plant.mass..g, by= effect) , data=degra.df, method="REML", select= T, subset= Time.point=="T3")
+uv.m3.gam=gam(abs.change.DOC ~ effect*Treatment +s(Start.DOC, by= effect) , data=degra.df, method="REML", select= T, subset= Time.point=="T3")
 summary(uv.m3.gam)
 draw(uv.m1.gam)
 concrvity(uv.m1.gam)
@@ -708,14 +714,14 @@ gam.check(uv.m1.gam, rep=1000)
 ```{r}
 
 library(visreg)
-uv.t1.burned=visreg(uv.m1.gam, "plant.mass..g", gg=TRUE, by="effect", overlay=T, partial=F, rug=F, cond=list(Treatment="burned")) +
+uv.t1.burned=visreg(uv.m1.gam, "Start.DOC", gg=TRUE, by="effect", overlay=T, partial=F, rug=F, cond=list(Treatment="burned")) +
   ggtitle("T1: Burned") +
-  xlab("plant mass (g)")+
+  xlab("Initial DOC concentration (mg/L)")+
   theme_cowplot(12)
 
-uv.t1.unburned=visreg(uv.m1.gam, "plant.mass..g", gg=TRUE, by="effect", overlay=T, partial=F, rug=F, cond=list(Treatment="unburned")) +
+uv.t1.unburned=visreg(uv.m1.gam, "Start.DOC", gg=TRUE, by="effect", overlay=T, partial=F, rug=F, cond=list(Treatment="unburned")) +
   ggtitle("T1: Unburned") +
-  xlab("plant mass (g)")+
+  xlab("Initial DOC concentration (mg/L)")+
   theme_cowplot(12)
 
 
@@ -936,6 +942,8 @@ names(decomp.df)[8]= "change"
 names(decomp.df)[9]= "percent.change"
 decomp.df=decomp.df[-c(61:82), ] 
 
+
+
 #make a duplicate dataframe and convert % to decimal
 decomp2.df=data.frame(decomp.df)
 
@@ -943,8 +951,8 @@ decomp2.df=data.frame(decomp.df)
 sage.df=data.frame(decomp.df[decomp.df$plant.type=="sage",]$treatment,
                     decomp.df[decomp.df$plant.type=="sage",]$tank,
                     decomp.df[decomp.df$plant.type=="sage",]$plant.specific.mass..g,
-                    decomp.df[decomp.df$plant.type=="sage",]$dry.mass..g..w.o.litter.bag.or.foil.-decomp.df[decomp.df$plant.type=="sage",]$plant.specific.mass..g,
-                     (100*(decomp.df[decomp.df$plant.type=="sage",]$dry.mass..g..w.o.litter.bag.or.foil.-decomp.df[decomp.df$plant.type=="sage",]$plant.specific.mass..g)/(decomp.df[decomp.df$plant.type=="sage",]$plant.specific.mass..g)))
+                    decomp.df[decomp.df$plant.type=="sage",]$dry.mass..g.bag.corrected-decomp.df[decomp.df$plant.type=="sage",]$plant.specific.mass..g,
+                     (100*(decomp.df[decomp.df$plant.type=="sage",]$dry.mass..g.bag.corrected-decomp.df[decomp.df$plant.type=="sage",]$plant.specific.mass..g)/(decomp.df[decomp.df$plant.type=="sage",]$plant.specific.mass..g)))
 sage.df$type="sage"
 names(sage.df)[1]="Treatment"
 names(sage.df)[2]="Tank"
@@ -958,8 +966,8 @@ sage.df$mass.remaining=100-abs(sage.df[sage.df$type=="sage",]$percent.change)
 willow.df=data.frame(decomp.df[decomp.df$plant.type=="willow",]$treatment,
                     decomp.df[decomp.df$plant.type=="willow",]$tank,
                     decomp.df[decomp.df$plant.type=="willow",]$plant.specific.mass..g,
-                    decomp.df[decomp.df$plant.type=="willow",]$dry.mass..g..w.o.litter.bag.or.foil.-decomp.df[decomp.df$plant.type=="willow",]$plant.specific.mass..g,
-                     (100*(decomp.df[decomp.df$plant.type=="willow",]$dry.mass..g..w.o.litter.bag.or.foil.-decomp.df[decomp.df$plant.type=="willow",]$plant.specific.mass..g)/(decomp.df[decomp.df$plant.type=="willow",]$plant.specific.mass..g)))
+                    decomp.df[decomp.df$plant.type=="willow",]$dry.mass..g.bag.corrected-decomp.df[decomp.df$plant.type=="willow",]$plant.specific.mass..g,
+                     (100*(decomp.df[decomp.df$plant.type=="willow",]$dry.mass..g.bag.corrected-decomp.df[decomp.df$plant.type=="willow",]$plant.specific.mass..g)/(decomp.df[decomp.df$plant.type=="willow",]$plant.specific.mass..g)))
 willow.df$type="willow"
 names(willow.df)[1]="Treatment"
 names(willow.df)[2]="Tank"
@@ -988,12 +996,13 @@ Sage and Willow Decomp Plots (% mass remaining)
 #Unburned treatment decomp
 mass.unburned.decomp.plot=ggplot(plant.df[(plant.df$type=="sage"),])+ 
   geom_point(aes(x=plant.specific.mass..g,y=mass.remaining,color=Treatment),alpha=0.5)+
-  geom_smooth(aes(x=plant.specific.mass..g, y=mass.remaining, color=Treatment), method="loess", alpha=0.1)+
+  geom_smooth(aes(x=plant.specific.mass..g, y=mass.remaining, color=Treatment), method="gam", formula= y~s(x), alpha=0.1)+
   scale_color_manual(values = c("orange", "purple")) + 
   ggtitle("Decomposition: Sage") +
-  ylab(expression(paste("% mass remaining (g)"))) +
-  xlab("plant specific mass (g)")+
+  ylab(expression(paste("% Mass Remaining (g)"))) +
+  xlab("Plant Specific Mass (g)")+
   theme_cowplot(12)+
+  coord_cartesian(ylim = c(20,80))+
   theme(legend.title=element_blank())
 
 
@@ -1005,11 +1014,12 @@ extract.legend4 <- get_legend(
 #Burned decomp
 mass.burned.decomp.plot=ggplot(plant.df[(plant.df$type=="willow"),])+ 
    geom_point(aes(x=plant.specific.mass..g,y=mass.remaining,color=Treatment),alpha=0.5)+
-  geom_smooth(aes(x=plant.specific.mass..g, y=mass.remaining, color=Treatment), method="loess", alpha=0.1)+
+  geom_smooth(aes(x=plant.specific.mass..g, y=mass.remaining, color=Treatment), method="gam", formula= y~s(x), alpha=0.1)+
   scale_color_manual(values = c("orange", "purple")) + 
   ggtitle("Decomposition: Willow") +
-  xlab("plant specific mass (g)")+
-  ylab(expression(paste("% mass remaining (g)"))) +
+  ylab("") +
+   xlab("Plant Specific Mass (g)")+
+   coord_cartesian(ylim = c(20,80))+
   theme_cowplot(12)
 
 
@@ -1019,11 +1029,13 @@ mass.decomp.plots=plot_grid(mass.unburned.decomp.plot + theme(legend.position = 
           labels = c("a)", "b)"),
           ncol=3, rel_widths = c(15,15,4))
 
+mass.decomp.plots
+
 plot_grid(
   ggdraw(add_sub(mass.decomp.plots, "Fig 3. Measured plant mass remaining of each plant type for both treatments. Plant specific mass represents \ninitial plant weights at the start of the experiment", x=0.01, hjust=0)), ncol = 1)
 
 degra.plots
-ggsave("figures/mass.decomp_type.plots.pdf", height=5, width=10)
+ggsave("figures/mass.plant_type_decomp.pdf", height=5, width=10)
 
 
 ```
