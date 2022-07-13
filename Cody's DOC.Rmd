@@ -116,7 +116,11 @@ DOC.df2=mutate(DOC.df2, oTime.point= ordered(Time.point, levels= c("T1", "T2", "
 DOC.df2$oTreatment=as.factor(DOC.df2$oTreatment)
 DOC.df2$oTime.point=as.factor(DOC.df2$oTime.point)
 
+mean(DOC_T1[DOC_T1$Treatment=="burned",]$DOC..mg.L)
+mean(DOC_T3[DOC_T3$Treatment=="burned",]$DOC..mg.L)
 
+mean(DOC_T1[DOC_T1$Treatment=="unburned",]$DOC..mg.L)
+mean(DOC_T3[DOC_T3$Treatment=="unburned",]$DOC..mg.L)
 
 
 ```
@@ -125,62 +129,67 @@ DOC plots: biomass is a proxy for DOC
 library(ggtext)
 library(mgcv)
 
+  theme_cowplot(12)
+    theme(legend.title=element_blank())
+
 DOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
-  geom_smooth(method=gam, formula= y~ s(x, bs="cr", k=4), aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 60)) +
   ggtitle("Time-0") +
   xlab("")+
   ylab("DOC concentration (mg/L)")+
-  theme_cowplot(12)+
-  theme(legend.title=element_blank())
+  Fig.formatting
+
 
 
 DOC.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
-  geom_smooth(method=gam, formula= y~ s(x, bs="cr", k=4), aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.1) +
   ggtitle("Time-1") +
   xlab("")+
   ylab("")+
   coord_cartesian(ylim=c(0, 60)) +
-  theme_cowplot(12)
-DOC.T1
+  Fig.formatting
+
+
 
 
 DOC.T2<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
-  geom_smooth(method=gam, formula= y~ s(x, bs="cr", k=4), aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.1) +
   ggtitle("Time-2") +
-  xlab("Plant Mass (g)") +
+  xlab("Plant mass (g)") +
   ylab("")+
   coord_cartesian(ylim=c(0, 60)) +
-  theme_cowplot(12)
+    Fig.formatting
 
 
   
 DOC.T3<-ggplot(DOC.df[(DOC.df$Time.point=="T3"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
-  geom_smooth(method=gam, formula= y~ s(x, bs="cr", k=4), aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 60)) +
   ggtitle("Time-3") +
   xlab("")+
   ylab("")+
-  theme_cowplot(12)
+    Fig.formatting
+
 
 
 DOC.T4<-ggplot(DOC.df[(DOC.df$Time.point=="T4"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
-  geom_smooth(method=gam, formula= y~ s(x, bs="cr", k=4), aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 60)) +
   ggtitle("Time-4") +
   xlab("")+
   ylab("")+
-  theme_cowplot(12)
+    Fig.formatting
 
 
 
@@ -197,7 +206,10 @@ DOC.plots<-plot_grid(
   DOC.T4+ theme(legend.position = "none"),
   extract.legend,
   rel_widths = c(50,50,50,50, 50, 20), ncol=6)
+
 DOC.plots
+
+
 
 ggsave("figures/DOC.concentration.pdf", height=5, width=17.5)
 
@@ -209,13 +221,248 @@ plot_grid(
 
 
 ```
+
+```{r}
+DOC.T0.box<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=Treatment, y=DOC..mg.L, fill=Treatment)) +
+  geom_boxplot(aes(fill=Treatment))+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-0") +
+  xlab("")+
+  ylab("DOC concentration (mg/L)")+
+  Fig.formatting
+
+
+DOC.T1.box<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=Treatment, y=DOC..mg.L, fill=Treatment)) +
+  geom_boxplot(aes(fill=Treatment))+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-1") +
+  xlab("")+
+  ylab("")+
+  Fig.formatting
+
+DOC.T2.box<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=Treatment, y=DOC..mg.L, fill=Treatment)) +
+  geom_boxplot(aes(fill=Treatment))+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-2") +
+  xlab("Treatment")+
+  ylab("")+
+  Fig.formatting
+  
+DOC.T3.box<-ggplot(DOC.df[(DOC.df$Time.point=="T3"),], aes(x=Treatment, y=DOC..mg.L, fill=Treatment)) +
+  geom_boxplot(aes(fill=Treatment))+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-3") +
+  xlab("")+
+  ylab("")+
+  Fig.formatting
+
+
+DOC.T4.box<-ggplot(DOC.df[(DOC.df$Time.point=="T4"),], aes(x=Treatment, y=DOC..mg.L, fill=Treatment)) +
+  geom_boxplot(aes(fill=Treatment))+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-4") +
+  xlab("")+
+  ylab("")+
+  Fig.formatting
+
+
+
+extract.legend <- get_legend(
+  # create some space to the left of the legend
+  DOC.T0 + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+
+DOC.box.plots<-plot_grid(
+  DOC.T0.box+ theme(legend.position = "none"),
+  DOC.T1.box+ theme(legend.position = "none"),
+  DOC.T2.box+ theme(legend.position = "none"),
+  DOC.T3.box+ theme(legend.position = "none"),
+  DOC.T4.box+ theme(legend.position = "none"),
+  rel_widths = c(50,50,50,50, 50, 20), ncol=6)
+DOC.box.plots
+
+#combine all DOC plots
+DOC.combo.plots<-plot_grid(
+  DOC.plots, DOC.box.plots ,nrow=2)
+DOC.combo.plots
+
+
+
+library(ggpubr)
+ggarrange(DOC.plots, DOC.box.plots, labels = c("a)", "b)"), common.legend = TRUE, legend="right", nrow=2)
+
+ggsave("figures/DOC.combo.plots.pdf", height=8, width=14)
+
+```
+
+Total N plots
+```{r}
+TN.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-0") +
+  xlab("")+
+  ylab("TDN concentration (mg/L)")+
+  Fig.formatting+
+  coord_cartesian(ylim = c(0,1.5))
+
+ 
+TN.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-1") +
+  xlab("")+
+  ylab("")+
+  Fig.formatting+
+  coord_cartesian(ylim = c(0,1.5))
+  
+ 
+TN.T2<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-2") +
+  xlab("Plant mass (g)")+
+  ylab("")+
+  Fig.formatting+
+  coord_cartesian(ylim = c(0,1.5))
+
+ 
+
+TN.T3<-ggplot(DOC.df[(DOC.df$Time.point=="T3"),], aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-3") +
+  xlab("")+
+  ylab("")+
+  Fig.formatting+
+  coord_cartesian(ylim = c(0,1.5))
+ 
+
+TN.T4<-ggplot(DOC.df[(DOC.df$Time.point=="T4"),], aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-4") +
+  xlab("")+
+  ylab("")+
+  Fig.formatting+
+  coord_cartesian(ylim = c(0,1.5))
+  
+TN.plots<-plot_grid(
+  TN.T0+ theme(legend.position = "none"),
+  TN.T1+ theme(legend.position = "none"),
+  TN.T2+ theme(legend.position = "none"),
+  TN.T3+ theme(legend.position = "none"),
+  TN.T4+ theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(50,50,50,50,50,20), ncol=6)
+
+ggsave("figures/TN.concentration.pdf", height=5, width=17.5)
+
+```
+
+```{r}
+
+TN.T0.box<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=Treatment, y=TN..mg.L, fill=Treatment)) +
+  geom_boxplot(aes(fill=Treatment))+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  coord_cartesian(ylim = c(0,1.5))+
+  ggtitle("Time-0") +
+  xlab("")+
+  ylab("TDN concentration (mg/L)")+
+  Fig.formatting
+
+
+TN.T1.box<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=Treatment, y=TN..mg.L, fill=Treatment)) +
+  geom_boxplot(aes(fill=Treatment))+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  coord_cartesian(ylim = c(0,1.5))+
+  ggtitle("Time-1") +
+  xlab("")+
+  ylab("")+
+   Fig.formatting
+
+TN.T2.box<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=Treatment, y=TN..mg.L, fill=Treatment)) +
+  geom_boxplot(aes(fill=Treatment))+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  coord_cartesian(ylim = c(0,1.5))+
+  ggtitle("Time-2") +
+  xlab("Treatment")+
+  ylab("")+
+  Fig.formatting
+
+TN.T3.box<-ggplot(DOC.df[(DOC.df$Time.point=="T3"),], aes(x=Treatment, y=TN..mg.L, fill=Treatment)) +
+  geom_boxplot(aes(fill=Treatment))+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  coord_cartesian(ylim = c(0,1.5))+
+  ggtitle("Time-3") +
+  xlab("")+
+  ylab("")+
+  Fig.formatting
+
+TN.T4.box<-ggplot(DOC.df[(DOC.df$Time.point=="T4"),], aes(x=Treatment, y=TN..mg.L, fill=Treatment)) +
+  geom_boxplot(aes(fill=Treatment))+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  coord_cartesian(ylim = c(0,1.5))+
+  ggtitle("Time-4") +
+  xlab("")+
+  ylab("")+
+  Fig.formatting
+
+extract.legend <- get_legend(
+  # create some space to the left of the legend
+  TN.T0.box + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+
+TN.box.plots<-plot_grid(
+  TN.T0.box+ theme(legend.position = "none"),
+  TN.T1.box+ theme(legend.position = "none"),
+  TN.T2.box+ theme(legend.position = "none"),
+  TN.T3.box+ theme(legend.position = "none"),
+  TN.T4.box+ theme(legend.position = "none"),
+  rel_widths = c(50,50,50,50, 50, 20), ncol=6)
+
+TN.box.plots
+
+
+#combine all DOC plots
+TN.combo.plots<-plot_grid(
+  TN.plots, TN.box.plots ,nrow=2)
+TN.combo.plots
+
+
+
+library(ggpubr)
+ggarrange(TN.plots, TN.box.plots, common.legend = TRUE, legend="right", nrow=2)
+
+ggsave("figures/TN.combo.plots.pdf", height=8, width=14)
+
+
+
+```
+
+
 DOC analysis: 
 T1 model
 ```{r}
 library(mgcv)
 library(gratia)
 library(car)
-m1.gam=gam(log10(DOC..mg.L) ~ Treatment + s(plant.mass..g,by=Treatment, k=4, bs="ps"), subset = Time.point=="T1", data = DOC.df2, method = "REML")
+m1.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = DOC.df2, method = "REML")
+
+
+AIC(m1.gam, m1.gam.wo)
+
+anova(m1.gam)
 summary(m1.gam)
 anova.gam(m1.gam)
 gam.check(m1.gam, rep=1000)
@@ -234,7 +481,14 @@ There is also a pronounced difference in DOC between the treatment, with high le
 
 T2 model
 ```{r}
-m2.gam=gam(log10(DOC..mg.L) ~ Treatment + s(plant.mass..g,by=Treatment, bs="ps"), subset = Time.point=="T2", data = DOC.df2, method = "REML")
+m2.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T2", data = DOC.df2, method = "REML")
+
+m2.gam.wo=gam(DOC..mg.L ~ s(plant.mass..g, by= Treatment), subset = Time.point=="T2", data = DOC.df2, method = "REML")
+
+
+
+AIC(m2.gam, m2.gam.wo)
+
 summary(m2.gam)
 anova.gam(m2.gam)
 gam.check(m2.gam, rep=1000)
@@ -250,7 +504,7 @@ There is also no difference in DOC between the treatment.
 
 T3 model
 ```{r}
-m3.gam=gam(log10(DOC..mg.L) ~ Treatment + s(plant.mass..g,by=Treatment,bs="ps"), subset = Time.point=="T3", data = DOC.df2, method = "REML")
+m3.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T3", data = DOC.df2, method = "REML")
 summary(m3.gam)
 anova.gam(m3.gam)
 gam.check(m3.gam, rep=1000)
@@ -266,7 +520,7 @@ There is also significant difference in DOC between the treatment, with highest 
 
 T4 model
 ```{r}
-m4.gam=gam(log10(DOC..mg.L) ~ Treatment + s(plant.mass..g,by=Treatment,bs="ps"), subset = Time.point=="T4", data = DOC.df2, method = "REML")
+m4.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T4", data = DOC.df2, method = "REML")
 summary(m4.gam)
 anova.gam(m4.gam)
 gam.check(m4.gam, rep=1000)
@@ -279,6 +533,77 @@ DOC varies non-linearly across the plant mass gradient, with highest levels of D
 
 There is also significant difference in DOC between the treatment, with highest level in the burned treatment compared to the unburned.
 
+
+```{r}
+m.treatment.gam=gam(DOC..mg.L~Treatment + s(plant.mass..g), subset = Time.point=="T1", data=DOC.df2)
+summary(m.treatment.gam)
+anova(m.treatment.gam)
+
+m.treatment.gam2=gam(DOC..mg.L~Treatment + s(plant.mass..g), subset = Time.point=="T2", data=DOC.df2)
+summary(m.treatment.gam)
+anova(m.treatment.gam2)
+
+#box plots of DOC
+DOC.boxplot=ggplot(DOC.df, aes(x=Treatment , y=DOC..mg.L, fill=Treatment)) +
+  geom_boxplot(aes(fill=Treatment))+
+  facet_grid(~Time.point)+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  xlab("Treatment")+
+  ylab("DOC concentration (mg/L)")+
+  theme_cowplot(12)+
+  theme(legend.title=element_blank())
+  
+
+
+```
+
+
+T2 model
+```{r}
+m1.TN.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T1", data = DOC.df2, method = "REML")
+summary(m1.TN.gam)
+anova.gam(m1.TN.gam)
+gam.check(m1.TN.gam, rep=1000)
+draw(m1.TN.gam)
+concrvity(m1.TN.gam)
+
+
+```
+T2 model
+```{r}
+m2.TN.gam=gam(log10(TN..mg.L) ~ Treatment + s(plant.mass..g,by=Treatment, k=4, bs="ps"), subset = Time.point=="T2", data = DOC.df2, method = "REML")
+summary(m2.TN.gam)
+anova.gam(m2.TN.gam)
+gam.check(m2.TN.gam, rep=1000)
+draw(m2.TN.gam)
+concrvity(m2.TN.gam)
+
+
+```
+
+T3 model
+```{r}
+m3.TN.gam=gam(log10(TN..mg.L) ~ Treatment + s(plant.mass..g,by=Treatment, k=4, bs="ps"), subset = Time.point=="T3", data = DOC.df2, method = "REML")
+summary(m3.TN.gam)
+anova.gam(m3.TN.gam)
+gam.check(m3.TN.gam, rep=1000)
+draw(m3.TN.gam)
+concrvity(m3.TN.gam)
+
+
+```
+
+T4 model
+```{r}
+m4.TN.gam=gam(log10(TN..mg.L) ~ Treatment + s(plant.mass..g,by=Treatment, k=4, bs="ps"), subset = Time.point=="T4", data = DOC.df2, method = "REML")
+summary(m4.TN.gam)
+anova.gam(m4.TN.gam)
+gam.check(m4.TN.gam, rep=1000)
+draw(m4.TN.gam)
+concrvity(m4.TN.gam)
+
+
+```
 
 UVBIO files
 ```{r}
@@ -383,59 +708,82 @@ Calculate photo, microbe, and total degradation:
 
 photo.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Time.point,
                     UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Start.DOC,
+                    UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Start.TN,
                     UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Treatment,
                     UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Tank,
                     UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$plant.mass..g,
-                    UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Start.DOC,
-                    (100*(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Start.DOC)/(abs(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Start.DOC))))
+                    UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$Start.DOC,
+                    100*(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$Start.DOC)/(abs(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$Start.DOC)), 
+                     UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$TN..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$Start.TN,
+                    100*(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$TN..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$Start.TN)/(abs(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$Start.TN)))
+
 photo.df$type="photo"
 names(photo.df)[1]="Time.point"
 names(photo.df)[2]="Start.DOC"
-names(photo.df)[3]="Treatment"
-names(photo.df)[4]="Tank"
-names(photo.df)[5]="plant.mass..g"
-names(photo.df)[6]="abs.change.DOC"
-names(photo.df)[7]="percent.change.DOC"
-photo.df$mass.remaining=100-abs(photo.df[photo.df$type=="photo",]$percent.change)
+names(photo.df)[3]="Start.TN"
+names(photo.df)[4]="Treatment"
+names(photo.df)[5]="Tank"
+names(photo.df)[6]="plant.mass..g"
+names(photo.df)[7]="abs.change.DOC"
+names(photo.df)[8]="percent.change.DOC"
+names(photo.df)[9]="abs.change.TN"
+names(photo.df)[10]="percent.change.TN"
+photo.df$mass.remaining.DOC=100-abs(photo.df[photo.df$type=="photo",]$percent.change.DOC)
+photo.df$mass.remaining.TN=100-abs(photo.df[photo.df$type=="photo",]$percent.change.TN)
 
 
 #Microbe decomp
 microbe.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Time.point,
                       UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Start.DOC,
+                      UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Start.TN,
                       UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Treatment,
                       UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Tank,
                       UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$plant.mass..g,
-                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Start.DOC,
-                    (100*(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Start.DOC)/(abs(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Start.DOC))))
+                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L- UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$Start.DOC,
+                    100*(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$Start.DOC)/(abs( UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$Start.DOC)),
+                     UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$TN..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$Start.TN,
+                    100*(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$TN..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$Start.TN)/(abs(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$Start.TN)))
+
 microbe.df$type="microbe"
 names(microbe.df)[1]="Time.point"
 names(microbe.df)[2]="Start.DOC"
-names(microbe.df)[3]="Treatment"
-names(microbe.df)[4]="Tank"
-names(microbe.df)[5]="plant.mass..g"
-names(microbe.df)[6]="abs.change.DOC"
-names(microbe.df)[7]="percent.change.DOC"
-microbe.df$mass.remaining=100-abs(microbe.df[microbe.df$type=="microbe",]$percent.change)
-
+names(microbe.df)[3]="Start.TN"
+names(microbe.df)[4]="Treatment"
+names(microbe.df)[5]="Tank"
+names(microbe.df)[6]="plant.mass..g"
+names(microbe.df)[7]="abs.change.DOC"
+names(microbe.df)[8]="percent.change.DOC"
+names(microbe.df)[9]="abs.change.TN"
+names(microbe.df)[10]="percent.change.TN"
+microbe.df$mass.remaining.DOC=100-abs(microbe.df[microbe.df$type=="microbe",]$percent.change.DOC)
+microbe.df$mass.remaining.TN=100-abs(microbe.df[microbe.df$type=="microbe",]$percent.change.TN)
 
 
 #Total decomp= A
 total.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Time.point,
                     UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Start.DOC,
+                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Start.TN,
                     UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Treatment,
                     UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Tank,
                     UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$plant.mass..g,
-                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Start.DOC,
-                     (100*(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Start.DOC)/(abs(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Start.DOC))))
+                    UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$Start.DOC,
+                     100*(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$DOC..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$Start.DOC)/(abs(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$Start.DOC)),
+                      UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$TN..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$Start.TN,
+                     100*(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$TN..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$Start.TN)/(abs(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.NoUV",]$Start.TN)))
+                     
 total.df$type="total"
 names(total.df)[1]="Time.point"
 names(total.df)[2]="Start.DOC"
-names(total.df)[3]="Treatment"
-names(total.df)[4]="Tank"
-names(total.df)[5]="plant.mass..g"
-names(total.df)[6]="abs.change.DOC"
-names(total.df)[7]="percent.change.DOC"
-total.df$mass.remaining=100-abs(total.df[total.df$type=="total",]$percent.change)
+names(total.df)[3]="Start.TN"
+names(total.df)[4]="Treatment"
+names(total.df)[5]="Tank"
+names(total.df)[6]="plant.mass..g"
+names(total.df)[7]="abs.change.DOC"
+names(total.df)[8]="percent.change.DOC"
+names(total.df)[9]="abs.change.TN"
+names(total.df)[10]="percent.change.TN"
+total.df$mass.remaining.DOC=100-abs(total.df[total.df$type=="total",]$percent.change.DOC)
+total.df$mass.remaining.TN=100-abs(total.df[total.df$type=="total",]$percent.change.TN)
 
 
 
@@ -552,25 +900,170 @@ ggsave("figures/UVBio.mass.degra_type.plots.pdf", height=5, width=10)
 
 ```
 
+Sage and Willow Decomp Plots (% mass remaining)
+```{r}
+#Unburned treatment decomp
+mass.unburned.degra.plot=ggplot(degra.df[(degra.df$Time.point=="T1"),])+ 
+   geom_point(aes(x=plant.mass..g,y=percent.change.DOC,color=effect),alpha=0.5)+
+  facet_grid(~Treatment)+
+   geom_smooth(aes(x=plant.mass..g, y=percent.change.DOC, color=effect), method="gam", formula= y~s(x))+
+  scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
+  ggtitle("Degradation: unburned") +
+  ylab(expression(paste("% DOC remaining (mg/L)"))) +
+  xlab("Plant mass (g)")+
+  theme_cowplot(12)+
+  theme(legend.title=element_blank())
+
+mass.unburned.degra.plot
+
+
+
+
+extract.legend4 <- get_legend(
+  # create some space to the left of the legend
+  mass.unburned.decomp.plot + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
+
+
+#Burned decomp
+mass.burned.decomp.plot=ggplot(plant.df[(plant.df$type=="willow"),])+ 
+   geom_point(aes(x=plant.specific.mass..g,y=mass.remaining,color=Treatment),alpha=0.5)+
+  geom_smooth(aes(x=plant.specific.mass..g, y=mass.remaining, color=Treatment), method="gam", formula= y~s(x), alpha=0.1)+
+  scale_color_manual(values = c("orange", "purple")) + 
+  ggtitle("Decomposition: Willow") +
+  ylab("") +
+   xlab("Plant specific mass (g)")+
+   coord_cartesian(ylim = c(20,100))+
+  theme_cowplot(12)
+
+#box plots
+
+
+#combine them
+mass.decomp.plots=plot_grid(mass.unburned.decomp.plot + theme(legend.position = "none", legend.title=element_blank()), mass.burned.decomp.plot + theme(legend.position = "none"),
+          extract.legend4,
+          ncol=3, rel_widths = c(18, 18,6))
+
+mass.decomp.plots
+
+plot_grid(
+  ggdraw(add_sub(mass.decomp.plots, "Fig 3. Measured plant mass remaining of each plant type for both treatments. Plant specific mass represents \ninitial plant weights at the start of the experiment", x=0.01, hjust=0)), ncol = 1)
+
+degra.plots
+ggsave("figures/mass.plant_type_decomp.pdf", height=5, width=10)
+
+
+```
+
+Combined with box plots
+```{r}
+#Unburned treatment decomp
+ggplot(degra.df[(degra.df$Time.point=="T1"),])+ 
+  geom_boxplot(aes(x=Treatment,y=percent.change.DOC,fill=effect))+
+  scale_fill_manual(values = c("green", "yellow", "blue")) + 
+  ggtitle("Degradation") +
+  ylab(expression(paste("%", Delta, "DOC Change (mg/L)"))) +
+  xlab("Treatment")+
+  theme_cowplot(12)+
+  theme(legend.title=element_blank())
+
+
+extract.legend4 <- get_legend(
+  # create some space to the left of the legend
+  mass.unburned.decomp.plot + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
+
+
+#Burned decomp
+mass.willow.box.plot=ggplot(plant.df[(plant.df$type=="willow"),])+ 
+  geom_boxplot(aes(x=Treatment,y=mass.remaining,fill=Treatment))+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Decomposition: Willow") +
+  ylab(expression(paste("% Mass Remaining (g)"))) +
+  xlab("Treatment")+
+  theme_cowplot(12)+
+  coord_cartesian(ylim = c(20,100))+
+  theme(legend.title=element_blank())
+#box plots
+
+mass.box.plots=plot_grid(mass.sage.box.plot + theme(legend.position = "none", 
+                                                    legend.title=element_blank()), 
+                                                    mass.willow.box.plot+ theme(legend.position = "none"),
+                         ncol=3, rel_widths = c(18, 18,6))
+mass.box.plots
+
+#combine them
+mass.combo.plots
+
+ggarrange(mass.decomp.plots, mass.box.plots, common.legend = T, 
+          labels = c("a)", "b)"),
+          nrow=2)
+
+mass.combo.plots
+ggsave("figures/decomp.combo.plots.pdf", height=6, width=9)
+
+
+```
+
+UVBIO DOC with just T1
+```{r}
+
+UVBIO.T1.DOC<-ggplot(degra.df[(degra.df$Time.point=="T1"),], aes(x=plant.mass..g, y=percent.change.DOC, color=effect))+
+  facet_grid(~Treatment)+
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
+  geom_smooth(method=gam, formula= y~s(x), aes(fill=effect), alpha=0.1) +
+  ylab(expression(paste("%", Delta, "DOC (mg/L)")))+
+  xlab("Plant mass (g)")+
+  theme_cowplot(12)+
+  theme(legend.title=element_blank())
+
+UVBIO.T1.box.DOC<-ggplot(degra.df[(degra.df$Time.point=="T1"),], aes(x=Treatment, y=percent.change.DOC, fill=effect))+
+  geom_boxplot(aes(fill=effect))+
+  scale_fill_manual(values = c("springgreen1", "gold", "midnightblue")) + 
+  ylab(expression(paste("%", Delta, "DOC (mg/L)")))+
+  xlab("Treatment")+
+  theme_cowplot(12)+
+  theme(legend.title=element_blank())
+
+UVBIO.T1.DOC
+
+ggarrange(UVBIO.T1.DOC, UVBIO.T1.box.DOC, common.legend = T, legend = "right", 
+          labels = c("a)", "b)"),
+          nrow=2)
+
+
+ggsave("figures/T1.UVBio.mass.degra_type.plots.pdf", height=5, width=10)
+ggsave("figures/T1.degra.combo.plot.pdf", height=6, width=8)
+
+```
 
 UVBIO with just T1
 ```{r}
 
-UVBIO.T1<-ggplot(degra.df[(degra.df$Time.point=="T1"),], aes(x=Start.DOC, y=percent.change.DOC, color=effect))+
+UVBIO.T1.TN<-ggplot(degra.df[(degra.df$Time.point=="T1"),], aes(x=plant.mass..g, y=percent.change.TN, color=effect))+
   facet_grid(~Treatment)+
   geom_point(alpha=0.5) +
-  scale_color_manual(values = c("midnightblue", "gold", "springgreen1")) + 
+  scale_color_manual(values = c("springgreen1", "gold", "midnightblue")) + 
   geom_smooth(method=gam, formula= y~s(x), aes(fill=effect), alpha=0.1) +
-  ylab(expression(paste("%", Delta, "DOC (mg/L)")))+
-  xlab("Initial DOC concentration (mg/L)")+
+  ylab(expression(paste("%", Delta, "TDN (mg/L)")))+
+  xlab("Plant mass (g)")+
   theme_cowplot(12)+
-  coord_cartesian(xlim = c(5,55))+
   theme(legend.title=element_blank())
 
-UVBIO.T1
+UVBIO.T1.box.TN<-ggplot(degra.df[(degra.df$Time.point=="T1"),], aes(x=Treatment, y=percent.change.TN, fill=effect))+
+  geom_boxplot(aes(fill=effect))+
+  scale_fill_manual(values = c("springgreen1", "gold", "midnightblue")) + 
+  ylab(expression(paste("%", Delta, "TDN (mg/L)")))+
+  xlab("Treatment")+
+  theme_cowplot(12)+
+  theme(legend.title=element_blank())
 
+UVBIO.T1.DOC
 
-ggsave("figures/T1.UVBio.mass.degra_type.plots.pdf", height=5, width=10)
+ggarrange(UVBIO.T1.TN, UVBIO.T1.box.TN, common.legend = T, legend = "right", 
+          labels = c("a)", "b)"),
+          nrow=2)
+
+ggsave("figures/T1.degra.combo.TN.plot.pdf", height=6, width=8)
 
 
 ```
@@ -688,9 +1181,13 @@ T1 model
 ```{r}
 library(gratia)
 #####
-uv.m1.gam=gam(abs.change.DOC ~ effect*Treatment +s(Start.DOC, by=effect, bs="cr") , data=degra.df, method="REML", select= T, subset= Time.point=="T1")
+uv.m1.gam=gam(abs.change.DOC ~ effect*Treatment +s(plant.mass..g, by=effect), data=degra.df, method="REML", select= T, subset= Time.point=="T1")
 summary(uv.m1.gam)
-anova(uv.m1.gam)
+TukeyHSD(anova(uv.m1.gam))
+
+library(multcomp)
+glht(uv.m1.gam,linfct=mcp(effect="Tukey"))
+
 draw(uv.m1.gam)
 concrvity(uv.m1.gam)
 gam.check(uv.m1.gam, rep=1000)
@@ -993,41 +1490,52 @@ decomp2.df=decomp2.df%>%
 
 Sage and Willow Decomp Plots (% mass remaining)
 ```{r}
+Fig.formatting.decomp<-(theme_classic()) +
+  theme(text=element_text(size=14),
+        legend.text.align = 0,
+        panel.border = element_rect(fill=NA, colour = "black", size=1),
+        aspect.ratio=1, 
+        axis.ticks.length=unit(0.25, "cm"),
+        axis.text.y=element_text(
+        margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=12), 
+        axis.text.x=element_text(
+        margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=12)) +
+  theme(legend.key.size = unit(0.4, "cm")) +
+  theme(aspect.ratio=1.3) +
+  theme(panel.spacing=unit(c(0, 0, 0, 0), "cm"))
+
+
+
 #Unburned treatment decomp
 mass.unburned.decomp.plot=ggplot(plant.df[(plant.df$type=="sage"),])+ 
   geom_point(aes(x=plant.specific.mass..g,y=mass.remaining,color=Treatment),alpha=0.5)+
   geom_smooth(aes(x=plant.specific.mass..g, y=mass.remaining, color=Treatment), method="gam", formula= y~s(x), alpha=0.1)+
   scale_color_manual(values = c("orange", "purple")) + 
-  ggtitle("Decomposition: Sage") +
-  ylab(expression(paste("% Mass Remaining (g)"))) +
-  xlab("Plant Specific Mass (g)")+
-  theme_cowplot(12)+
-  coord_cartesian(ylim = c(20,80))+
-  theme(legend.title=element_blank())
-
-
-extract.legend4 <- get_legend(
-  # create some space to the left of the legend
-  mass.unburned.decomp.plot + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
-
-
+  ggtitle("Sage") +
+  ylab(expression(paste("Mass Remaining (%)"))) +
+  xlab("Plant specific mass (g)")+
+  Fig.formatting+
+  coord_cartesian(ylim = c(20,100))
+  
 #Burned decomp
 mass.burned.decomp.plot=ggplot(plant.df[(plant.df$type=="willow"),])+ 
    geom_point(aes(x=plant.specific.mass..g,y=mass.remaining,color=Treatment),alpha=0.5)+
   geom_smooth(aes(x=plant.specific.mass..g, y=mass.remaining, color=Treatment), method="gam", formula= y~s(x), alpha=0.1)+
   scale_color_manual(values = c("orange", "purple")) + 
-  ggtitle("Decomposition: Willow") +
+  ggtitle("Willow") +
   ylab("") +
-   xlab("Plant Specific Mass (g)")+
-   coord_cartesian(ylim = c(20,80))+
-  theme_cowplot(12)
+   xlab("Plant specific mass (g)")+
+   coord_cartesian(ylim = c(20,100))+
+  Fig.formatting
 
 
 #combine them
-mass.decomp.plots=plot_grid(mass.unburned.decomp.plot + theme(legend.position = "none", legend.title=element_blank()), mass.burned.decomp.plot + theme(legend.position = "none"),
-          extract.legend4,
-          labels = c("a)", "b)"),
-          ncol=3, rel_widths = c(15,15,4))
+
+mass.decomp.plots=plot_grid(
+  mass.unburned.decomp.plot + theme(legend.position = "none"), 
+  mass.burned.decomp.plot + theme(legend.position = "none"),
+          extract.legend,
+          ncol=3, rel_widths = c(8,8,4))
 
 mass.decomp.plots
 
@@ -1040,49 +1548,59 @@ ggsave("figures/mass.plant_type_decomp.pdf", height=5, width=10)
 
 ```
 
-Plant decomp plots (% change)
+Combined with box plots
 ```{r}
-#Unburned treatment degradation
-perc.unburned.decomp.plot=ggplot(plant.df[(plant.df$Treatment=="unburned"),])+ 
-  geom_point(aes(x=plant.specific.mass..g,y=percent.change,color=type),alpha=0.5)+
-  geom_smooth(aes(x=plant.specific.mass..g, y=percent.change, color=type), method="loess", alpha=0.1)+
-  scale_color_manual(values = c("olivedrab", "peru")) + 
-  ggtitle("Decomposition: unburned") +
-  ylab(expression(paste("%", Delta, "change (g)"))) +
-  xlab("plant specific mass (g)")+
-  theme_cowplot(12)+
-  theme(legend.title=element_blank())
-perc.unburned.decomp.plot
+#Unburned treatment decomp
+mass.sage.box.plot=ggplot(plant.df[(plant.df$type=="sage"),])+ 
+  geom_boxplot(aes(x=Treatment,y=mass.remaining,fill=Treatment))+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Sage") +
+  ylab(expression(paste("Mass Remaining (%)"))) +
+  xlab("Treatment")+
+  Fig.formatting+
+  coord_cartesian(ylim = c(20,100))
 
 
-extract.legend3 <- get_legend(
+#Burned decomp
+mass.willow.box.plot=ggplot(plant.df[(plant.df$type=="willow"),])+ 
+  geom_boxplot(aes(x=Treatment,y=mass.remaining,fill=Treatment))+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Willow") +
+  ylab(expression(paste(""))) +
+  xlab("Treatment")+
+  Fig.formatting+
+  coord_cartesian(ylim = c(20,100))
+#box plots
+
+
+
+extract.legend4 <- get_legend(
   # create some space to the left of the legend
-  perc.unburned.decomp.plot + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
+  mass.unburned.decomp.plot + theme(legend.box.margin = margin(0, 0, 0, 10), legend.title=element_blank()))
 
 
-#Burned degradation
-perc.burned.decomp.plot=ggplot(plant.df[(plant.df$Treatment=="burned"),])+ 
-   geom_point(aes(x=plant.specific.mass..g,y=percent.change,color=type),alpha=0.5)+
-  geom_smooth(aes(x=plant.specific.mass..g, y=percent.change, color=type), method="loess", alpha=0.1)+
-  scale_color_manual(values = c("olivedrab", "peru")) + 
-  ggtitle("Decomposition: burned") +
-  xlab("plant specific mass (g)")+
-  ylab(expression(paste("%", Delta, "change (g)"))) +
-  theme_cowplot(12)
-burned.degra.plot
+
+mass.box.plots=plot_grid(
+  mass.sage.box.plot + theme(legend.position = "none"),
+  mass.willow.box.plot+ theme(legend.position = "none"),
+  ncol=3, rel_widths = c(8,8,4))
+mass.box.plots
 
 #combine them
-perc.decomp.plots=plot_grid(perc.unburned.decomp.plot + theme(legend.position = "none", legend.title=element_blank()), perc.burned.decomp.plot + theme(legend.position = "none"),
-          extract.legend3,
-          labels = c("a)", "b)"),
-          ncol=3, rel_widths = c(15,15,3))
+mass.combo.plots
 
-plot_grid(
-  ggdraw(add_sub(perc.decomp.plots, "Fig 3. Percent change of decomposition by plant type for both treatments over the course of the experiment.", x=0.01, hjust=0)), ncol = 1)
+mean(sage.df[sage.df$Treatment=="unburned",]$percent.change)
+mean(willow.df[willow.df$Treatment=="unburned",]$percent.change)
 
-degra.plots
-ggsave("figures/Fig.3.perc.decomp_type.plots.pdf", height=5, width=10)
+ggarrange(
+  mass.decomp.plots, mass.box.plots
+  , nrow = 2, common.legend = T,
+  labels = c("a)", "b)")
+)
 
+
+mass.combo.plots
+ggsave("figures/decomp.combo.plots.pdf", height=8, width=9)
 
 
 ```
@@ -1092,6 +1610,7 @@ GAM for sage/willow
 
 plant.gam=gam(abs.change ~ Treatment*type + s(plant.specific.mass..g), data=plant.df, method= "REML", select=T)
 summary(plant.gam)
+anova(plant.gam)
 
 
 
@@ -1102,15 +1621,6 @@ summary(plant.gam)
 
 
 ```
-
-
-
-
-
-
-
-
-
 
 SUVA 
 SUVA calculations
@@ -1229,61 +1739,60 @@ Combine all SUVA time points
 suva.df=rbind(suva.t0.df, suva.t1.df, suva.t2.df, suva.t3.df, suva.t4.df)
 ```
 
+
+
+
 SUVA plots
 ```{r}
 suva.T0<-ggplot(suva.df[(suva.df$Time.point=="T0"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) +
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
   ggtitle("Time-0") +
   xlab("")+
   ylab(bquote(SUVA~(Lmg^-1~m^-1)))+
-  coord_cartesian(ylim = c(-6,15))+
-  theme_cowplot(12)
-
+  Fig.formatting
 
 
 suva.T1<-ggplot(suva.df[(suva.df$Time.point=="T1"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+ geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
   ggtitle("Time-1") +
   xlab("")+
   ylab("")+
-  coord_cartesian(ylim = c(-6,15))+
-  theme_cowplot(12)
+  Fig.formatting
+  
   
 suva.T2<-ggplot(suva.df[(suva.df$Time.point=="T2"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
   ggtitle("Time-2") +
-  xlab("plant material (g)") +
+  xlab("Plant mass (g)") +
   ylab("")+
-  coord_cartesian(ylim = c(-6,15))+
-  theme_cowplot(12)
+  Fig.formatting
+
 
 
   
 suva.T3<-ggplot(suva.df[(suva.df$Time.point=="T3"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
   ggtitle("Time-3") +
   xlab("")+
   ylab("")+
-  coord_cartesian(ylim = c(-6,15))+
-  theme_cowplot(12)
+Fig.formatting
 
 suva.T4<-ggplot(suva.df[(suva.df$Time.point=="T4"),], aes(x=plant.mass..g, y=SUVA, color=Treatment)) + 
   geom_point(alpha=0.5) +
   scale_color_manual(values = c("orange", "purple")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+ geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
   ggtitle("Time-4") +
   xlab("")+
   ylab("")+
-  coord_cartesian(ylim = c(-6,15))+
-  theme_cowplot(12)
+Fig.formatting
 
 
 extract.legend5 <- get_legend(
@@ -1298,12 +1807,9 @@ suva.plots<-plot_grid(
   suva.T3+ theme(legend.position = "none"),
   suva.T4+ theme(legend.position = "none"),
   extract.legend5,
-  rel_widths = c(15,15,15,15, 15, 8), ncol=6)
+  rel_widths = c(50,50,50,50, 50, 20), ncol=6)
 
-
-plot_grid(
-  ggdraw(add_sub(suva.plots, "Fig 4. Average specific ultraviolet absorbance (SUVA 254 ) across sampling periods for both treatments. Time-0 represents baseline measurements prior to the \nstart of the experiment. ", x=0.01, hjust=0)), ncol = 1)
-
+suva.plots
 
 ggsave("figures/suva.pdf", height=5, width=14)
 
@@ -1311,11 +1817,76 @@ ggsave("figures/suva.pdf", height=5, width=14)
 
 ```
 
+SUVA box plots
+```{r}
+suva.T0.box<-ggplot(suva.df[(suva.df$Time.point=="T0"),], aes(x=Treatment, y=SUVA, fill=Treatment)) +
+  geom_boxplot()+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Time-0") +
+  xlab("")+
+  ylab(bquote(SUVA~(Lmg^-1~m^-1)))+
+  Fig.formatting
+
+suva.T1.box<-ggplot(suva.df[(suva.df$Time.point=="T1"),], aes(x=Treatment, y=SUVA, fill=Treatment)) +
+  geom_boxplot()+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Time-1") +
+  xlab("")+
+  ylab("")+
+  Fig.formatting
+
+suva.T2.box<-ggplot(suva.df[(suva.df$Time.point=="T2"),], aes(x=Treatment, y=SUVA, fill=Treatment)) +
+  geom_boxplot()+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Time-2") +
+  xlab("Treatment")+
+  ylab("")+
+  Fig.formatting
+
+suva.T3.box<-ggplot(suva.df[(suva.df$Time.point=="T3"),], aes(x=Treatment, y=SUVA, fill=Treatment)) +
+  geom_boxplot()+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Time-3") +
+  xlab("")+
+  ylab("")+
+  Fig.formatting
+
+suva.T4.box<-ggplot(suva.df[(suva.df$Time.point=="T4"),], aes(x=Treatment, y=SUVA, fill=Treatment)) +
+  geom_boxplot()+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Time-4") +
+  xlab("")+
+  ylab("")+
+  Fig.formatting
+
+suva.box.plots=plot_grid(
+  suva.T0.box+ theme(legend.position = "none"),
+  suva.T1.box+ theme(legend.position = "none"),
+  suva.T2.box+ theme(legend.position = "none"),
+  suva.T3.box+ theme(legend.position = "none"),
+  suva.T4.box+ theme(legend.position = "none"),
+  rel_widths = c(50,50,50,50, 50, 20), ncol=6
+  
+)
+
+
+suva.combo.plots=ggarrange(suva.plots, suva.box.plots, nrow=2, legend = "right",common.legend = T)
+
+ggsave("figures/suva.combo.plots.pdf", height=10, width=14)
+
+
+
+```
+
+
+
+
 SUVA GAM
 Time point 1
 ```{r}
 
 suva.gam1=gam(SUVA ~ factor(Treatment) +s(plant.mass..g, by=factor(Treatment)), data = suva.df, method="REML", select= T, subset = Time.point=="T1")
+anova(suva.gam1)
 summary(suva.gam1)
 gam.check(suva.gam1, rep=1000)
 
@@ -1327,6 +1898,7 @@ Time point 2
 
 suva.gam2=gam(SUVA ~ factor(Treatment) +s(plant.mass..g, by=factor(Treatment)), data = suva.df, method="REML", select= T, subset = Time.point=="T2")
 summary(suva.gam2)
+anova(suva.gam2)
 gam.check(suva.gam2, rep=1000)
 
 ```
@@ -1334,6 +1906,7 @@ Time point 3
 ```{r}
 suva.gam3=gam(SUVA ~ Treatment +s(plant.mass..g, by=factor(Treatment)), data = suva.df, method="REML", select= T, subset = Time.point=="T3")
 summary(suva.gam3)
+anova(suva.gam3)
 gam.check(suva.gam3, rep=1000)
 
 
@@ -1343,6 +1916,7 @@ Time point 4
 ```{r}
 
 suva.gam4=gam(SUVA ~ factor(Treatment) +s(plant.mass..g, by=factor(Treatment)), data = suva.df, method="REML", select= T, subset = Time.point=="T4")
+anova(suva.gam4)
 summary(suva.gam4)
 gam.check(suva.gam4, rep=1000)
 
@@ -1382,71 +1956,358 @@ index.df=rbind(index.T0.df, index.T1.df, index.T3.df, index.T4.df)
 
 ```
 
-Index plots 
+
+freshness plots
 ```{r}
-library(mgcv)
-fluoro.plot<-ggplot(index.df, aes(x=plant.mass..g., y=Fluroscence.Index, color=Treatment)) +
+fresh.T0<-ggplot(index.df[(index.df$Time.point=="T0"),], aes(x=plant.mass..g., y=Freshness.Index, color=Treatment)) +
   geom_point(alpha=0.5) +
-  facet_grid(~Time.point)+
   scale_color_manual(values = c("orange", "purple")) + 
   geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
-  ylab("Fluorescence Index")+
-  theme_cowplot(12)
-fluoro.plot
-
-
-
-fresh.plot<-ggplot(index.df, aes(x=plant.mass..g., y=Freshness.Index, color=Treatment)) +
-  geom_point(alpha=0.5) +
-  facet_grid(~Time.point)+
-  scale_color_manual(values = c("orange", "purple")) + 
-  geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-0") +
+  xlab("")+
   ylab("Freshness Index")+
-  theme_cowplot(12)
+Fig.formatting
 
 
-humic.plot<-ggplot(index.df, aes(x=plant.mass..g., y=Humification.Index, color=Treatment)) +
+
+fresh.T1<-ggplot(index.df[(index.df$Time.point=="T1"),], aes(x=plant.mass..g., y=Freshness.Index, color=Treatment)) +
   geom_point(alpha=0.5) +
-  facet_grid(~Time.point)+
   scale_color_manual(values = c("orange", "purple")) + 
   geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
-  ylab("Humification Index")+
-  theme_cowplot(12)
+  ggtitle("Time-1") +
+  xlab("")+
+  ylab("")+
+Fig.formatting
 
 
-cdom.plot<-ggplot(index.df, aes(x=plant.mass..g., y=CDOM.ex325.em470., color=Treatment)) +
+fresh.T3<-ggplot(index.df[(index.df$Time.point=="T3"),], aes(x=plant.mass..g., y=Freshness.Index, color=Treatment)) +
   geom_point(alpha=0.5) +
-  facet_grid(~Time.point)+
   scale_color_manual(values = c("orange", "purple")) + 
   geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
-  xlab("Plant Mass (g)")+
-  ylab("CDOM Index")+
-  theme_cowplot(12)
-  
+  ggtitle("Time-3") +
+  xlab("")+
+  ylab("")+
+Fig.formatting
 
+fresh.T4<-ggplot(index.df[(index.df$Time.point=="T4"),], aes(x=plant.mass..g., y=Freshness.Index, color=Treatment)) +
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-4") +
+  xlab("")+
+  ylab("")+
+Fig.formatting
 
-extract.legend.index <- get_legend(
+extract.legend5 <- get_legend(
   # create some space to the left of the legend
-  fluoro.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
+  suva.T0 + theme(legend.box.margin = margin(0, 0, 0, 10)))
 
 
-index.plots<-plot_grid(
-  fluoro.plot+ theme(legend.position = "none"),
-  fresh.plot+ theme(legend.position = "none"),
-  humic.plot+ theme(legend.position = "none"),
-  cdom.plot+ theme(legend.position = "none"),
-  extract.legend.index,
-  rel_widths = c(15,15,15,15, 15, 8), ncol=1, nrow =4 )
-index.plots
+fresh.plots<-plot_grid(
+  fresh.T0+ theme(legend.position = "none"),
+  fresh.T1+ theme(legend.position = "none"),
+  fresh.T3+ theme(legend.position = "none"),
+  fresh.T4+ theme(legend.position = "none"),
+  extract.legend5,
+  rel_widths = c(50,50,50,50, 20), ncol=5)
+
+fresh.plots
+
+```
+
+freshness box plots
+```{r}
+fresh.T0.box<-ggplot(index.df[(index.df$Time.point=="T0"),], aes(x=Treatment, y=Freshness.Index, fill=Treatment)) +
+  geom_boxplot()+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Time-0") +
+  xlab("")+
+  ylab("Freshness Index")+
+Fig.formatting
+
+fresh.T1.box<-ggplot(index.df[(index.df$Time.point=="T1"),], aes(x=Treatment, y=Freshness.Index, fill=Treatment)) +
+  geom_boxplot()+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Time-1") +
+  xlab("")+
+  ylab("")+
+Fig.formatting
+
+fresh.T3.box<-ggplot(index.df[(index.df$Time.point=="T3"),], aes(x=Treatment, y=Freshness.Index, fill=Treatment)) +
+  geom_boxplot()+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Time-3") +
+  xlab("")+
+  ylab("")+
+Fig.formatting
+
+fresh.T4.box<-ggplot(index.df[(index.df$Time.point=="T4"),], aes(x=Treatment, y=Freshness.Index, fill=Treatment)) +
+  geom_boxplot()+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Time-4") +
+  xlab("")+
+  ylab("")+
+Fig.formatting
+
+fresh.box.plots=plot_grid(
+  fresh.T0.box + theme(legend.position = "none"),
+  fresh.T1.box + theme(legend.position = "none"),
+  fresh.T3.box + theme(legend.position = "none"),
+  fresh.T4.box + theme(legend.position = "none"),
+  ncol=5, rel_widths = c(50,50,50,50, 20)
+)
 
 
+fresh.combo.plots=ggarrange(fresh.plots, fresh.box.plots, nrow=2, common.legend = T, legend = "right")
 
 
-ggsave("figures/indices.pdf", height=10, width=8)
+ggsave("figures/freshness.combo.plots.pdf", height=10, width=14)
+
+
 
 
 
 
 ```
 
-Combine the ind
+fluorescence plots
+```{r}
+fluoro.T0<-ggplot(index.df[(index.df$Time.point=="T0"),], aes(x=plant.mass..g., y=Fluroscence.Index, color=Treatment)) +
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-0") +
+  xlab("")+
+  ylab("Fluorescence Index")+
+Fig.formatting
+
+
+
+fluoro.T1<-ggplot(index.df[(index.df$Time.point=="T1"),], aes(x=plant.mass..g., y=Fluroscence.Index, color=Treatment)) +
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-1") +
+  xlab("")+
+  ylab("")+
+Fig.formatting
+
+
+fluoro.T3<-ggplot(index.df[(index.df$Time.point=="T3"),], aes(x=plant.mass..g., y=Fluroscence.Index, color=Treatment)) +
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-3") +
+  xlab("")+
+  ylab("")+
+Fig.formatting
+
+fluoro.T4<-ggplot(index.df[(index.df$Time.point=="T4"),], aes(x=plant.mass..g., y=Fluroscence.Index, color=Treatment)) +
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-4") +
+  xlab("")+
+  ylab("")+
+Fig.formatting
+
+
+extract.legend5 <- get_legend(
+  # create some space to the left of the legend
+  suva.T0 + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+
+fluoro.plots<-plot_grid(
+  fluoro.T0+ theme(legend.position = "none"),
+  fluoro.T1+ theme(legend.position = "none"),
+  fluoro.T3+ theme(legend.position = "none"),
+  fluoro.T4+ theme(legend.position = "none"),
+  extract.legend5,
+  rel_widths = c(50,50,50,50, 20), ncol=5)
+
+
+```
+
+fluorescence box plots
+```{r}
+fluoro.T0.box<-ggplot(index.df[(index.df$Time.point=="T0"),], aes(x=Treatment, y=Fluroscence.Index, fill=Treatment)) +
+  geom_boxplot()+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Time-0") +
+  xlab("")+
+  ylab("Fluorescence Index")+
+Fig.formatting
+
+fluoro.T1.box<-ggplot(index.df[(index.df$Time.point=="T1"),], aes(x=Treatment, y=Fluroscence.Index, fill=Treatment)) +
+  geom_boxplot()+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Time-1") +
+  xlab("")+
+  ylab("")+
+Fig.formatting
+
+fluoro.T3.box<-ggplot(index.df[(index.df$Time.point=="T3"),], aes(x=Treatment, y=Fluroscence.Index, fill=Treatment)) +
+  geom_boxplot()+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Time-3") +
+  xlab("")+
+  ylab("")+
+Fig.formatting
+
+fluoro.T4.box<-ggplot(index.df[(index.df$Time.point=="T4"),], aes(x=Treatment, y=Fluroscence.Index, fill=Treatment)) +
+  geom_boxplot()+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Time-4") +
+  xlab("")+
+  ylab("")+
+Fig.formatting
+
+fluoro.box.plots=plot_grid(
+  fluoro.T0.box + theme(legend.position = "none"),
+  fluoro.T1.box + theme(legend.position = "none"),
+  fluoro.T3.box + theme(legend.position = "none"),
+  fluoro.T4.box + theme(legend.position = "none"),
+  ncol=5, rel_widths = c(50,50,50,50, 20)
+)
+
+
+fluoro.combo.plots=ggarrange(fluoro.plots, fluoro.box.plots, nrow=2, common.legend = T, legend = "right")
+
+
+
+
+ggsave("figures/fluoro.combo.plots.pdf", height=10, width=14)
+
+
+```
+
+
+humic plots
+```{r}
+humic.T0<-ggplot(index.df[(index.df$Time.point=="T0"),], aes(x=plant.mass..g., y=Humification.Index, color=Treatment)) +
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-0") +
+  xlab("")+
+  ylab("Humification Index")+
+Fig.formatting
+
+
+
+humic.T1<-ggplot(index.df[(index.df$Time.point=="T1"),], aes(x=plant.mass..g., y=Humification.Index, color=Treatment)) +
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-1") +
+  xlab("")+
+  ylab("")+
+Fig.formatting
+
+
+humic.T3<-ggplot(index.df[(index.df$Time.point=="T3"),], aes(x=plant.mass..g., y=Humification.Index, color=Treatment)) +
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-3") +
+  xlab("")+
+  ylab("")+
+Fig.formatting
+
+humic.T4<-ggplot(index.df[(index.df$Time.point=="T4"),], aes(x=plant.mass..g., y=Humification.Index, color=Treatment)) +
+  geom_point(alpha=0.5) +
+  scale_color_manual(values = c("orange", "purple")) + 
+  geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.1) +
+  ggtitle("Time-4") +
+  xlab("")+
+  ylab("")+
+Fig.formatting
+
+
+extract.legend5 <- get_legend(
+  # create some space to the left of the legend
+  suva.T0 + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+
+humic.plots<-plot_grid(
+  humic.T0+ theme(legend.position = "none"),
+  humic.T1+ theme(legend.position = "none"),
+  humic.T3+ theme(legend.position = "none"),
+  humic.T4+ theme(legend.position = "none"),
+  extract.legend5,
+  rel_widths = c(50,50,50,50, 20), ncol=5)
+
+
+```
+
+humic box plots
+```{r}
+humic.T0.box<-ggplot(index.df[(index.df$Time.point=="T0"),], aes(x=Treatment, y=Humification.Index, fill=Treatment)) +
+  geom_boxplot()+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Time-0") +
+  xlab("")+
+  ylab("Humification Index")+
+Fig.formatting
+
+humic.T1.box<-ggplot(index.df[(index.df$Time.point=="T1"),], aes(x=Treatment, y=Humification.Index, fill=Treatment)) +
+  geom_boxplot()+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Time-1") +
+  xlab("")+
+  ylab("")+
+Fig.formatting
+
+humic.T3.box<-ggplot(index.df[(index.df$Time.point=="T3"),], aes(x=Treatment, y=Humification.Index, fill=Treatment)) +
+  geom_boxplot()+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Time-3") +
+  xlab("")+
+  ylab("")+
+Fig.formatting
+
+humic.T4.box<-ggplot(index.df[(index.df$Time.point=="T4"),], aes(x=Treatment, y=Humification.Index, fill=Treatment)) +
+  geom_boxplot()+
+  scale_fill_manual(values = c("orange", "purple")) + 
+  ggtitle("Time-4") +
+  xlab("")+
+  ylab("")+
+Fig.formatting
+
+humic.box.plots=plot_grid(
+  humic.T0.box + theme(legend.position = "none"),
+  humic.T1.box + theme(legend.position = "none"),
+  humic.T3.box + theme(legend.position = "none"),
+  humic.T4.box + theme(legend.position = "none"),
+  ncol=5, rel_widths = c(50,50,50,50, 20)
+)
+
+
+humic.combo.plots=ggarrange(humic.plots, humic.box.plots, nrow=2, common.legend = T, legend = "right")
+
+
+ggsave("figures/humic.combo.plots.pdf", height=10, width=14)
+
+
+```
+
+All indices
+
+```{r}
+
+
+index.combo.plots=ggarrange(fresh.combo.plots, fluoro.combo.plots, humic.combo.plots, labels = c("a)", "b)", "c)"),nrow=3, common.legend = T, legend = "right")
+
+
+
+ggsave("figures/index.combo.plots.pdf", height=30, width=15)
+
+
+
+
+
+
+
+
+```
+
