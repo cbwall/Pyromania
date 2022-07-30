@@ -459,11 +459,11 @@ concrvity(m4.TN.gam)
 UVBIO files
 ```{r}
 ##### grab files in a list
-UVBio.files <- list.files(path="/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/UVBIO", pattern = "csv$", full.names = T)
+UVBio.files <- list.files(path="/Users/Cody1/Desktop/GitHub/Pyromania/data/UVBIO", pattern = "csv$", full.names = T)
 UVBio.files
 
 ##### what are the file names, sans extensions using package 'tools'
-file.names<-file_path_sans_ext(list.files(path="/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/UVBIO", pattern = "csv$", full.names = F))
+file.names<-file_path_sans_ext(list.files(path="/Users/Cody1/Desktop/GitHub/Pyromania/data/UVBIO", pattern = "csv$", full.names = F))
 file.names
 
 
@@ -550,7 +550,7 @@ SUVA calculations
 Time point 0
 ```{r}
 #load file and rearrange
-suva.t0.df=read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/EEMs/Results_T0.csv")
+suva.t0.df=read.csv("/Users/Cody1/Desktop/GitHub/Pyromania/data/EEMs/Results_T0.csv")
 suva.t0.df$Sample.Name=gsub("\\..*", "", suva.t0.df$Sample.Name) 
 names(suva.t0.df)[1]="Tank"
 suva.t0.df=suva.t0.df[-1,]
@@ -572,7 +572,7 @@ Time point 1
 ```{r}
 #load file and rearrange
 library(dplyr)
-suva.t1.df=read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/EEMs/Results_T1.csv")
+suva.t1.df=read.csv("/Users/Cody1/Desktop/GitHub/Pyromania/data/EEMs/Results_T1.csv")
 suva.t1.df=suva.t1.df[-1,]
 suva.t1.df=suva.t1.df[-1,]
 names(suva.t1.df)[1]="Tank"
@@ -595,7 +595,7 @@ suva.t1.df$SUVA=(suva.t1.df[suva.t1.df$Tank,]$abs254/suva.t1.df[suva.t1.df$Tank,
 Time point 2
 ```{r}
 #load file and rearrange
-suva.t2.df=read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/EEMs/Results_T2_d1A.edit.csv")
+suva.t2.df=read.csv("/Users/Cody1/Desktop/GitHub/Pyromania/data/EEMs/Results_T2_d1A.edit.csv")
 names(suva.t2.df)[1]="Tank"
 suva.t2.df$Tank=gsub("TA", "", suva.t2.df$Tank) 
 suva.t2.df$Tank=sub("(.{2})(.*)", "\\1.\\2", suva.t2.df$Tank)
@@ -616,7 +616,7 @@ suva.t2.df$SUVA=(suva.t2.df[suva.t2.df$Tank,]$abs254/suva.t2.df[suva.t2.df$Tank,
 
 Time point 3
 ```{r}
-suva.t3.df=read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/EEMs/Results_T3.csv")
+suva.t3.df=read.csv("/Users/Cody1/Desktop/GitHub/Pyromania/data/EEMs/Results_T3.csv")
 names(suva.t3.df)[1]="Tank"
 suva.t3.df$Tank=gsub("TA", "", suva.t3.df$Tank) 
 suva.t3.df$Tank=sub("(.{2})(.*)", "\\1.\\2", suva.t3.df$Tank)
@@ -639,7 +639,7 @@ suva.t3.df$SUVA=(suva.t3.df[suva.t3.df$Tank,]$abs254/suva.t3.df[suva.t3.df$Tank,
 
 Time point 4
 ```{r}
-suva.t4.df=read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/EEMs/Results_T4.csv")
+suva.t4.df=read.csv("/Users/Cody1/Desktop/GitHub/Pyromania/data/EEMs/Results_T4.csv")
 names(suva.t4.df)[1]="Tank"
 suva.t4.df$Tank=gsub("TA", "", suva.t4.df$Tank) 
 suva.t4.df$Tank=sub("(.{2})(.*)", "\\1.\\2", suva.t4.df$Tank)
@@ -692,30 +692,30 @@ suva.subset.df=suva.subset.df[order(suva.subset.df$Level),]
 Other indices
 ```{r}
 # Time 0
-index.T0.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/Indexresults/T0_indices.csv")
+index.T0.df=read.csv("/Users/Cody1/Desktop/My_pyromania/EEMS/Indexresults/T0_indices.csv")
 index.T0.df$Time.point="T0"
 names(index.T0.df)[6]="Humification.Index"
 index.T0.df=index.T0.df[-c(7:11,13,14)]
 
 
 #Time 1
-index.T1.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/Indexresults/T1_indices.csv")
+index.T1.df=read.csv("/Users/Cody1/Desktop/My_pyromania/EEMS/Indexresults/T1_indices.csv")
 index.T1.df$Time.point="T1"
 index.T1.df=index.T1.df[-c(7:11,13,14)]
 
 #Time 2
-index.T2.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/Indexresults/T2_indices.csv")
+index.T2.df=read.csv("/Users/Cody1/Desktop/My_pyromania/EEMS/Indexresults/T2_indices.csv")
 index.T2.df$Time.point="T2"
 index.T2.df=index.T2.df[-c(7:11,13,14)]
 
 #Time 3
-index.T3.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/Indexresults/T3_indices.csv")
+index.T3.df=read.csv("/Users/Cody1/Desktop/My_pyromania/EEMS/Indexresults/T3_indices.csv")
 index.T3.df$Time.point="T3"
 index.T3.df=index.T3.df[-c(7:11,13,14)]
 
 
 #Time 4
-index.T4.df=read.csv("/Users/tobyspiegel2/Desktop/My_pyromania/EEMS/Indexresults/T4_indicies.csv")
+index.T4.df=read.csv("/Users/Cody1/Desktop/My_pyromania/EEMS/Indexresults/T4_indicies.csv")
 index.T4.df$Time.point="T4"
 index.T4.df=index.T4.df[-c(7:11,13,14)]
 
@@ -1102,7 +1102,7 @@ gam.check(uv.m1.gam, rep=1000)
 Sage and Willow Decomp data
 ```{r}
 #load files and rearrange 
-decomp.df=read.csv("/Users/tobyspiegel2/Desktop/GitHub/Pyromania/data/decomp.weights.csv")
+decomp.df=read.csv("/Users/Cody1/Desktop/GitHub/Pyromania/data/decomp.weights.csv")
 names(decomp.df)[8]= "change"
 names(decomp.df)[9]= "percent.change"
 decomp.df=decomp.df[-c(61:82), ] 
