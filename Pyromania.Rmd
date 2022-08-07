@@ -578,7 +578,7 @@ chla.T0<-ggplot(chl.dat[(chl.dat$Time.point=="T0"),], aes(x=plant.mass..g, y=chl
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 20)) +
   ggtitle("Time-0") +
-  ylab("chlorophyll (ug/L)") +
+  ylab=expression(paste("chlorophyll", ~(mu*g~L^-1), sep="")) +
   xlab("plant material (g)") +
   Fig.formatting
 
@@ -589,7 +589,7 @@ chla.T1<-ggplot(chl.dat[(chl.dat$Time.point=="T1"),], aes(x=plant.mass..g, y=chl
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 20)) +
   ggtitle("Time-1") +
-  ylab("chlorophyll (ug/L)") +
+  ylab=expression(paste("chlorophyll", ~(mu*g~L^-1), sep="")) +
   xlab("plant material (g)") +
   Fig.formatting
 
@@ -599,7 +599,7 @@ chla.T2<-ggplot(chl.dat[(chl.dat$Time.point=="T2"),], aes(x=plant.mass..g, y=chl
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 20)) +
   ggtitle("Time-2") +
-  ylab("chlorophyll (ug/L)") +
+  ylab=expression(paste("chlorophyll", ~(mu*g~L^-1), sep="")) +
   xlab("plant material (g)") +
   Fig.formatting
 
@@ -609,7 +609,7 @@ chla.T3<-ggplot(chl.dat[(chl.dat$Time.point=="T3"),], aes(x=plant.mass..g, y=chl
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 20)) +
   ggtitle("Time-3") +
-  ylab("chlorophyll (ug/L)") +
+  ylab=expression(paste("chlorophyll", ~(mu*g~L^-1), sep="")) +
   xlab("plant material (g)") +
   Fig.formatting
 
@@ -619,7 +619,7 @@ chla.T4<-ggplot(chl.dat[(chl.dat$Time.point=="T4"),], aes(x=plant.mass..g, y=chl
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 20)) +
   ggtitle("Time-4") +
-  ylab("chlorophyll (ug/L)") +
+  ylab=expression(paste("chlorophyll", ~(mu*g~L^-1), sep="")) +
   xlab("plant material (g)") +
   Fig.formatting
 
@@ -651,7 +651,7 @@ chla.T0<-ggplot(chl.out.rem[(chl.out.rem$Time.point=="T0"),], aes(x=plant.mass..
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 12)) +
   ggtitle("Time-0") +
-  ylab("chlorophyll (ug/L)") +
+  ylab=expression(paste("chlorophyll", ~(mu*g~L^-1), sep="")) +
   xlab("plant material (g)") +
   Fig.formatting
 
@@ -662,7 +662,7 @@ chla.T1<-ggplot(chl.out.rem[(chl.out.rem$Time.point=="T1"),], aes(x=plant.mass..
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 12)) +
   ggtitle("Time-1") +
-  ylab("chlorophyll (ug/L)") +
+  ylab=expression(paste("chlorophyll", ~(mu*g~L^-1), sep="")) +
   xlab("plant material (g)") +
   Fig.formatting
 
@@ -672,7 +672,7 @@ chla.T2<-ggplot(chl.out.rem[(chl.out.rem$Time.point=="T2"),], aes(x=plant.mass..
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 12)) +
   ggtitle("Time-2") +
-  ylab("chlorophyll (ug/L)") +
+  ylab=expression(paste("chlorophyll", ~(mu*g~L^-1), sep="")) +
   xlab("plant material (g)") +
   Fig.formatting
 
@@ -682,7 +682,7 @@ chla.T3<-ggplot(chl.out.rem[(chl.out.rem$Time.point=="T3"),], aes(x=plant.mass..
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 12)) +
   ggtitle("Time-3") +
-  ylab("chlorophyll (ug/L)") +
+  ylab=expression(paste("chlorophyll", ~(mu*g~L^-1), sep="")) +
   xlab("plant material (g)") +
   Fig.formatting
 
@@ -692,7 +692,7 @@ chla.T4<-ggplot(chl.out.rem[(chl.out.rem$Time.point=="T4"),], aes(x=plant.mass..
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   coord_cartesian(ylim=c(0, 12)) +
   ggtitle("Time-4") +
-  ylab("chlorophyll (ug/L)") +
+  ylab=expression(paste("chlorophyll", ~(mu*g~L^-1), sep="")) +
   xlab("plant material (g)") +
   Fig.formatting
 
@@ -2002,6 +2002,9 @@ ggplot(NFilt.NoUV, aes(x=plant.mass..g, y=percent.change.DOC, color=Treatment)) 
 topes<-read.csv("data/Isotopes/Pyro_isotopes_T1.csv")
 topes$C.N <-(topes$Total.C..ug/12)/(topes$Total.N..ug/14) # C mol : N mol
 
+cols<-c("Time.point", "Treatment", "Type", "Tank") # columns to make factors
+topes[cols] <- lapply(topes[cols], factor) # make all these factors
+
 topes.trt<-topes[(topes$Treatment=="burned" | topes$Treatment=="unburned"),]
 topes.controls<-topes[!(topes$Treatment=="burned" | topes$Treatment=="unburned"),]
 
@@ -2013,6 +2016,7 @@ iso.plot<-ggplot(topes.trt,
   geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
   ylab(expression(paste(delta^{15}, N, " (\u2030, air)"))) +
   xlab("plant material (g)") +
+  coord_cartesian(ylim=c(0, 250)) +
   Fig.formatting +
   theme(legend.key.size = unit(2,"line"))
 
@@ -2020,6 +2024,31 @@ iso.plot
 ggsave("figures/iso.plot.pdf", encod="MacRoman", height=5, width=6)
 ```
 
+```{r, isotopes treatment T2}
+topes2<-read.csv("data/Isotopes/Pyro_isotopes_T2.csv")
+topes2$C.N <-(topes2$Total.C..ug/12)/(topes2$Total.N..ug/14) # C mol : N mol
+
+cols2<-c("Time.point", "Treatment", "Type", "Tank") # columns to make factors
+topes2[cols2] <- lapply(topes2[cols2], factor) # make all these factors
+
+topes2.trt<-topes2[(topes2$Treatment=="burned" | topes2$Treatment=="unburned"),]
+topes2.controls<-topes2[!(topes2$Treatment=="burned" | topes2$Treatment=="unburned"),]
+
+#### isotope plots for treatments
+iso.plot2<-ggplot(topes2.trt, 
+                 aes(x=plant.mass..g, y=d15N, color=Treatment, shape=Type, linetype=Type)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  ylab(expression(paste(delta^{15}, N, " (\u2030, air)"))) +
+  xlab("plant material (g)") +
+  coord_cartesian(ylim=c(0, 250)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(2,"line"))
+
+iso.plot2
+ggsave("figures/iso.plot.T2.pdf", encod="MacRoman", height=5, width=6)
+```
 
 ```{r, isotopes CN}
 ############# C vs N plot
@@ -2176,11 +2205,12 @@ mean(sage.meanF$at.P..15N) # sage ~0.475, willow 0.371
 #  d15N values of base 2 = 11 permil for algae/plankton stock 
 #  d15N value of base 1 = 297 permil for sage
 
-topes.trt$percent.sage<-(topes.trt$d15N-11)/(297-11) 
+topes.trt$percent.sage<-(topes.trt$d15N-11)/(297-11)
+topes2.trt$percent.sage<-(topes2.trt$d15N-11)/(297-11) 
 
 # unicode text for micrometer = \u03BC, use this in legend
 
-iso.mix<-ggplot(topes.trt, aes(x=plant.mass..g, y=100*percent.sage, color=Treatment)) +
+iso.mix2<-ggplot(topes.trt, aes(x=plant.mass..g, y=100*percent.sage, color=Treatment)) +
   geom_point(aes(shape=Type)) +
   scale_shape_manual(name="Plankton", values = c(17, 16), 
                      labels = c(expression(paste("> 63"~mu,"m")), 
@@ -2199,35 +2229,29 @@ iso.mix
 ggsave("figures/iso.mix.pdf", encod="MacRoman", height=5, width=6)
 
 
+######################
 
-# model with biomass and treatment
-###### only POM
-mod1a <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp") +
-            s(plant.mass..g, Treatment, k=5, bs="re"),
-            data=topes.trt[(topes.trt$Type=="POM"),], method="REML", family="gaussian")
-# model with biomass
-mod2a <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp"), 
-            data=topes.trt[(topes.trt$Type=="POM"),], method="REML", family="gaussian")
-
-AIC(mod1,mod2) 
-# mod1 preferred
-summary(mod1)
-
-##############
-## only plankton
-mod1b <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp") +
-            s(plant.mass..g, Treatment, k=5, bs="re"),
-            data=topes.trt[(topes.trt$Type=="plankton"),], method="REML", family="gaussian")
-# model with biomass
-mod2b <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp"), 
-            data=topes.trt[(topes.trt$Type=="plankton"),], method="REML", family="gaussian")
-
-AIC(mod1,mod2) 
-# mod1 preferred
-summary(mod1)
+iso.mix2<-ggplot(topes2.trt, aes(x=plant.mass..g, y=100*percent.sage, color=Treatment)) +
+  geom_point(aes(shape=Type)) +
+  scale_shape_manual(name="Plankton", values = c(17, 16), 
+                     labels = c(expression(paste("> 63"~mu,"m")), 
+                                expression(paste("< 63"~mu,"m")))) +
+  scale_color_manual(name="Treatments", values = c("brown1", "mediumseagreen")) +
+  geom_smooth(method = "gam", formula = y ~ s(x, bs = "tp", k = 5),
+              aes(fill=Treatment), alpha=0.1, show.legend = FALSE) +
+  ylab("% Sage")+
+  xlab("plant material (g)") +
+  coord_cartesian(ylim=c(0, 100)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
 
 
-############# all plankton
+iso.mix2
+ggsave("figures/iso.mixT2.pdf", encod="MacRoman", height=5, width=6)
+
+
+
+############# all plankton T1
 mod1c <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp")+
             s(plant.mass..g, Treatment, k=5, bs="re")+
             s(plant.mass..g, Type, k=2, bs="re"),
@@ -2242,10 +2266,37 @@ mod3c <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp"),
             data=topes.trt, method="REML", family="gaussian")
 
 AIC(mod1c, mod2c, mod3c) 
-# mod2c preferred
+# mod1c preferred
 # compare across
 
-summary(mod2c)
+summary(mod1c)
+anova(mod1c)
+
+
+
+############# all plankton T2
+mod1c <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp")+
+            s(plant.mass..g, Treatment, k=5, bs="re")+
+            s(plant.mass..g, Type, k=2, bs="re"),
+            data=topes2.trt, method="REML", family="gaussian")
+
+mod2c <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp")+
+            s(plant.mass..g, Treatment, k=5, bs="re"),
+            data=topes2.trt, method="REML", family="gaussian")
+
+# model with biomass
+mod3c <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp"), 
+            data=topes2.trt, method="REML", family="gaussian")
+
+AIC(mod1c, mod2c, mod3c) 
+# mod1c preferred
+# compare across
+
+summary(mod1c)
+anova(mod1c)
+
+
+
 
 
 
