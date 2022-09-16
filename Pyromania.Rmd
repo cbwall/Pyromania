@@ -553,6 +553,21 @@ ggsave("figures/O2change.alltimes.pdf", height=12, width=10)
 
 ##### All photosynthesis and respiration
 
+PnR.alltimes.long<-plot_grid(
+  NEP.T1+ theme(legend.position = "none")+ ggtitle("Time-1"),
+  NEP.T2+ theme(legend.position = "none")+ ggtitle("Time-2"),
+  NEP.T3+ theme(legend.position = "none")+ ggtitle("Time-3"),
+  NEP.T4+ theme(legend.position = "none")+ ggtitle("Time-4"), extract.legend,
+  NER.T1+ theme(legend.position = "none")+ ggtitle(""),
+  NER.T2+ theme(legend.position = "none")+ ggtitle(""),
+  NER.T3+ theme(legend.position = "none")+ ggtitle(""),
+  NER.T4+ theme(legend.position = "none")+ ggtitle(""), extract.legend,
+  rel_widths = c(8,8,8,8,3, 8,8,8,8,3), ncol=5)
+
+ggsave("figures/PnR.alltimes.long.pdf", height=6, width=14)
+
+
+# alternative plot
 PnR.alltimes<-plot_grid(
   O2.change.T1,
   O2.change.T2,

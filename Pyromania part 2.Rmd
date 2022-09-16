@@ -33,7 +33,7 @@ rm(list=ls())
 ```{r, plant elemental}
 plant.nut<-read.csv("data/Pyro_plant material_elemental.csv")
 
-fac<-c("sample.name", "type", "plant", "treatment", "rep") # make factors
+fac<-c("Sample.Name", "type", "plant", "treatment", "rep") # make factors
 plant.nut[fac]<-lapply(plant.nut[fac],factor)
 
 plant.nut$int.fac<-interaction(plant.nut$plant, plant.nut$type)
@@ -136,6 +136,23 @@ phos[fac2]<-lapply(phos[fac2],factor)
 
 phos<-na.omit(phos)
 
+Fig.formatting<-(theme_classic()) +
+  theme(text=element_text(size=10),
+        axis.line=element_blank(),
+        legend.text.align = 0,
+        legend.text=element_text(size=10),
+        #legend.title = element_blank(),
+        panel.border = element_rect(fill=NA, colour = "black", size=1),
+        aspect.ratio=1, 
+        axis.ticks.length=unit(0.25, "cm"),
+        axis.text.y=element_text(
+          margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=10), 
+        axis.text.x=element_text(
+          margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=8)) +
+  theme(legend.key.size = unit(0.4, "cm")) +
+  theme(aspect.ratio=1.3) +
+  theme(panel.spacing=unit(c(0, 0, 0, 0), "cm"))
+
 T2.phos<-ggplot(phos, aes(x=plant.mass..g, y=TP.umol..l, color=Treatment)) + 
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
@@ -147,11 +164,12 @@ T2.phos<-ggplot(phos, aes(x=plant.mass..g, y=TP.umol..l, color=Treatment)) +
   Fig.formatting
 
 T2.phos
-ggsave("figures/phosp.plot.pdf", height=5, width=7)
+ggsave("figures/water.phosp.pdf", height=5, width=7)
 
 
 
 ```
+
 
 ### Zooplankton
 integrating the zooplankton counting data and code from Jon into the markdown.
@@ -689,6 +707,9 @@ p1<-ggplot(GHG, aes(y=ppm, x=Plant.mass..g, color = factor(Treatment))) +
   labs(GHG = "G plants added", y="ppm", title = "Greenhouse gases")+
   geom_smooth(method = loess)
 p1
+
+ggsave("figures/GHG.alltimes.long.pdf", height=6, width=10)
+
 ```
 
 
