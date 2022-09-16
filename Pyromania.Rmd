@@ -642,7 +642,7 @@ chl.plots<-plot_grid(
 
 chl.plots
 
-ggsave("figures/chla.alltime.pdf", height=5, width=12)
+ggsave("figures/chla.alltime.pdf", height=5, width=15)
 
 
 
@@ -767,12 +767,12 @@ DOC.plots<-plot_grid(
   DOC.T3+ theme(legend.position = "none"),
   DOC.T4+ theme(legend.position = "none"),
   extract.legend, 
-  rel_widths = c(8,8,8,8, 8, 3), ncol=6)
+  rel_widths = c(8,8,8,8,8, 3), ncol=6)
 
 
 DOC.plots
 
-ggsave("figures/DOC.alltime.pdf", height=5, width=12)
+ggsave("figures/DOC.alltime.pdf", height=5, width=15)
 
 ```
 
@@ -837,7 +837,7 @@ TN.plots<-plot_grid(
   extract.legend, 
   rel_widths = c(8,8,8,8,8,3), ncol=6)
 
-ggsave("figures/TN.alltime.pdf", height=5, width=18)
+ggsave("figures/TN.alltime.pdf", height=5, width=15)
 
 ```
 
