@@ -1060,22 +1060,30 @@ Use a mixing model to calcualte % sage
 head(topes.trt)
 topes.trt<-droplevels(topes.trt)
 
-d15N.cont # summary mean
-sage.mean<-d15N.cont[c(3:6),]
-mean(sage.mean$d15N) # sage ~297, willow 13
+d15N.cont<-aggregate(d15N~Type, topes.controls, FUN=mean)
+d15N.cont.n<-aggregate(d15N~Type, topes.controls, FUN=length)
 
+d15N.cont # summary mean d15N
+sage.mean<-d15N.cont[c(5:8),]
+willow.mean<-d15N.cont[c(3:4),]
+mean(sage.mean$d15N) # sage ~298
+mean(willow.mean$d15N) #  willow 13
+
+# summary mean atom percent enrichment
 F.cont<-aggregate(at.P..15N  ~ Type, topes.controls, mean)
-sage.meanF<-F.cont[c(3:6),]
-mean(sage.meanF$at.P..15N) # sage ~0.475, willow 0.371
+sage.meanF<-F.cont[c(5:8),]
+willow.meanF<-F.cont[c(3:4),]
+mean(sage.meanF$at.P..15N) # sage ~0.475
+mean(willow.meanF$at.P..15N) # willow 0.371
 
 # 2 source mixing model (Post 2002)
 
 # alpha = percent Sage from food web 1
 # %Sage = (d15N sample - d15N base 2 [i.e., no-label food])/ (d15N sage food 1 - source 2)
 #  d15N values of base 2 = 11 permil for algae/plankton stock 
-#  d15N value of base 1 = 297 permil for sage
+#  d15N value of base 1 = 298 permil for sage
 
-topes.trt$percent.sage<-(topes.trt$d15N-11)/(297-11)
+topes.trt$percent.sage<-(topes.trt$d15N-11)/(298-11)
 
 # unicode text for micrometer = \u03BC, use this in legend
 
