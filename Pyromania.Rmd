@@ -22,8 +22,7 @@ if (!require("pacman")) install.packages("pacman") # for rapid install if not in
 
 # use pacman to load all the packages you are missing!
 pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'magrittr', 'effects', 'plyr', 'dplyr', 
-               'plotrix', 'car',"gridExtra", "cowplot", "tools")
-
+               'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats")
 
 ```
 
@@ -720,6 +719,7 @@ DOC.df$Time.point<- as.factor(ifelse(DOC.df$File=="DOC_T0.csv", "T0",
 DOC.df<- DOC.df %>% 
   select(File, Time.point, Treatment, Tank, plant.mass..g, DOC..mg.L, TN..mg.L) 
 
+DOC.df$Treatment<-as.factor(DOC.df$Treatment)
 ```
 
 DOC plots
@@ -788,6 +788,64 @@ DOC.plots<-plot_grid(
 DOC.plots
 
 ggsave("figures/DOC.alltime.pdf", height=5, width=15)
+
+```
+  
+DOC analysis:  
+T1 model
+```{r DOC analysis}
+m1.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = DOC.df, method = "REML")
+
+anova(m1.gam)
+summary(m1.gam)
+anova.gam(m1.gam)
+gam.check(m1.gam, rep=1000)
+draw(m1.gam)
+concrvity(m1.gam)
+par(mfrow = c(1, 2))
+plot(m1.gam, all.terms = TRUE, page=1)
+
+
+
+########## T2
+m2.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T2", data = DOC.df, method = "REML")
+
+m2.gam.wo=gam(DOC..mg.L ~ s(plant.mass..g, by= Treatment), subset = Time.point=="T2", data = DOC.df, method = "REML")
+
+
+AIC(m2.gam, m2.gam.wo)
+
+summary(m2.gam)
+anova.gam(m2.gam)
+gam.check(m2.gam, rep=1000)
+draw(m2.gam)
+concrvity(m2.gam)
+par(mfrow = c(1, 2))
+plot(m2.gam, all.terms = TRUE, page=1)
+
+
+########## T3
+m3.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T3", data = DOC.df, method = "REML")
+
+summary(m3.gam)
+anova.gam(m3.gam)
+gam.check(m3.gam, rep=1000)
+draw(m3.gam)
+concrvity(m3.gam)
+par(mfrow = c(1, 2))
+plot(m3.gam, all.terms = TRUE, page=1)
+
+
+########## T4
+m4.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T4", data = DOC.df, method = "REML")
+
+summary(m4.gam)
+anova.gam(m4.gam)
+gam.check(m4.gam, rep=1000)
+draw(m4.gam)
+concrvity(m4.gam)
+par(mfrow = c(1, 2))
+plot(m4.gam, all.terms = TRUE, page=1)
 
 ```
 
