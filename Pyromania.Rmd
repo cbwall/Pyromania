@@ -792,11 +792,12 @@ ggsave("figures/DOC.alltime.pdf", height=5, width=15)
 ```
   
 DOC analysis:  
-T1 model
+
 ```{r DOC analysis}
+
+######## T1 model
 m1.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = DOC.df, method = "REML")
 
-anova(m1.gam)
 summary(m1.gam)
 anova.gam(m1.gam)
 gam.check(m1.gam, rep=1000)
@@ -805,15 +806,12 @@ concrvity(m1.gam)
 par(mfrow = c(1, 2))
 plot(m1.gam, all.terms = TRUE, page=1)
 
+# effect of treatment, smoothing significant across both treatments
+# DOC higher in  unburned, relative to burned
 
 
 ########## T2
 m2.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T2", data = DOC.df, method = "REML")
-
-m2.gam.wo=gam(DOC..mg.L ~ s(plant.mass..g, by= Treatment), subset = Time.point=="T2", data = DOC.df, method = "REML")
-
-
-AIC(m2.gam, m2.gam.wo)
 
 summary(m2.gam)
 anova.gam(m2.gam)
@@ -822,6 +820,10 @@ draw(m2.gam)
 concrvity(m2.gam)
 par(mfrow = c(1, 2))
 plot(m2.gam, all.terms = TRUE, page=1)
+
+# NO effect of treatment, smoothing significant across both treatments
+# DOC equivalent in burned and unburned 
+# DOC more variable/wonky across gradient in burned
 
 
 ########## T3
@@ -835,6 +837,9 @@ concrvity(m3.gam)
 par(mfrow = c(1, 2))
 plot(m3.gam, all.terms = TRUE, page=1)
 
+# effect of treatment, smoothing significant across both treatments
+# DOC higher in  burned vs. unburned
+
 
 ########## T4
 m4.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T4", data = DOC.df, method = "REML")
@@ -846,6 +851,9 @@ draw(m4.gam)
 concrvity(m4.gam)
 par(mfrow = c(1, 2))
 plot(m4.gam, all.terms = TRUE, page=1)
+
+# effect of treatment, smoothing significant across both treatments
+# DOC equivalent in  burned and unburned
 
 ```
 
@@ -914,6 +922,71 @@ ggsave("figures/TN.alltime.pdf", height=5, width=15)
 
 ```
 
+```{r TN analysis}
+
+######## T1 model
+m1.TN.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T1", data = DOC.df, method = "REML")
+
+summary(m1.TN.gam)
+anova.gam(m1.TN.gam)
+gam.check(m1.TN.gam, rep=1000)
+draw(m1.TN.gam)
+concrvity(m1.TN.gam)
+par(mfrow = c(1, 2))
+plot(m1.TN.gam, all.terms = TRUE, page=1)
+
+# TN smoother significant for unburned but not burned
+# TN not significant by Treatment 
+
+
+
+######## T2 model
+m2.TN.gam=gam(log10(TN..mg.L) ~ Treatment + s(plant.mass..g,by=Treatment, k=4, bs="ps"), subset = Time.point=="T2", data = DOC.df, method = "REML")
+
+
+summary(m2.TN.gam)
+anova.gam(m2.TN.gam)
+gam.check(m2.TN.gam, rep=1000)
+draw(m2.TN.gam)
+concrvity(m2.TN.gam)
+par(mfrow = c(1, 2))
+plot(m2.TN.gam, all.terms = TRUE, page=1)
+
+# no treatment effect for TN, but a tendency to be higher in unburned
+# smother significant for both treatments
+
+
+######## T3 model
+m3.TN.gam=gam(log10(TN..mg.L) ~ Treatment + s(plant.mass..g,by=Treatment, k=4, bs="ps"), subset = Time.point=="T3", data = DOC.df, method = "REML")
+
+summary(m3.TN.gam)
+anova.gam(m3.TN.gam)
+gam.check(m3.TN.gam, rep=1000)
+draw(m3.TN.gam)
+concrvity(m3.TN.gam)
+par(mfrow = c(1, 2))
+plot(m3.TN.gam, all.terms = TRUE, page=1)
+
+# no treatment effect
+# significance for both smoother terms
+
+
+######## T4 model
+m4.TN.gam=gam(log10(TN..mg.L) ~ Treatment + s(plant.mass..g,by=Treatment, k=4, bs="ps"), subset = Time.point=="T4", data = DOC.df, method = "REML")
+
+summary(m4.TN.gam)
+anova.gam(m4.TN.gam)
+gam.check(m4.TN.gam, rep=1000)
+draw(m4.TN.gam)
+concrvity(m4.TN.gam)
+par(mfrow = c(1, 2))
+plot(m4.TN.gam, all.terms = TRUE, page=1)
+
+# effect of treatment (higher TN in the burned)
+# significant smoother effect for burned treatment
+
+```
+
 
 ### Isotopes
 Time 1 isotopes
@@ -974,7 +1047,6 @@ isotope.plots<-plot_grid(
 
 ggsave("figures/Isotope.d15N.pdf", height=5, width=8, encod="MacRoman")
 ```
-
 
 C:N ratio for plankton
 ```{r isotopes CN}
@@ -1071,7 +1143,6 @@ isoCNplot
 ggsave("figures/iso.plot.CN.alltime.pdf", encod="MacRoman", height=6, width=15)
 ```
 
-
 ```{r control isotopes}
 ########## ########## ########## 
 ########## control plots
@@ -1127,7 +1198,7 @@ control.iso.alltime<- plot_grid(iso.plot.control.d15N + theme(legend.position = 
 ggsave("figures/iso.controls.pdf", encod="MacRoman", height=5, width=10)
 ```
 
-Use a mixing model to calcualte % sage
+Use a mixing model to calculate % sage
 ```{r percent sage}
 # mixing model
 head(topes.trt)
@@ -1206,60 +1277,69 @@ control.iso.alltime<- plot_grid(iso.mix.T1 + theme(legend.position = "none"),
                     extract.legend.mix, rel_widths = c(8,8,3), ncol=3)
 
 ggsave("figures/Isotope.mixmodel.pdf", encod="MacRoman", height=5, width=10)
+```
 
-
-
-### some models
-
-
-
+mixing model sage
+```{r percent sage models}
 ############# all plankton T1
-mod1c <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp")+
-            s(plant.mass..g, Treatment, k=5, bs="re")+
-            s(plant.mass..g, Type, k=2, bs="re"),
-            data=topes.trt, method="REML", family="gaussian")
+m1a.T1.sage <- gam(percent.sage ~ Treatment + Type +
+            s(plant.mass..g, by=Treatment) +
+            s(plant.mass..g, by=Type),
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
-mod2c <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp")+
-            s(plant.mass..g, Treatment, k=5, bs="re"),
-            data=topes.trt, method="REML", family="gaussian")
+m1b.T1.sage <- gam(percent.sage ~ Treatment +
+            s(plant.mass..g, by=Treatment) + 
+            s(plant.mass..g, by=Type),
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
-# model with biomass
-mod3c <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp"), 
-            data=topes.trt, method="REML", family="gaussian")
+m1c.T1.sage <- gam(percent.sage ~ Treatment + Type + 
+                     s(plant.mass..g, by=Treatment),
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
-AIC(mod1c, mod2c, mod3c) 
-# mod1c preferred
+
+AIC(m1a.T1.sage, m1b.T1.sage, m1c.T1.sage) 
+# mod1a preferred
 # compare across
 
-summary(mod1c)
-anova(mod1c)
-
+summary(m1a.T1.sage)
+anova.gam(m1a.T1.sage)
+gam.check(m1a.T1.sage, rep=1000)
+draw(m1a.T1.sage)
+concrvity(m1a.T1.sage)
+par(mfrow = c(1, 2))
+plot(m1a.T1.sage, all.terms = TRUE, page=1)
 
 
 ############# all plankton T2
-mod1c <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp")+
-            s(plant.mass..g, Treatment, k=5, bs="re")+
-            s(plant.mass..g, Type, k=2, bs="re"),
-            data=topes2.trt, method="REML", family="gaussian")
+m2a.T2.sage <- gam(percent.sage ~ Treatment + Type +
+            s(plant.mass..g, by=Treatment) +
+            s(plant.mass..g, by=Type),
+            subset = Time.point=="T2",
+            data=topes.trt, method="REML", family="gaussian")
 
-mod2c <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp")+
-            s(plant.mass..g, Treatment, k=5, bs="re"),
-            data=topes2.trt, method="REML", family="gaussian")
+m2b.T2.sage <- gam(percent.sage ~ Treatment +
+            s(plant.mass..g, by=Treatment) + 
+            s(plant.mass..g, by=Type),
+            subset = Time.point=="T2",
+            data=topes.trt, method="REML", family="gaussian")
 
-# model with biomass
-mod3c <- gam(percent.sage ~ s(plant.mass..g, k=5, bs="tp"), 
-            data=topes2.trt, method="REML", family="gaussian")
+m2c.T2.sage <- gam(percent.sage ~ Treatment + Type + 
+              s(plant.mass..g, by=Treatment),
+              subset = Time.point=="T2",
+            data=topes.trt, method="REML", family="gaussian")
 
-AIC(mod1c, mod2c, mod3c) 
-# mod1c preferred
+
+AIC(m2a.T2.sage, m2b.T2.sage, m2c.T2.sage) 
+# m2a.T2.sage preferred
 # compare across
 
-summary(mod1c)
-anova(mod1c)
-
-
-
-
+summary(m2a.T2.sage)
+anova.gam(m2a.T2.sage)
+gam.check(m2a.T2.sage, rep=1000)
+draw(m2a.T2.sage)
+concrvity(m2a.T2.sage)
+par(mfrow = c(1, 2))
+plot(m2a.T2.sage, all.terms = TRUE, page=1)
 
 
 ```
