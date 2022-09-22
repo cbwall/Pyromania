@@ -792,7 +792,11 @@ ggsave("figures/DOC.alltime.pdf", height=5, width=15)
 ```
   
 DOC analysis:  
-
+Note that fitting via restricted maximum likelihood (REML) is advised to give stable results. Fitting the smoothing parameter (sp) to user defined levels not advisable (but certainly is done). 
+Number of basis functions important as well, small # of basis functions (k) will limit wiggliness (and make the model more linear than should be). This wiggliness is set by using the k values. Don't want too high, or too low... 
+When using the non-linear smoothing, this is the s(xxxx). Can add a new predictor by adding another smooth function with s(x1) + s(x2). When the variable is inside the smooth function, this is to account for the nonlinear shape. Two smoothing together and you have ADDITIVE Nonlinear modeling. Not all variables need to be non-linear, but adding a predictor outside of the s() then this is allowing for linearity. In practce, continuous variables are rarely linear in GAMs, automatic smoothing will make a linear shape if setting high smoothing function (ie.. s =1000), then a non-linear variable appears linear. However, setting categorical variables as predicots linear is more common.
+Factor-smooth interaction also an option, this is when s(x1 by = fac), this sets different smoothing for different variables of "fac". Usually, the different smoothers are combined with a varying intercept incase the different categories are different in means and slopes, this would be by adding the s(x1 by = fac) + fac, wheere the +fac allows for a different slope
+EDF - effective degrees of freedom, equate with wiggliness, with edf =1 as a straight line, and higher edfs as more wiggly. GAM smoother significance is described as not being able to draw a horizontal line through the data. Always check concurvity, which is the collinearity with models from 0-1.
 ```{r DOC analysis}
 
 ######## T1 model
@@ -941,7 +945,7 @@ plot(m1.TN.gam, all.terms = TRUE, page=1)
 
 
 ######## T2 model
-m2.TN.gam=gam(log10(TN..mg.L) ~ Treatment + s(plant.mass..g,by=Treatment, k=4, bs="ps"), subset = Time.point=="T2", data = DOC.df, method = "REML")
+m2.TN.gam=gam(log10(TN..mg.L) ~ Treatment + s(plant.mass..g, by=Treatment, k=4, bs="ps"), subset = Time.point=="T2", data = DOC.df, method = "REML")
 
 
 summary(m2.TN.gam)
@@ -1196,6 +1200,12 @@ control.iso.alltime<- plot_grid(iso.plot.control.d15N + theme(legend.position = 
                     extract.legend.cont, rel_widths = c(8,8,3), ncol=3)
 
 ggsave("figures/iso.controls.pdf", encod="MacRoman", height=5, width=10)
+
+
+######## alternative figure
+d15N.plot<-plot_grid(iso.plot.control.d15N + theme(axis.text.x = element_blank()), 
+                     isotope.plots, rel_widths = c(11,16), ncol=2)
+ggsave("figures/iso.d15.control.trt.pdf", encod="MacRoman", height=5, width=13)
 ```
 
 Use a mixing model to calculate % sage
@@ -1228,6 +1238,7 @@ mean(willow.meanF$at.P..15N) # willow 0.371
 #  d15N value of base 1 = 298 permil for sage
 
 topes.trt$percent.sage<-(topes.trt$d15N-11)/(298-11)
+
 
 # unicode text for micrometer = \u03BC, use this in legend
 
@@ -1279,67 +1290,54 @@ control.iso.alltime<- plot_grid(iso.mix.T1 + theme(legend.position = "none"),
 ggsave("figures/Isotope.mixmodel.pdf", encod="MacRoman", height=5, width=10)
 ```
 
-mixing model sage
+model for % sage
 ```{r percent sage models}
 ############# all plankton T1
-m1a.T1.sage <- gam(percent.sage ~ Treatment + Type +
-            s(plant.mass..g, by=Treatment) +
-            s(plant.mass..g, by=Type),
+m1a.T1.sage <- gam(percent.sage ~ Treatment*Type +
+            s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
-m1b.T1.sage <- gam(percent.sage ~ Treatment +
-            s(plant.mass..g, by=Treatment) + 
-            s(plant.mass..g, by=Type),
+m1b.T1.sage <- gam(percent.sage ~ Treatment + Type +
+            s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
-m1c.T1.sage <- gam(percent.sage ~ Treatment + Type + 
-                     s(plant.mass..g, by=Treatment),
-            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+AIC(m1a.T1.sage, m1b.T1.sage)
+## additive model best fit
 
-
-AIC(m1a.T1.sage, m1b.T1.sage, m1c.T1.sage) 
-# mod1a preferred
-# compare across
-
-summary(m1a.T1.sage)
-anova.gam(m1a.T1.sage)
-gam.check(m1a.T1.sage, rep=1000)
-draw(m1a.T1.sage)
-concrvity(m1a.T1.sage)
+summary(m1b.T1.sage)
+anova.gam(m1b.T1.sage)
+gam.check(m1b.T1.sage, rep=1000)
+draw(m1b.T1.sage)
+concrvity(m1b.T1.sage)
 par(mfrow = c(1, 2))
-plot(m1a.T1.sage, all.terms = TRUE, page=1)
+plot(m1b.T1.sage, all.terms = TRUE, page=1)
+
+# overall an effect of burning with both smoothers being significant by treatment
+# no effect of type, POM and plankton with similar d15N values
 
 
 ############# all plankton T2
-m2a.T2.sage <- gam(percent.sage ~ Treatment + Type +
-            s(plant.mass..g, by=Treatment) +
-            s(plant.mass..g, by=Type),
-            subset = Time.point=="T2",
-            data=topes.trt, method="REML", family="gaussian")
+m1a.T2.sage <- gam(percent.sage ~ Treatment*Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
-m2b.T2.sage <- gam(percent.sage ~ Treatment +
-            s(plant.mass..g, by=Treatment) + 
-            s(plant.mass..g, by=Type),
-            subset = Time.point=="T2",
-            data=topes.trt, method="REML", family="gaussian")
-
-m2c.T2.sage <- gam(percent.sage ~ Treatment + Type + 
-              s(plant.mass..g, by=Treatment),
-              subset = Time.point=="T2",
-            data=topes.trt, method="REML", family="gaussian")
+m1b.T2.sage <- gam(percent.sage ~ Treatment + Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
 
-AIC(m2a.T2.sage, m2b.T2.sage, m2c.T2.sage) 
-# m2a.T2.sage preferred
+
+AIC(m1a.T2.sage, m1b.T2.sage) 
+# m1b.T2.sage preferred
 # compare across
 
-summary(m2a.T2.sage)
-anova.gam(m2a.T2.sage)
-gam.check(m2a.T2.sage, rep=1000)
-draw(m2a.T2.sage)
-concrvity(m2a.T2.sage)
+summary(m1b.T2.sage)
+anova.gam(m1b.T2.sage)
+gam.check(m1b.T2.sage, rep=1000)
+draw(m1b.T2.sage)
+concrvity(m1b.T2.sage)
 par(mfrow = c(1, 2))
-plot(m2a.T2.sage, all.terms = TRUE, page=1)
+plot(m1b.T2.sage, all.terms = TRUE, page=1)
 
 
 ```

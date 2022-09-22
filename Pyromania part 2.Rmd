@@ -416,10 +416,11 @@ p7
 
 
 ```{r}
+# big stacked plot
 p8<-ggplot(z3,aes(fill=spp, y=Density.mean, x=Plant.mass..g)) +
   geom_bar(stat="identity", width = 12)+
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  facet_grid(rows=vars(Date.collected), cols=vars(Treatment), scales="free")+
+  facet_grid(rows=vars(Date.collected), cols=vars(Treatment), scales="fixed")+
   labs(x = "Treatment")
 p8 #position="fill"
 
