@@ -22,7 +22,8 @@ if (!require("pacman")) install.packages("pacman") # for rapid install if not in
 
 # use pacman to load all the packages you are missing!
 pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'magrittr', 'effects', 'plyr', 'dplyr', 
-               'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats")
+               'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats",
+               "tidymv")
 
 ```
 
@@ -155,6 +156,10 @@ T4.O2<-T4.O2 %>%
 # combine T1  T2  T3 T4 timepoints
 ################ ################ ################
 O2.tanks<-rbind(T1.O2,T2.O2, T3.O2, T4.O2)
+
+cols<-c("Time.point", "Treatment", "Tank") # columns to make factors
+O2.tanks[cols] <- lapply(O2.tanks[cols], factor) # make all these factors
+O2.tanks$plant.mass..g<-as.numeric(O2.tanks$plant.mass..g)
 ```
   
 TIME POINT 1: Change in O2% and NEP and NER --   
@@ -535,7 +540,6 @@ O2.change.T4<-plot_grid(
 #ggsave("figures/O2.change.T4.pdf", height=5, width=8)
 ```
 
-
 ```{r NEP NER compile}
 ########## ########## ########## ########## ########## 
 ########## compile all figs
@@ -577,7 +581,154 @@ ggsave("figures/PnR.alltimes.pdf", height=12, width=8)
 
 
 ```
-  
+
+Propductivity models
+```{r NEP models}
+####### Time 1
+
+m1.NEP.T1.gam=gam(NEP ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = O2.tanks, method = "REML")
+
+summary(m1.NEP.T1.gam)
+anova.gam(m1.NEP.T1.gam)
+gam.check(m1.NEP.T1.gam, rep=1000)
+draw(m1.NEP.T1.gam)
+concrvity(m1.NEP.T1.gam)
+par(mfrow = c(2, 2))
+plot(m1.NEP.T1.gam, all.terms = TRUE, page=1)
+
+model_p<-predict_gam(m1.NEP.T1.gam)
+
+
+NEP.T1 +
+model_p %>%
+  ggplot(aes(x=plant.mass..g, y=fit, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  coord_cartesian(ylim=c(-20, 50)) +
+  xlab("plant material (g)")+
+  Fig.formatting +
+  geom_smooth_ci(Treatment)
+
+# no treatment effect (p=0.110), smoothers significant (p<0.006)
+
+####### Time 2
+
+m1.NEP.T2.gam=gam(NEP ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T2", data = O2.tanks, method = "REML")
+
+summary(m1.NEP.T2.gam)
+anova.gam(m1.NEP.T2.gam)
+gam.check(m1.NEP.T2.gam, rep=1000)
+draw(m1.NEP.T2.gam)
+concrvity(m1.NEP.T2.gam)
+par(mfrow = c(2, 2))
+plot(m1.NEP.T2.gam, all.terms = TRUE, page=1)
+
+# treatment effect (p=0.007)
+# smoother significant for burned (p=0.002) but not unburned (p=0.326)
+
+
+####### Time 3
+
+m1.NEP.T3.gam=gam(NEP ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T3", data = O2.tanks, method = "REML")
+
+summary(m1.NEP.T3.gam)
+anova.gam(m1.NEP.T3.gam)
+gam.check(m1.NEP.T3.gam, rep=1000)
+draw(m1.NEP.T3.gam)
+concrvity(m1.NEP.T3.gam)
+par(mfrow = c(2, 2))
+plot(m1.NEP.T3.gam, all.terms = TRUE, page=1)
+
+# treatment effect (p=0.009)
+# smoother significant for burned (p<0.001) but not unburned (p=0.053)
+
+
+####### Time 4
+
+m1.NEP.T4.gam=gam(NEP ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T4", data = O2.tanks, method = "REML")
+
+summary(m1.NEP.T4.gam)
+anova.gam(m1.NEP.T4.gam)
+gam.check(m1.NEP.T4.gam, rep=1000)
+draw(m1.NEP.T4.gam)
+concrvity(m1.NEP.T4.gam)
+par(mfrow = c(2, 2))
+plot(m1.NEP.T4.gam, all.terms = TRUE, page=1)
+
+# no treatment effect (p=0.118)
+# smoother significant for burned (p=0.020) but not unburned (p=0.327)
+
+
+```
+
+Respiration models
+```{r NER models}
+####### Time 1
+
+m1.NER.T1.gam=gam(NER ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = O2.tanks, method = "REML")
+
+summary(m1.NER.T1.gam)
+anova.gam(m1.NER.T1.gam)
+gam.check(m1.NER.T1.gam, rep=1000)
+draw(m1.NER.T1.gam)
+concrvity(m1.NER.T1.gam)
+par(mfrow = c(2, 2))
+plot(m1.NER.T1.gam, all.terms = TRUE, page=1)
+
+# no treatment effect (p=0.247), smoothers significant (p<0.003)
+
+####### Time 2
+
+m1.NER.T2.gam=gam(NER ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T2", data = O2.tanks, method = "REML")
+
+summary(m1.NER.T2.gam)
+anova.gam(m1.NER.T2.gam)
+gam.check(m1.NER.T2.gam, rep=1000)
+draw(m1.NER.T2.gam)
+concrvity(m1.NER.T2.gam)
+par(mfrow = c(2, 2))
+plot(m1.NER.T2.gam, all.terms = TRUE, page=1)
+
+# slight treatment effect (p=0.085)
+# smoother significant for both burned and unburned (p<0.008)
+
+
+####### Time 3
+
+m1.NER.T3.gam=gam(NER ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T3", data = O2.tanks, method = "REML")
+
+summary(m1.NER.T3.gam)
+anova.gam(m1.NER.T3.gam)
+gam.check(m1.NER.T3.gam, rep=1000)
+draw(m1.NER.T3.gam)
+concrvity(m1.NER.T3.gam)
+par(mfrow = c(2, 2))
+plot(m1.NER.T3.gam, all.terms = TRUE, page=1)
+
+# treatment effect (p=0.027)
+# smoother significant for burned and unnburned (p<0.001)
+
+
+####### Time 4
+
+m1.NER.T4.gam=gam(NER ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T4", data = O2.tanks, method = "REML")
+
+summary(m1.NER.T4.gam)
+anova.gam(m1.NER.T4.gam)
+gam.check(m1.NER.T4.gam, rep=1000)
+draw(m1.NER.T4.gam)
+concrvity(m1.NER.T4.gam)
+par(mfrow = c(2, 2))
+plot(m1.NER.T4.gam, all.terms = TRUE, page=1)
+
+# no treatment effect (p=0.078)
+# smoother significant for burned (p=0.004) but not unburned (p=0.965)
+
+
+```
   
 ###Chlorophyll  
 import   
@@ -809,30 +960,36 @@ EDF - effective degrees of freedom, equate with wiggliness, with edf =1 as a str
 ```{r DOC analysis}
 
 ######## T1 model
-m1.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = DOC.df, method = "REML")
+m1.DOC.T1.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = DOC.df, method = "REML")
 
-summary(m1.gam)
-anova.gam(m1.gam)
+summary(m1.DOC.T1.gam)
+anova.gam(m1.DOC.T1.gam)
 gam.check(m1.gam, rep=1000)
-draw(m1.gam)
-concrvity(m1.gam)
+draw(m1.DOC.T1.gam)
+concrvity(m1.DOC.T1.gam)
 par(mfrow = c(2, 2))
-plot(m1.gam, all.terms = TRUE, page=1)
+plot(m1.DOC.T1.gam, all.terms = TRUE, page=1)
 
 # effect of treatment, smoothing significant across both treatments
 # DOC higher in  unburned, relative to burned
 
 
 ########## T2
-m2.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T2", data = DOC.df, method = "REML")
+m1.DOC.T2.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T2", data = DOC.df, method = "REML")
+summary(m1.DOC.T2.gam)
+# no treatment effect
 
-summary(m2.gam)
-anova.gam(m2.gam)
-gam.check(m2.gam, rep=1000)
-draw(m2.gam)
-concrvity(m2.gam)
+m2.DOC.T2.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g), subset = Time.point=="T2", data = DOC.df, method = "REML")
+AIC(m1.DOC.T2.gam, m2.DOC.T2.gam)
+# model m1.DOC.T2.gam preferred despite no effect of treatment
+
+summary(m1.DOC.T2.gam)
+anova.gam(m1.DOC.T2.gam)
+gam.check(m1.DOC.T2.gam, rep=1000)
+draw(m1.DOC.T2.gam)
+concrvity(m1.DOC.T2.gam)
 par(mfrow = c(2, 2))
-plot(m2.gam, all.terms = TRUE, page=1)
+plot(m1.DOC.T2.gam, all.terms = TRUE, page=1)
 
 # NO effect of treatment, smoothing significant across both treatments
 # DOC equivalent in burned and unburned 
@@ -841,7 +998,7 @@ plot(m2.gam, all.terms = TRUE, page=1)
 
 ########## T3
 m3.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T3", data = DOC.df, method = "REML")
-
+# significant treatment p=0.002 and smoothers (p<0.001)
 summary(m3.gam)
 anova.gam(m3.gam)
 gam.check(m3.gam, rep=1000)
@@ -855,17 +1012,24 @@ plot(m3.gam, all.terms = TRUE, page=1)
 
 
 ########## T4
-m4.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T4", data = DOC.df, method = "REML")
+m1.DOC.T4.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T4", data = DOC.df, method = "REML")
+summary(m1.DOC.T4.gam)
+# no treatment effect
 
-summary(m4.gam)
-anova.gam(m4.gam)
-gam.check(m4.gam, rep=1000)
-draw(m4.gam)
-concrvity(m4.gam)
+m2.DOC.T4.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g), subset = Time.point=="T4", data = DOC.df, method = "REML")
+AIC(m1.DOC.T4.gam, m2.DOC.T4.gam)
+# model m2.DOC.T4.gam preferred
+
+
+summary(m2.DOC.T4.gam)
+anova.gam(m2.DOC.T4.gam)
+gam.check(m2.DOC.T4.gam, rep=1000)
+draw(m2.DOC.T4.gam)
+concrvity(m2.DOC.T4.gam)
 par(mfrow = c(2, 2))
-plot(m4.gam, all.terms = TRUE, page=1)
+plot(m2.DOC.T4.gam, all.terms = TRUE, page=1)
 
-# effect of treatment, smoothing significant across both treatments
+# no effect of treatment, smoothing significant across both treatments
 # DOC equivalent in  burned and unburned
 
 ```
@@ -938,69 +1102,100 @@ ggsave("figures/TN.alltime.pdf", height=5, width=15)
 ```{r TN analysis}
 
 ######## T1 model
-m1.TN.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
+m1.TN.T1.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
+              subset = Time.point=="T1", data = DOC.df, method = "REML")
+summary(m1.TN.T1.gam)
+
+# no treatment effect, compare to simplified model (p=0.901)
+
+m2.TN.T1.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g), 
               subset = Time.point=="T1", data = DOC.df, method = "REML")
 
-summary(m1.TN.gam)
-anova.gam(m1.TN.gam)
-gam.check(m1.TN.gam, rep=1000)
-draw(m1.TN.gam)
-concrvity(m1.TN.gam)
+AIC(m1.TN.T1.gam, m2.TN.T1.gam)
+# m2.TN.T1.gam preferred
+
+summary(m2.TN.T1.gam)
+anova.gam(m2.TN.T1.gam)
+gam.check(m2.TN.T1.gam, rep=1000)
+draw(m2.TN.T1.gam)
+concrvity(m2.TN.T1.gam)
 par(mfrow = c(2, 2))
-plot(m1.TN.gam, all.terms = TRUE, page=1)
+plot(m2.TN.T1.gam, all.terms = TRUE, page=1)
 
-# TN smoother significant for unburned but not burned
-# TN not significant by Treatment 
-
+# TN smoother significant for unburned but not burned (p=0.003)
 
 
 ######## T2 model
-m2.TN.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
+m1.TN.T2.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
+              subset = Time.point=="T2", data = DOC.df, method = "REML")
+summary(m1.TN.T2.gam)
+# no treatment effect, compare to simplified model (p=0.083)
+
+m2.TN.T2.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g), 
               subset = Time.point=="T2", data = DOC.df, method = "REML")
 
+AIC(m1.TN.T2.gam, m2.TN.T2.gam)
+# m2.TN.T2.gam preferred
 
-summary(m2.TN.gam)
-anova.gam(m2.TN.gam)
-gam.check(m2.TN.gam, rep=1000)
-draw(m2.TN.gam)
-concrvity(m2.TN.gam)
-par(mfrow = c(1, 2))
-plot(m2.TN.gam, all.terms = TRUE, page=1)
+summary(m2.TN.T2.gam)
+anova.gam(m2.TN.T2.gam)
+gam.check(m2.TN.T2.gam, rep=1000)
+draw(m2.TN.T2.gam)
+concrvity(m2.TN.T2.gam)
+par(mfrow = c(2, 2))
+plot(m2.TN.T2.gam, all.terms = TRUE, page=1)
 
-# no treatment effect for TN, but a tendency to be higher in unburned
-# smother significant for unburned treatments
+# Near treatment effect p=0.053, higher TN in unburned
+# smoother signif: 0.004
 
 
 ######## T3 model
-m3.TN.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
+m1.TN.T3.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
+              subset = Time.point=="T3", data = DOC.df, method = "REML")
+summary(m1.TN.T3.gam)
+# no treatment effect, compare to simplified model (p=0.075)
+
+m2.TN.T3.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g), 
               subset = Time.point=="T3", data = DOC.df, method = "REML")
 
-summary(m3.TN.gam)
-anova.gam(m3.TN.gam)
-gam.check(m3.TN.gam, rep=1000)
-draw(m3.TN.gam)
-concrvity(m3.TN.gam)
-par(mfrow = c(2, 2))
-plot(m3.TN.gam, all.terms = TRUE, page=1)
+AIC(m1.TN.T3.gam, m2.TN.T3.gam)
+# m1.TN.T3.gam preferred, 
 
-# no treatment effect
-# significance for both smoother terms
+summary(m1.TN.T3.gam)
+anova.gam(m1.TN.T3.gam)
+gam.check(m1.TN.T3.gam, rep=1000)
+draw(m1.TN.T3.gam)
+concrvity(m1.TN.T3.gam)
+par(mfrow = c(2, 2))
+plot(m1.TN.T3.gam, all.terms = TRUE, page=1)
+
+# Near treatment effect p=0.075, trend for higher TN in burned
+# smoother signif: at <0.001 for both
 
 
 ######## T4 model
-m4.TN.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
+m1.TN.T4.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
+              subset = Time.point=="T4", data = DOC.df, method = "REML")
+summary(m1.TN.T4.gam)
+# treatment effect, compare to simplified model (p=0.020)
+
+m2.TN.T4.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g), 
               subset = Time.point=="T4", data = DOC.df, method = "REML")
 
-summary(m4.TN.gam)
-anova.gam(m4.TN.gam)
-gam.check(m4.TN.gam, rep=1000)
-draw(m4.TN.gam)
-concrvity(m4.TN.gam)
+AIC(m1.TN.T4.gam, m2.TN.T4.gam)
+# m1.TN.T4.gam preferred
+
+summary(m1.TN.T4.gam)
+anova.gam(m1.TN.T4.gam)
+gam.check(m1.TN.T4.gam, rep=1000)
+draw(m1.TN.T4.gam)
+concrvity(m1.TN.T4.gam)
 par(mfrow = c(2, 2))
-plot(m4.TN.gam, all.terms = TRUE, page=1)
+plot(m1.TN.T4.gam, all.terms = TRUE, page=1)
+
 
 # effect of treatment (higher TN in the burned)
-# significant smoother effect for burned treatment
+# significant smoother effect for burned treatment only
 
 ```
 
@@ -1172,7 +1367,7 @@ m1b.T1.CN <- gam(C.N ~ Treatment + Type +
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
 AIC(m1a.T1.CN, m1b.T1.CN)
-## additive model best fit
+## additive model best fit, but no treatment or type effect
 
 summary(m1b.T1.CN)
 anova.gam(m1b.T1.CN)
@@ -1205,7 +1400,7 @@ concrvity(m1b.T2.CN)
 par(mfrow = c(1, 2))
 plot(m1b.T2.CN, all.terms = TRUE, page=1)
 
-# no effect of treatment, but type important
+# no effect of treatment, but type important (higher in POM)
 # smoother significant for both 
 ```
 
@@ -1237,17 +1432,17 @@ topes.controls.non.enrich<-topes.controls[!(topes.controls$Plant=="blank" |
 topes.controls.non.enrich$Plant<-droplevels(topes.controls.non.enrich$Plant)
 
 
-######## test species differences
-wilcox.test(d15N~Plant, data=topes.controls.plants) # d15N sage and willow differ
-wilcox.test(C.N~Plant, data=topes.controls.plants) # C.N sage and willow differ
+######## test plant species differences
+wilcox.test(d15N~Plant, data=topes.controls.plants) # d15N sage and willow differ (p<0.001)
+wilcox.test(C.N~Plant, data=topes.controls.plants) # C.N sage and willow differ (p=0.013)
 par(mfrow=c(1,2))
 boxplot(d15N~Plant, data=topes.controls.plants)
 boxplot(C.N~Plant, data=topes.controls.plants)
 
 
-######## test difference WITHIN willow and plankton 
-wilcox.test(d15N~Plant, data=topes.controls.non.enrich) # d15N plankton and willow differ
-wilcox.test(C.N~Plant, data=topes.controls.non.enrich) # C:N plankton and willow differ
+######## test difference between willow and plankton 
+wilcox.test(d15N~Plant, data=topes.controls.non.enrich) # d15N plankton and willow differ (p<0.001)
+wilcox.test(C.N~Plant, data=topes.controls.non.enrich) # C:N plankton and willow differ (p<0.001)
 par(mfrow=c(1,2))
 boxplot(d15N~Plant, data=topes.controls.non.enrich)
 boxplot(C.N~Plant, data=topes.controls.non.enrich)
@@ -1259,13 +1454,14 @@ topes.controls.sage<-topes.controls[(topes.controls$Plant=="sage"),]
 topes.controls.sage$Plant<-droplevels(topes.controls.sage$Plant)
 topes.controls.sage$Burn.Trt<-droplevels(topes.controls.sage$Burn.Trt)
 
-mod<-lm(d15N~Burn.Trt, data=topes.controls.sage)
-anova(mod) 
-# no difference in d15N for burned, unburned, very bured sage
+# how do different types of sage compare across burn/unburn
+mod.sage<-lm(d15N~Burn.Trt, data=topes.controls.sage)
+anova(mod.sage) 
+# no difference in d15N for burned, unburned, very burned sage (p=0.423)
 
 #### Sage C.N
-mod<-lm(C.N~Burn.Trt, data=topes.controls.sage)
-anova(mod) 
+mod.sage.CN<-lm(C.N~Burn.Trt, data=topes.controls.sage)
+anova(mod.sage.CN) 
 # Sage: difference in unburned, burned, very burned for C:N
 
 par(mfrow=c(1,2))
@@ -1285,9 +1481,8 @@ anova(mod)
 # no difference in burned/unburned willow d15N
 
 #### Willow C.N
-mod<-lm(C.N~Burn.Trt, data=topes.controls.will)
-anova(mod) 
-# Willow: no difference in unburned, burned C:N
+wilcox.test(C.N~Burn.Trt, data=topes.controls.will)
+# Willow: no difference in unburned, burned C:N (p=0.114)
 
 par(mfrow=c(1,2))
 boxplot(d15N~Burn.Trt, data=topes.controls.will)
@@ -1297,7 +1492,7 @@ boxplot(C.N~Burn.Trt, data=topes.controls.will)
 ######### make summary dfs
 # summarize by plants
 d15N.plant<-aggregate(d15N~Plant, topes.controls, FUN=mean)
-d15N.plantSD<-aggregate(d15N~Plant, topes.controls, FUN=sd)
+d15N.plantSD<-aggregate(d15N~Plant, topes.controls, FUN=length)
 d15N.plant[3]<-d15N.plantSD[2]
 colnames(d15N.plant)<-c("Plant", "d15N", "SD")
 
@@ -1381,27 +1576,23 @@ topes.trt<-droplevels(topes.trt)
 
 
 ### values for controls
-d15N.cont # summary mean d15N
-sage.mean<-d15N.cont[c(5:8),]
-willow.mean<-d15N.cont[c(3:4),]
-mean(sage.mean$d15N) # sage ~298
-mean(willow.mean$d15N) #  willow 13
+d15N.cont # summary mean d15N by all controls
+d15N.plant # summary by plants, # sage 296, #  willow 13
 
 # summary mean atom percent enrichment
 F.cont<-aggregate(at.P..15N  ~ Type, topes.controls, mean)
-sage.meanF<-F.cont[c(5:8),]
-willow.meanF<-F.cont[c(3:4),]
-mean(sage.meanF$at.P..15N) # sage ~0.475
-mean(willow.meanF$at.P..15N) # willow 0.371
+F.plant<-aggregate(at.P..15N~Plant, topes.controls, FUN=mean)
+# sage ~0.475
+# willow 0.371
 
 # 2 source mixing model (Post 2002)
 
 # alpha = percent Sage from food web 1
 # %Sage = (d15N sample - d15N base 2 [i.e., no-label food])/ (d15N sage food 1 - source 2)
-#  d15N values of base 2 = 11 permil for algae/plankton stock 
+#  d15N values of base 2 = 11 permil for algae/plankton stock/willow
 #  d15N value of base 1 = 298 permil for sage
 
-topes.trt$percent.sage<-(topes.trt$d15N-11)/(298-11)
+topes.trt$percent.sage<-(topes.trt$d15N-12)/(296-12)
 
 
 # unicode text for micrometer = \u03BC, use this in legend
@@ -1503,6 +1694,8 @@ concrvity(m1b.T2.sage)
 par(mfrow = c(1, 2))
 plot(m1b.T2.sage, all.terms = TRUE, page=1)
 
+# effect of treatment (p<0.001) but not Type (p=0.321)
+# smoother significant for both terms
 
 ```
 
