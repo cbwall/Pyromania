@@ -551,38 +551,10 @@ O2change.alltimes<-plot_grid(
   O2.T3,
   O2.T4, ncol=1)
 
-ggsave("figures/O2change.alltimes.pdf", height=12, width=10)
-
-
-##### All photosynthesis and respiration
-
-PnR.alltimes.long<-plot_grid(
-  NEP.T1+ theme(legend.position = "none")+ ggtitle("Time-1"),
-  NEP.T2+ theme(legend.position = "none")+ ggtitle("Time-2"),
-  NEP.T3+ theme(legend.position = "none")+ ggtitle("Time-3"),
-  NEP.T4+ theme(legend.position = "none")+ ggtitle("Time-4"), extract.legend,
-  NER.T1+ theme(legend.position = "none")+ ggtitle(""),
-  NER.T2+ theme(legend.position = "none")+ ggtitle(""),
-  NER.T3+ theme(legend.position = "none")+ ggtitle(""),
-  NER.T4+ theme(legend.position = "none")+ ggtitle(""), extract.legend,
-  rel_widths = c(8,8,8,8,3, 8,8,8,8,3), ncol=5)
-
-ggsave("figures/PnR.alltimes.long.pdf", height=6, width=14)
-
-
-# alternative plot
-PnR.alltimes<-plot_grid(
-  O2.change.T1,
-  O2.change.T2,
-  O2.change.T3,
-  O2.change.T4, ncol=1)
-
-ggsave("figures/PnR.alltimes.pdf", height=12, width=8)
-
-
+#ggsave("figures/O2change.alltimes.pdf", height=12, width=10)
 ```
 
-Propductivity models
+Productivity models
 ```{r NEP models}
 ####### Time 1
 
@@ -596,21 +568,33 @@ concrvity(m1.NEP.T1.gam)
 par(mfrow = c(2, 2))
 plot(m1.NEP.T1.gam, all.terms = TRUE, page=1)
 
-model_p<-predict_gam(m1.NEP.T1.gam)
 
+#### see this https://cran.r-project.org/web/packages/tidymv/vignettes/plot-smooths.html
+# The difference smooth is difference between the smooths of two conditions (two levels in a factor). 
+# Portions of the difference smooth confidence interval that do not include 0 are shaded in red.
 
-NEP.T1 +
-model_p %>%
-  ggplot(aes(x=plant.mass..g, y=fit, color=Treatment)) + 
-  geom_point() +
+# model predictions
+NEP.diff.T1<-plot_difference(
+  m1.NEP.T1.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+NEP.T1.mod.plot<-
+  plot_smooths(
+  model = m1.NEP.T1.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=T1.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(-20, 50)) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
-  coord_cartesian(ylim=c(-20, 50)) +
-  xlab("plant material (g)")+
-  Fig.formatting +
-  geom_smooth_ci(Treatment)
+  theme(legend.position = "right") +
+  Fig.formatting
 
 # no treatment effect (p=0.110), smoothers significant (p<0.006)
 
@@ -625,6 +609,28 @@ draw(m1.NEP.T2.gam)
 concrvity(m1.NEP.T2.gam)
 par(mfrow = c(2, 2))
 plot(m1.NEP.T2.gam, all.terms = TRUE, page=1)
+
+## plot for the model output on rawdata
+# model predictions
+NEP.diff.T2<-plot_difference(
+  m1.NEP.T2.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+NEP.T2.mod.plot<-
+  plot_smooths(
+  model = m1.NEP.T2.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=T2.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(-20, 50)) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  theme(legend.position = "right") +
+  Fig.formatting
 
 # treatment effect (p=0.007)
 # smoother significant for burned (p=0.002) but not unburned (p=0.326)
@@ -642,6 +648,28 @@ concrvity(m1.NEP.T3.gam)
 par(mfrow = c(2, 2))
 plot(m1.NEP.T3.gam, all.terms = TRUE, page=1)
 
+# model predictions
+NEP.diff.T3<-plot_difference(
+  m1.NEP.T3.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+#plot for the model output on rawdata
+NEP.T3.mod.plot<-
+  plot_smooths(
+  model = m1.NEP.T3.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=T3.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(-20, 50)) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  theme(legend.position = "right") +
+  Fig.formatting
+
 # treatment effect (p=0.009)
 # smoother significant for burned (p<0.001) but not unburned (p=0.053)
 
@@ -658,9 +686,50 @@ concrvity(m1.NEP.T4.gam)
 par(mfrow = c(2, 2))
 plot(m1.NEP.T4.gam, all.terms = TRUE, page=1)
 
+# model predictions
+NEP.diff.T4<-plot_difference(
+  m1.NEP.T4.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+#plot for the model output on rawdata
+NEP.T4.mod.plot<-
+  plot_smooths(
+  model = m1.NEP.T4.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=T4.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(-20, 50)) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  theme(legend.position = "right") +
+  Fig.formatting
+
 # no treatment effect (p=0.118)
 # smoother significant for burned (p=0.020) but not unburned (p=0.327)
 
+
+NEP.mod.plot<-plot_grid(
+  NEP.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-1"),
+  NEP.T2.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-2"),
+  NEP.T3.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-3"),
+  NEP.T4.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-4"), extract.legend,
+  rel_widths = c(8,8,8,8,3), ncol=5)
+
+ggsave("figures/NEP.mod.plot.long.pdf", height=6, width=12)
+
+#### model differences
+NEP.mod.diffs<-plot_grid(
+  NEP.diff.T1+ theme(legend.position = "none")+ ggtitle("Time-1"),
+  NEP.diff.T2+ theme(legend.position = "none")+ ggtitle("Time-2"),
+  NEP.diff.T3+ theme(legend.position = "none")+ ggtitle("Time-3"),
+  NEP.diff.T4+ theme(legend.position = "none")+ ggtitle("Time-4"),
+  rel_widths = c(8,8,8,8), ncol=4)
+
+ggsave("figures/NEP.mod.diffs.pdf", height=3, width=10)
 
 ```
 
@@ -678,6 +747,29 @@ concrvity(m1.NER.T1.gam)
 par(mfrow = c(2, 2))
 plot(m1.NER.T1.gam, all.terms = TRUE, page=1)
 
+# model predictions
+NER.diff.T1<-plot_difference(
+  m1.NER.T1.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+NER.T1.mod.plot<-
+  plot_smooths(
+  model = m1.NER.T1.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=T1.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(-40, 10)) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  theme(legend.position = "right") +
+  Fig.formatting
+
 # no treatment effect (p=0.247), smoothers significant (p<0.003)
 
 ####### Time 2
@@ -691,6 +783,29 @@ draw(m1.NER.T2.gam)
 concrvity(m1.NER.T2.gam)
 par(mfrow = c(2, 2))
 plot(m1.NER.T2.gam, all.terms = TRUE, page=1)
+
+# model predictions
+NER.diff.T2<-plot_difference(
+  m1.NER.T2.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+NER.T2.mod.plot<-
+  plot_smooths(
+  model = m1.NER.T2.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=T2.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(-40, 10)) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  theme(legend.position = "right") +
+  Fig.formatting
 
 # slight treatment effect (p=0.085)
 # smoother significant for both burned and unburned (p<0.008)
@@ -708,6 +823,29 @@ concrvity(m1.NER.T3.gam)
 par(mfrow = c(2, 2))
 plot(m1.NER.T3.gam, all.terms = TRUE, page=1)
 
+# model predictions
+NER.diff.T3<-plot_difference(
+  m1.NER.T3.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+NER.T3.mod.plot<-
+  plot_smooths(
+  model = m1.NER.T3.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=T3.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(-40, 10)) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  theme(legend.position = "right") +
+  Fig.formatting
+
 # treatment effect (p=0.027)
 # smoother significant for burned and unnburned (p<0.001)
 
@@ -724,10 +862,78 @@ concrvity(m1.NER.T4.gam)
 par(mfrow = c(2, 2))
 plot(m1.NER.T4.gam, all.terms = TRUE, page=1)
 
+# model predictions
+NER.diff.T4<-plot_difference(
+  m1.NER.T4.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+NER.T4.mod.plot<-
+  plot_smooths(
+  model = m1.NER.T4.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=T4.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(-40, 10)) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  theme(legend.position = "right") +
+  Fig.formatting
+
 # no treatment effect (p=0.078)
 # smoother significant for burned (p=0.004) but not unburned (p=0.965)
 
 
+NER.mod.plot<-plot_grid(
+  NER.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-1"),
+  NER.T2.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-2"),
+  NER.T3.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-3"),
+  NER.T4.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-4"), extract.legend,
+  rel_widths = c(8,8,8,8,3), ncol=5)
+
+#ggsave("figures/NER.mod.plot.long.pdf", height=6, width=12)
+
+#### model differences
+NER.mod.diffs<-plot_grid(
+  NER.diff.T1+ theme(legend.position = "none")+ ggtitle("Time-1"),
+  NER.diff.T2+ theme(legend.position = "none")+ ggtitle("Time-2"),
+  NER.diff.T3+ theme(legend.position = "none")+ ggtitle("Time-3"),
+  NER.diff.T4+ theme(legend.position = "none")+ ggtitle("Time-4"),
+  rel_widths = c(8,8,8,8), ncol=4)
+
+#ggsave("figures/NER.mod.diffs.pdf", height=3, width=10)
+```
+
+
+```{r NEP NER model plots}
+NEP.NER.alltimes.long<-plot_grid(
+  NEP.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-1"),
+  NEP.T2.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-2"),
+  NEP.T3.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-3"),
+  NEP.T4.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-4"), extract.legend,
+  NER.T1.mod.plot+ theme(legend.position = "none")+ ggtitle(""),
+  NER.T2.mod.plot+ theme(legend.position = "none")+ ggtitle(""),
+  NER.T3.mod.plot+ theme(legend.position = "none")+ ggtitle(""),
+  NER.T4.mod.plot+ theme(legend.position = "none")+ ggtitle(""), extract.legend,
+  rel_widths = c(8,8,8,8,3, 8,8,8,8,3), ncol=5)
+ggsave("figures/NEP.NER.alltimes.long.pdf", height=7, width=12)
+
+NEP.NER.mod.diffs<-plot_grid(
+  NEP.diff.T1+ theme(legend.position = "none")+ ggtitle("NEP- Time-1"),
+  NEP.diff.T2+ theme(legend.position = "none")+ ggtitle("Time-2"),
+  NEP.diff.T3+ theme(legend.position = "none")+ ggtitle("Time-3"),
+  NEP.diff.T4+ theme(legend.position = "none")+ ggtitle("Time-4"),
+  NER.diff.T1+ theme(legend.position = "none")+ ggtitle("NER"),
+  NER.diff.T2+ theme(legend.position = "none")+ ggtitle(""),
+  NER.diff.T3+ theme(legend.position = "none")+ ggtitle(""),
+  NER.diff.T4+ theme(legend.position = "none")+ ggtitle(""),
+  rel_widths = c(8,8,8,8,8,8,8,8), ncol=4)
+ggsave("figures/NEP.NER.mod.diffs.pdf", height=7, width=12)
 ```
   
 ###Chlorophyll  
