@@ -909,7 +909,7 @@ NER.mod.diffs<-plot_grid(
 #ggsave("figures/NER.mod.diffs.pdf", height=3, width=10)
 ```
 
-
+Compiled NEP-NER plots with model fits
 ```{r NEP NER model plots}
 NEP.NER.alltimes.long<-plot_grid(
   NEP.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-1"),
@@ -939,7 +939,7 @@ ggsave("figures/NEP.NER.mod.diffs.pdf", height=7, width=12)
 ###Chlorophyll  
 import   
 - may not be useful...
-```{r chlorophyll}
+```{r chlorophyll, eval =FALSE}
 ## import treatment IDs
 chl.dat<- read.csv("data/Pyro_chlorophyll.csv")  
 chl.dat<-chl.dat[!(chl.dat$Time.point=="First.round"),] # remove first round from aborted mission
@@ -1081,7 +1081,7 @@ DOC.df$Treatment<-as.factor(DOC.df$Treatment)
 ```
 
 DOC plots
-```{r DOC plots}
+```{r DOC plots, eval=FALSE}
 DOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
   geom_point() +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
@@ -1176,18 +1176,37 @@ concrvity(m1.DOC.T1.gam)
 par(mfrow = c(2, 2))
 plot(m1.DOC.T1.gam, all.terms = TRUE, page=1)
 
+# model predictions
+DOC.diff.T1<-plot_difference(
+  m1.DOC.T1.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+DOC.T1.mod.plot<-
+  plot_smooths(
+  model = m1.DOC.T1.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=DOC.df[(DOC.df$Time.point=="T1"),], 
+             aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-1") +
+  ylab("DOC (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
 # effect of treatment, smoothing significant across both treatments
 # DOC higher in  unburned, relative to burned
 
 
 ########## T2
 m1.DOC.T2.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T2", data = DOC.df, method = "REML")
-summary(m1.DOC.T2.gam)
-# no treatment effect
-
-m2.DOC.T2.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g), subset = Time.point=="T2", data = DOC.df, method = "REML")
-AIC(m1.DOC.T2.gam, m2.DOC.T2.gam)
-# model m1.DOC.T2.gam preferred despite no effect of treatment
 
 summary(m1.DOC.T2.gam)
 anova.gam(m1.DOC.T2.gam)
@@ -1197,21 +1216,69 @@ concrvity(m1.DOC.T2.gam)
 par(mfrow = c(2, 2))
 plot(m1.DOC.T2.gam, all.terms = TRUE, page=1)
 
+# model predictions
+DOC.diff.T2<-plot_difference(
+  m1.DOC.T2.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+DOC.T2.mod.plot<-
+  plot_smooths(
+  model = m1.DOC.T2.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=DOC.df[(DOC.df$Time.point=="T2"),], 
+             aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-2") +
+  ylab("DOC (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
 # NO effect of treatment, smoothing significant across both treatments
 # DOC equivalent in burned and unburned 
 # DOC more variable/wonky across gradient in burned
 
 
 ########## T3
-m3.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T3", data = DOC.df, method = "REML")
-# significant treatment p=0.002 and smoothers (p<0.001)
-summary(m3.gam)
-anova.gam(m3.gam)
-gam.check(m3.gam, rep=1000)
-draw(m3.gam)
-concrvity(m3.gam)
+m1.DOC.T3.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T3", data = DOC.df, method = "REML")
+
+summary(m1.DOC.T3.gam)
+anova.gam(m1.DOC.T3.gam)
+gam.check(m1.DOC.T3.gam, rep=1000)
+draw(m1.DOC.T3.gam)
+concrvity(m1.DOC.T3.gam)
 par(mfrow = c(2, 2))
-plot(m3.gam, all.terms = TRUE, page=1)
+plot(m1.DOC.T3.gam, all.terms = TRUE, page=1)
+
+# model predictions
+DOC.diff.T3<-plot_difference(
+  m1.DOC.T3.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+DOC.T3.mod.plot<-
+  plot_smooths(
+  model = m1.DOC.T3.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=DOC.df[(DOC.df$Time.point=="T3"),], 
+             aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-3") +
+  ylab("DOC (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
 
 # effect of treatment, smoothing significant across both treatments
 # DOC higher in  burned vs. unburned
@@ -1219,25 +1286,60 @@ plot(m3.gam, all.terms = TRUE, page=1)
 
 ########## T4
 m1.DOC.T4.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T4", data = DOC.df, method = "REML")
+
 summary(m1.DOC.T4.gam)
-# no treatment effect
-
-m2.DOC.T4.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g), subset = Time.point=="T4", data = DOC.df, method = "REML")
-AIC(m1.DOC.T4.gam, m2.DOC.T4.gam)
-# model m2.DOC.T4.gam preferred
-
-
-summary(m2.DOC.T4.gam)
-anova.gam(m2.DOC.T4.gam)
-gam.check(m2.DOC.T4.gam, rep=1000)
-draw(m2.DOC.T4.gam)
+anova.gam(m1.DOC.T4.gam)
+gam.check(m1.DOC.T4.gam, rep=1000)
+draw(m1.DOC.T4.gam)
 concrvity(m2.DOC.T4.gam)
 par(mfrow = c(2, 2))
-plot(m2.DOC.T4.gam, all.terms = TRUE, page=1)
+plot(m1.DOC.T4.gam, all.terms = TRUE, page=1)
+
+# model predictions
+DOC.diff.T4<-plot_difference(
+  m1.DOC.T4.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+DOC.T4.mod.plot<-
+  plot_smooths(
+  model = m1.DOC.T4.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=DOC.df[(DOC.df$Time.point=="T4"),], 
+             aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-4") +
+  ylab("DOC (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
 
 # no effect of treatment, smoothing significant across both treatments
 # DOC equivalent in  burned and unburned
 
+```
+
+```{r DOC model plots}
+DOC.alltimes<-plot_grid(
+  DOC.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-1"),
+  DOC.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-2"),
+  DOC.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-3"),
+  DOC.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-4"), extract.legend,
+  rel_widths = c(8,8,8,8,3), ncol=5)
+ggsave("figures/DOC.alltimes.mod.pdf", height=4, width=12)
+
+DOC.mod.diffs<-plot_grid(
+  DOC.diff.T1+ theme(legend.position = "none")+ ggtitle("DOC - Time-1"),
+  DOC.diff.T2+ theme(legend.position = "none")+ ggtitle("Time-2"),
+  DOC.diff.T3+ theme(legend.position = "none")+ ggtitle("Time-3"),
+  DOC.diff.T4+ theme(legend.position = "none")+ ggtitle("Time-4"),
+  rel_widths = c(8,8,8,8), ncol=4)
+ggsave("figures/DOC.mod.diffs.pdf", height=4, width=12)
 ```
 
 Total N plots
