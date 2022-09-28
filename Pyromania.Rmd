@@ -1460,14 +1460,14 @@ TN.T4.mod.plot<-
 ```{r TN plots compiled}
 ###### compile the plots with effect plots
 
-TN.alltimes<-plot_grid(
+TN.mod.alltimes<-plot_grid(
   TN.T0.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-0"),
   TN.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-1"),
   TN.T2.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-2"),
   TN.T3.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-3"),
   TN.T4.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-4"), extract.legend,
   rel_widths = c(8,8,8,8,8,3), ncol=6)
-ggsave("figures/TN.alltime.mods.pdf", height=4, width=12)
+ggsave("figures/TN.mods.plots.pdf", height=5, width=14)
 
 TN.mod.diffs<-plot_grid(
   TN.diff.T0+ theme(legend.position = "none")+ ggtitle("TN - Time-0"),
@@ -1476,7 +1476,7 @@ TN.mod.diffs<-plot_grid(
   TN.diff.T3+ theme(legend.position = "none")+ ggtitle("Time-3"),
   TN.diff.T4+ theme(legend.position = "none")+ ggtitle("Time-4"),
   rel_widths = c(8,8,8,8,8,3), ncol=6)
-ggsave("figures/TN.mod.diffs.pdf", height=4, width=12)
+ggsave("figures/TN.mod.diffs.pdf", height=4, width=13)
 ```
 
 
@@ -1974,6 +1974,8 @@ ggsave("figures/Isotope.mixmodel.pdf", encod="MacRoman", height=5, width=10)
 model for % sage
 ```{r percent sage models}
 ############# all plankton T1
+topes.trt$percent.sage<-100*topes.trt$percent.sage
+
 m1a.T1.sage <- gam(percent.sage ~ Treatment*Type +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
@@ -1992,6 +1994,39 @@ draw(m1b.T1.sage)
 concrvity(m1b.T1.sage)
 par(mfrow = c(1, 2))
 plot(m1b.T1.sage, all.terms = TRUE, page=1)
+
+# model predictions
+per.Sage.diff.T1<-plot_difference(
+  m1b.T1.sage,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+# model for smoothing
+m1c.T1.sage<- gam(percent.sage ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+#plot for the model output on rawdata
+per.Sage.T1.mod.plot<-
+  plot_smooths(
+  model = m1c.T1.sage,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=topes.trt[(topes.trt$Time.point=="T1"),], 
+             aes(x=plant.mass..g, y=percent.sage, color=Treatment, shape=Type)) +
+  scale_shape_manual(name="Plankton", values = c(17, 16), 
+                     labels = c(expression(paste("> 63"~mu,"m")), 
+                                expression(paste("< 63"~mu,"m")))) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ylab("% Sage")+
+  xlab("plant material (g)") +
+  ggtitle("Time-1") +
+  coord_cartesian(ylim=c(0, 100)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
 
 # overall an effect of burning with both smoothers being significant by treatment
 # no effect of type, POM and plankton with similar d15N values
@@ -2020,10 +2055,60 @@ concrvity(m1b.T2.sage)
 par(mfrow = c(1, 2))
 plot(m1b.T2.sage, all.terms = TRUE, page=1)
 
+# model predictions
+per.Sage.diff.T2<-plot_difference(
+  m1b.T2.sage,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+# model for smoothing
+m1c.T2.sage<- gam(percent.sage ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+#plot for the model output on rawdata
+per.Sage.T2.mod.plot<-
+  plot_smooths(
+  model = m1c.T2.sage,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=topes.trt[(topes.trt$Time.point=="T2"),], 
+             aes(x=plant.mass..g, y=percent.sage, color=Treatment, shape=Type)) +
+  scale_shape_manual(name="Plankton", values = c(17, 16), 
+                     labels = c(expression(paste("> 63"~mu,"m")), 
+                                expression(paste("< 63"~mu,"m")))) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ylab("% Sage")+
+  xlab("plant material (g)") +
+  ggtitle("Time-2") +
+  coord_cartesian(ylim=c(0, 100)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
+
 # effect of treatment (p<0.001) but not Type (p=0.321)
 # smoother significant for both terms
 
 ```
+
+```{r percent sage model plots}
+# legend
+extract.legend.mix <- get_legend(
+  # create some space to the left of the legend
+  per.Sage.T2.mod.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+
+## combine 
+sage.mix.model<- plot_grid(per.Sage.T1.mod.plot + theme(legend.position = "none"), 
+                    per.Sage.T2.mod.plot + theme(legend.position = "none"),
+                    extract.legend.mix, rel_widths = c(8,8,3), ncol=3)
+
+ggsave("figures/Isotope.mixmodel.pdf", encod="MacRoman", height=5, width=10)
+
+```
+
 
 
 
