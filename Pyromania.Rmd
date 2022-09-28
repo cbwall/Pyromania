@@ -540,7 +540,7 @@ O2.change.T4<-plot_grid(
 #ggsave("figures/O2.change.T4.pdf", height=5, width=8)
 ```
 
-```{r NEP NER compile}
+```{r NEP NER O2 compile}
 ########## ########## ########## ########## ########## 
 ########## compile all figs
 
@@ -555,7 +555,7 @@ O2change.alltimes<-plot_grid(
 ```
 
 Productivity models
-```{r NEP models}
+```{r NEP models and individual plots}
 ####### Time 1
 
 m1.NEP.T1.gam=gam(NEP ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = O2.tanks, method = "REML")
@@ -710,31 +710,10 @@ NEP.T4.mod.plot<-
 
 # no treatment effect (p=0.118)
 # smoother significant for burned (p=0.020) but not unburned (p=0.327)
-
-
-NEP.mod.plot<-plot_grid(
-  NEP.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-1"),
-  NEP.T2.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-2"),
-  NEP.T3.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-3"),
-  NEP.T4.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-4"), extract.legend,
-  rel_widths = c(8,8,8,8,3), ncol=5)
-
-ggsave("figures/NEP.mod.plot.long.pdf", height=6, width=12)
-
-#### model differences
-NEP.mod.diffs<-plot_grid(
-  NEP.diff.T1+ theme(legend.position = "none")+ ggtitle("Time-1"),
-  NEP.diff.T2+ theme(legend.position = "none")+ ggtitle("Time-2"),
-  NEP.diff.T3+ theme(legend.position = "none")+ ggtitle("Time-3"),
-  NEP.diff.T4+ theme(legend.position = "none")+ ggtitle("Time-4"),
-  rel_widths = c(8,8,8,8), ncol=4)
-
-ggsave("figures/NEP.mod.diffs.pdf", height=3, width=10)
-
 ```
 
-Respiration models
-```{r NER models}
+Respiration models and individual plots
+```{r NER models and individual plots}
 ####### Time 1
 
 m1.NER.T1.gam=gam(NER ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = O2.tanks, method = "REML")
@@ -1023,7 +1002,7 @@ ggsave("figures/chla.alltime.pdf", height=5, width=15)
   
 ###DOC  
 import and do a loop to clean up all files and make stacked data in single df
-```{r DOC}
+```{r DOC import}
 ## import treatment IDs
 IDs<-read.csv("data/treatment.IDs.csv")
 
@@ -1080,75 +1059,6 @@ DOC.df<- DOC.df %>%
 DOC.df$Treatment<-as.factor(DOC.df$Treatment)
 ```
 
-DOC plots
-```{r DOC plots, eval=FALSE}
-DOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
-  geom_point() +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 60)) +
-  ggtitle("Time-0") +
-  ylab("DOC (mg/L)") +
-  xlab("plant material (g)") +
-  Fig.formatting
-
-DOC.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
-  geom_point() +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 60)) +
-  ggtitle("Time-1") +
-  ylab("DOC (mg/L)") +
-  xlab("plant material (g)") +
-  Fig.formatting
-  
-DOC.T2<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
-  geom_point() +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 60)) +
-  ggtitle("Time-2") +
-  ylab("DOC (mg/L)") +
-  xlab("plant material (g)") +
-  Fig.formatting
-
-  
-DOC.T3<-ggplot(DOC.df[(DOC.df$Time.point=="T3"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
-  geom_point() +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 60)) +
-  ggtitle("Time-3") +
-  ylab("DOC (mg/L)") +
-  xlab("plant material (g)") +
-  Fig.formatting
-
-DOC.T4<-ggplot(DOC.df[(DOC.df$Time.point=="T4"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) + 
-  geom_point() +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 60)) +
-  ggtitle("Time-4") +
-  ylab("DOC (mg/L)") +
-  xlab("plant material (g)") +
-  Fig.formatting
-
-DOC.plots<-plot_grid(
-  #DOC.T0+ theme(legend.position = "none"),
-  DOC.T1+ theme(legend.position = "none"),
-  DOC.T2+ theme(legend.position = "none"),
-  DOC.T3+ theme(legend.position = "none"),
-  DOC.T4+ theme(legend.position = "none"),
-  extract.legend, 
-  rel_widths = c(8,8,8,8, 3), ncol=5)
-
-
-DOC.plots
-
-ggsave("figures/DOC.alltime.pdf", height=5, width=15)
-
-```
-  
 DOC analysis: 
 
 - notes on GAMS....
@@ -1157,13 +1067,13 @@ Number of basis functions important as well, small # of basis functions (k) will
 
 When using the non-linear smoothing, this is the s(xxxx). Can add a new predictor by adding another smooth function with s(x1) + s(x2). When the variable is inside the smooth function, this is to account for the nonlinear shape. Two smoothing together and you have ADDITIVE Nonlinear modeling. Not all variables need to be non-linear, but adding a predictor outside of the s() then this is allowing for linearity. 
 
-In practce, continuous variables are rarely linear in GAMs, automatic smoothing will make a linear shape if setting high smoothing function (ie.. s =1000), then a non-linear variable appears linear. However, setting categorical variables as predicots linear is more common.
+In practice, continuous variables are rarely linear in GAMs, automatic smoothing will make a linear shape if setting high smoothing function (ie.. s =1000), then a non-linear variable appears linear. However, setting categorical variables as predicots linear is more common.
 
 Factor-smooth interaction also an option, this is when s(x1 by = fac), this sets different smoothing for different variables of "fac". Usually, the different smoothers are combined with a varying intercept incase the different categories are different in means and slopes, this would be by adding the s(x1 by = fac) + fac, wheere the +fac allows for a different slope
 
 EDF - effective degrees of freedom, equate with wiggliness, with edf =1 as a straight line, and higher edfs as more wiggly. GAM smoother significance is described as not being able to draw a horizontal line through the data. Always check concurvity, which is the collinearity with models from 0-1.
 
-```{r DOC analysis}
+```{r DOC analysis and individual plots}
 
 ######## T1 model
 m1.DOC.T1.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = DOC.df, method = "REML")
@@ -1324,7 +1234,21 @@ DOC.T4.mod.plot<-
 
 ```
 
-```{r DOC model plots}
+```{r DOC model plots compiled}
+
+# Time 0 if we want it
+DOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Time-0") +
+  ylab("DOC (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+###### compile the plots with effect plots
+
 DOC.alltimes<-plot_grid(
   DOC.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-1"),
   DOC.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-2"),
@@ -1342,132 +1266,120 @@ DOC.mod.diffs<-plot_grid(
 ggsave("figures/DOC.mod.diffs.pdf", height=4, width=12)
 ```
 
-Total N plots
-```{r TN plots}
-TN.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) + 
-  geom_point() +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+Total N analysis and plots
+```{r TN analysis and individual plots}
+TN.df<-DOC.df
+
+######## T0 model
+m1.TN.T0.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
+              subset = Time.point=="T0", data = TN.df, method = "REML")
+summary(m1.TN.T0.gam)
+
+# model predictions
+TN.diff.T0<-plot_difference(
+  m1.TN.T0.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+## plot for the model output on rawdata
+TN.T0.mod.plot<-
+  plot_smooths(
+  model = m1.TN.T0.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=TN.df[(TN.df$Time.point=="T0"),], 
+             aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +  
   coord_cartesian(ylim=c(0, 2)) +
-  ggtitle("Time-0") +
-  ylab("TN (mg/L)") +
+  ggtitle("Time 0") +
+  ylab("TN (mg/L)")  +
   xlab("plant material (g)") +
   Fig.formatting
- 
-TN.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) + 
-  geom_point() +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 2)) +
-  ggtitle("Time-1") +
-  ylab("TN (mg/L)") +
-  xlab("plant material (g)") +
-  Fig.formatting
-
-TN.T2<-ggplot(DOC.df[(DOC.df$Time.point=="T2"),], aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) + 
-  geom_point() +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 2)) +
-  ggtitle("Time-2") +
-  ylab("TN (mg/L)") +
-  xlab("plant material (g)") +
-  Fig.formatting
-
-TN.T3<-ggplot(DOC.df[(DOC.df$Time.point=="T3"),], aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) + 
-  geom_point() +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 2)) +
-  ggtitle("Time-3") +
-  ylab("TN (mg/L)") +
-  xlab("plant material (g)") +
-  Fig.formatting
-
-TN.T4<-ggplot(DOC.df[(DOC.df$Time.point=="T4"),], aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) + 
-  geom_point() +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 2)) +
-  ggtitle("Time-4") +
-  ylab("TN (mg/L)") +
-  xlab("plant material (g)") +
-  Fig.formatting
-  
-TN.plots<-plot_grid(
-  #TN.T0+ theme(legend.position = "none"),
-  TN.T1+ theme(legend.position = "none"),
-  TN.T2+ theme(legend.position = "none"),
-  TN.T3+ theme(legend.position = "none"),
-  TN.T4+ theme(legend.position = "none"),
-  extract.legend, 
-  rel_widths = c(8,8,8,8,3), ncol=5)
-
-ggsave("figures/TN.alltime.pdf", height=5, width=15)
-
-```
-
-```{r TN analysis}
-
-######## T1 model
-m1.TN.T1.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
-              subset = Time.point=="T1", data = DOC.df, method = "REML")
-summary(m1.TN.T1.gam)
 
 # no treatment effect, compare to simplified model (p=0.901)
 
-m2.TN.T1.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g), 
-              subset = Time.point=="T1", data = DOC.df, method = "REML")
+######## T1 model
+m1.TN.T1.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g,  by=Treatment), 
+              subset = Time.point=="T1", data = TN.df, method = "REML")
 
-AIC(m1.TN.T1.gam, m2.TN.T1.gam)
-# m2.TN.T1.gam preferred
-
-summary(m2.TN.T1.gam)
-anova.gam(m2.TN.T1.gam)
-gam.check(m2.TN.T1.gam, rep=1000)
-draw(m2.TN.T1.gam)
-concrvity(m2.TN.T1.gam)
+summary(m1.TN.T1.gam)
+anova.gam(m1.TN.T1.gam)
+gam.check(m1.TN.T1.gam, rep=1000)
+draw(m1.TN.T1.gam)
+concrvity(m1.TN.T1.gam)
 par(mfrow = c(2, 2))
-plot(m2.TN.T1.gam, all.terms = TRUE, page=1)
+plot(m1.TN.T1.gam, all.terms = TRUE, page=1)
 
-# TN smoother significant for unburned but not burned (p=0.003)
+# model predictions
+TN.diff.T1<-plot_difference(
+  m1.TN.T1.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+## plot for the model output on rawdata
+TN.T1.mod.plot<-
+  plot_smooths(
+  model = m1.TN.T1.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=TN.df[(TN.df$Time.point=="T1"),], 
+             aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +  
+  coord_cartesian(ylim=c(0, 2)) +
+  ggtitle("Time 1") +
+  ylab("TN (mg/L)")  +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+# TN smoother significant for unburned but not burned (p=0.007)
 
 
 ######## T2 model
-m1.TN.T2.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
-              subset = Time.point=="T2", data = DOC.df, method = "REML")
+m1.TN.T2.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g,  by=Treatment), 
+              subset = Time.point=="T2", data = TN.df, method = "REML")
+
 summary(m1.TN.T2.gam)
-# no treatment effect, compare to simplified model (p=0.083)
-
-m2.TN.T2.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g), 
-              subset = Time.point=="T2", data = DOC.df, method = "REML")
-
-AIC(m1.TN.T2.gam, m2.TN.T2.gam)
-# m2.TN.T2.gam preferred
-
-summary(m2.TN.T2.gam)
-anova.gam(m2.TN.T2.gam)
-gam.check(m2.TN.T2.gam, rep=1000)
-draw(m2.TN.T2.gam)
-concrvity(m2.TN.T2.gam)
+anova.gam(m1.TN.T2.gam)
+gam.check(m1.TN.T2.gam, rep=1000)
+draw(m1.TN.T2.gam)
+concrvity(m1.TN.T2.gam)
 par(mfrow = c(2, 2))
-plot(m2.TN.T2.gam, all.terms = TRUE, page=1)
+plot(m1.TN.T2.gam, all.terms = TRUE, page=1)
 
-# Near treatment effect p=0.053, higher TN in unburned
-# smoother signif: 0.004
+# model predictions
+TN.diff.T2<-plot_difference(
+  m1.TN.T2.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+## plot for the model output on rawdata
+TN.T2.mod.plot<-
+  plot_smooths(
+  model = m1.TN.T2.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=TN.df[(TN.df$Time.point=="T2"),], 
+             aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +  
+  coord_cartesian(ylim=c(0, 2)) +
+  ggtitle("Time 2") +
+  ylab("TN (mg/L)")  +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+# Near treatment effect p=0.083, higher TN in unburned
+# smoother signif: 0.042
 
 
 ######## T3 model
-m1.TN.T3.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
-              subset = Time.point=="T3", data = DOC.df, method = "REML")
-summary(m1.TN.T3.gam)
-# no treatment effect, compare to simplified model (p=0.075)
-
-m2.TN.T3.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g), 
-              subset = Time.point=="T3", data = DOC.df, method = "REML")
-
-AIC(m1.TN.T3.gam, m2.TN.T3.gam)
-# m1.TN.T3.gam preferred, 
+m1.TN.T3.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g,  by=Treatment), 
+              subset = Time.point=="T3", data = TN.df, method = "REML")
 
 summary(m1.TN.T3.gam)
 anova.gam(m1.TN.T3.gam)
@@ -1477,21 +1389,36 @@ concrvity(m1.TN.T3.gam)
 par(mfrow = c(2, 2))
 plot(m1.TN.T3.gam, all.terms = TRUE, page=1)
 
+# model predictions
+TN.diff.T3<-plot_difference(
+  m1.TN.T3.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+## plot for the model output on rawdata
+TN.T3.mod.plot<-
+  plot_smooths(
+  model = m1.TN.T3.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=TN.df[(TN.df$Time.point=="T3"),], 
+             aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +  
+  coord_cartesian(ylim=c(0, 2)) +
+  ggtitle("Time 3") +
+  ylab("TN (mg/L)")  +
+  xlab("plant material (g)") +
+  Fig.formatting
+
 # Near treatment effect p=0.075, trend for higher TN in burned
 # smoother signif: at <0.001 for both
 
 
 ######## T4 model
-m1.TN.T4.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
-              subset = Time.point=="T4", data = DOC.df, method = "REML")
-summary(m1.TN.T4.gam)
-# treatment effect, compare to simplified model (p=0.020)
-
-m2.TN.T4.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g), 
-              subset = Time.point=="T4", data = DOC.df, method = "REML")
-
-AIC(m1.TN.T4.gam, m2.TN.T4.gam)
-# m1.TN.T4.gam preferred
+m1.TN.T4.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g,  by=Treatment), 
+              subset = Time.point=="T4", data = TN.df, method = "REML")
 
 summary(m1.TN.T4.gam)
 anova.gam(m1.TN.T4.gam)
@@ -1501,10 +1428,55 @@ concrvity(m1.TN.T4.gam)
 par(mfrow = c(2, 2))
 plot(m1.TN.T4.gam, all.terms = TRUE, page=1)
 
+# model predictions
+TN.diff.T4<-plot_difference(
+  m1.TN.T4.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
 
-# effect of treatment (higher TN in the burned)
-# significant smoother effect for burned treatment only
+## plot for the model output on rawdata
+TN.T4.mod.plot<-
+  plot_smooths(
+  model = m1.TN.T4.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=TN.df[(TN.df$Time.point=="T4"),], 
+             aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +  
+  coord_cartesian(ylim=c(0, 2)) +
+  ggtitle("Time 4") +
+  ylab("TN (mg/L)")  +
+  xlab("plant material (g)") +
+  Fig.formatting
 
+
+# effect of treatment (higher TN in the burned) (p=0.020)
+# significant smoother effect for burned treatment only (p=0.032)
+
+```
+
+```{r TN plots compiled}
+###### compile the plots with effect plots
+
+TN.alltimes<-plot_grid(
+  TN.T0.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-0"),
+  TN.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-1"),
+  TN.T2.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-2"),
+  TN.T3.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-3"),
+  TN.T4.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-4"), extract.legend,
+  rel_widths = c(8,8,8,8,8,3), ncol=6)
+ggsave("figures/TN.alltime.mods.pdf", height=4, width=12)
+
+TN.mod.diffs<-plot_grid(
+  TN.diff.T0+ theme(legend.position = "none")+ ggtitle("TN - Time-0"),
+  TN.diff.T1+ theme(legend.position = "none")+ ggtitle("Time-1"),
+  TN.diff.T2+ theme(legend.position = "none")+ ggtitle("Time-2"),
+  TN.diff.T3+ theme(legend.position = "none")+ ggtitle("Time-3"),
+  TN.diff.T4+ theme(legend.position = "none")+ ggtitle("Time-4"),
+  rel_widths = c(8,8,8,8,8,3), ncol=6)
+ggsave("figures/TN.mod.diffs.pdf", height=4, width=12)
 ```
 
 
@@ -1568,99 +1540,56 @@ isotope.plots<-plot_grid(
 ggsave("figures/Isotope.d15N.pdf", height=5, width=8, encod="MacRoman")
 ```
 
-C:N ratio for plankton
+C vs N ratio for plankton
 ```{r isotopes CN}
 ############# C vs N plot
 
-### Time 1 C vs. N
-iso.plot.CN.T1<-ggplot(topes.trt[(topes.trt$Time.point=="T1"),],
-                    aes(x=Total.C..ug, y=Total.N..ug, color=Treatment)) +
-  geom_point(aes(shape=Type)) +
-  ggtitle("Time-1")+
+#plot for the model output on rawdata
+CvN.mod1.T1<-lm(Total.N..ug~Total.C..ug*Treatment, data=topes.trt[(topes.trt$Time.point=="T1"),])
+CvN.mod2.T1<-lm(Total.N..ug~Total.C..ug, data=topes.trt[(topes.trt$Time.point=="T1"),])
+
+anova(CvN.mod1.T1,CvN.mod2.T1) # no diff, go with simple model 'CvN.mod2.T1'
+
+CvN.T1.mod.plot<-
+  ggplot(data=topes.trt[(topes.trt$Time.point=="T1"),], 
+             aes(x=Total.C..ug, y=Total.N..ug, color=Treatment, fill=Treatment)) +
+  geom_point(aes(shape=Type))+
+  geom_smooth(method = "lm")+ 
+  scale_color_manual(values = c("brown1", "mediumseagreen"))+
+  ggtitle("Time-1") + 
   scale_shape_manual(name="Plankton", values = c(17, 16), 
                      labels = c(expression(paste("> 63"~mu,"m")), 
                                 expression(paste("< 63"~mu,"m")))) +
-  scale_color_manual(name="Treatments", values = c("brown1", "mediumseagreen")) +
-  # having this repeated below for some reason hacks the legend in a positive way, so leave it in.
-  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  ylim(c(0,550)) +
-  xlim(c(0,3000)) +
+  ylim(c(0,600)) +
+  xlim(c(0,3200)) +
   ylab("Total N (ug)") +
   xlab("Total C (ug)") +
-  Fig.formatting +
-  theme(legend.key.size = unit(2,"line"))
+  Fig.formatting 
 
 
 ### Time 2 C vs. N
-iso.plot.CN.T2<-ggplot(topes.trt[(topes.trt$Time.point=="T2"),],
-                    aes(x=Total.C..ug, y=Total.N..ug, color=Treatment)) +
-  geom_point(aes(shape=Type)) +
-  ggtitle("Time-2")+
+#plot for the model output on rawdata
+CvN.mod1.T2<-lm(Total.N..ug~Total.C..ug*Treatment, data=topes.trt[(topes.trt$Time.point=="T2"),])
+CvN.mod2.T2<-lm(Total.N..ug~Total.C..ug, data=topes.trt[(topes.trt$Time.point=="T2"),])
+
+anova(CvN.mod1.T2,CvN.mod2.T2) # no diff, go with simple model 'CvN.mod2.T2'
+
+CvN.T2.mod.plot<-
+  ggplot(data=topes.trt[(topes.trt$Time.point=="T2"),], 
+             aes(x=Total.C..ug, y=Total.N..ug, color=Treatment, fill=Treatment)) +
+  geom_point(aes(shape=Type))+
+  geom_smooth(method = "lm")+ 
+  scale_color_manual(values = c("brown1", "mediumseagreen"))+
+  ggtitle("Time-2") + 
   scale_shape_manual(name="Plankton", values = c(17, 16), 
                      labels = c(expression(paste("> 63"~mu,"m")), 
                                 expression(paste("< 63"~mu,"m")))) +
-  scale_color_manual(name="Treatments", values = c("brown1", "mediumseagreen")) +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1, show.legend = FALSE) +
-  ylim(c(0,550)) +
-  xlim(c(0,3000)) +
+  ylim(c(0,250)) +
+  xlim(c(0,1250)) +
   ylab("Total N (ug)") +
   xlab("Total C (ug)") +
-  Fig.formatting +
-  theme(legend.key.size = unit(2,"line"))
+  Fig.formatting 
 
-
-######### C:N ratio plot by biomass
-iso.plot.CNrat.T1<-ggplot(topes.trt[(topes.trt$Time.point=="T1"),], 
-                         aes(y=C.N, x=plant.mass..g, color=Treatment)) +
-  geom_point(aes(shape=Type)) +
-  ggtitle("Time-1")+ 
-  coord_cartesian(ylim=c(0, 20)) +
-  scale_shape_manual(name="Plankton", values = c(17, 16), 
-                     labels = c(expression(paste("> 63"~mu,"m")), 
-                                expression(paste("< 63"~mu,"m")))) +
-  scale_color_manual(name="Treatments", values = c("brown1", "mediumseagreen")) +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1, show.legend = FALSE) +
-  ylab("C:N") +
-  xlab("plant material (g)") +
-  Fig.formatting +
-  theme(legend.key.size = unit(2,"line"))
-
-
-######## Time 2
-iso.plot.CNrat.T2<-ggplot(topes.trt[(topes.trt$Time.point=="T2"),], 
-                         aes(y=C.N, x=plant.mass..g, color=Treatment)) +
-  geom_point(aes(shape=Type)) +
-  ggtitle("Time-2")+ 
-  coord_cartesian(ylim=c(0, 20)) +
-  scale_shape_manual(name="Plankton", values = c(17, 16), 
-                     labels = c(expression(paste("> 63"~mu,"m")), 
-                                expression(paste("< 63"~mu,"m")))) +
-  scale_color_manual(name="Treatments", values = c("brown1", "mediumseagreen")) +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1, show.legend = FALSE) +
-  ylab("C:N") +
-  xlab("plant material (g)") +
-  Fig.formatting +
-  theme(legend.key.size = unit(2,"line"))
-
-
-### get legend
-extract.legend.iso2 <- get_legend(
-  # create some space to the left of the legend
-  iso.plot.CN.T1 + theme(legend.box.margin = margin(0, 0, 0, 10)))
-
-## combine plots
-isoCNplot<- plot_grid(iso.plot.CN.T1 + theme(legend.position = "none"), 
-                    iso.plot.CN.T2 + theme(legend.position = "none"),
-                    iso.plot.CNrat.T1 + theme(legend.position = "none"),
-                    iso.plot.CNrat.T2 + theme(legend.position = "none"),
-                    extract.legend.iso2, rel_widths = c(8,8,8,8,3), ncol=5)
-
-isoCNplot
-ggsave("figures/iso.plot.CN.alltime.pdf", encod="MacRoman", height=6, width=15)
 ```
 
 C.N models
@@ -1674,6 +1603,7 @@ m1b.T1.CN <- gam(C.N ~ Treatment + Type +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
+
 AIC(m1a.T1.CN, m1b.T1.CN)
 ## additive model best fit, but no treatment or type effect
 
@@ -1685,10 +1615,43 @@ concrvity(m1b.T1.CN)
 par(mfrow = c(1, 2))
 plot(m1b.T1.CN, all.terms = TRUE, page=1)
 
+# model predictions
+CN.diff.T1<-plot_difference(
+  m1b.T1.CN,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+# model for smoothing
+m1c.T1.CN<- gam(C.N ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+#plot for the model output on rawdata
+CN.T1.mod.plot<-
+  plot_smooths(
+  model = m1c.T1.CN,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=topes.trt[(topes.trt$Time.point=="T1"),], 
+             aes(x=plant.mass..g, y=C.N, color=Treatment, shape=Type)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  theme(legend.position = "right") +
+  ggtitle("Time-1") + 
+  coord_cartesian(ylim=c(0, 20)) +
+  scale_shape_manual(name="Plankton", values = c(17, 16), 
+                     labels = c(expression(paste("> 63"~mu,"m")), 
+                                expression(paste("< 63"~mu,"m")))) +
+  ylab("C:N") +
+  xlab("plant material (g)") +
+  Fig.formatting 
+
 # no effect of type or treatment
 # smoother significant for both 
 
-########### Time 2
+############# all plankton T2
 m1a.T2.CN <- gam(C.N ~ Treatment*Type +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
@@ -1697,8 +1660,9 @@ m1b.T2.CN <- gam(C.N ~ Treatment + Type +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
+
 AIC(m1a.T2.CN, m1b.T2.CN)
-## additive model best fit
+## additive model best fit, but no treatment or type effect
 
 summary(m1b.T2.CN)
 anova.gam(m1b.T2.CN)
@@ -1708,8 +1672,58 @@ concrvity(m1b.T2.CN)
 par(mfrow = c(1, 2))
 plot(m1b.T2.CN, all.terms = TRUE, page=1)
 
+# model predictions
+CN.diff.T2<-plot_difference(
+  m1b.T2.CN,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+# model for smoothing
+m1c.T2.CN<- gam(C.N ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+#plot for the model output on rawdata
+CN.T2.mod.plot<-
+  plot_smooths(
+  model = m1c.T2.CN,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=topes.trt[(topes.trt$Time.point=="T2"),], 
+             aes(x=plant.mass..g, y=C.N, color=Treatment, shape=Type)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  theme(legend.position = "right") +
+  ggtitle("Time-2") + 
+  coord_cartesian(ylim=c(0, 20)) +
+  scale_shape_manual(name="Plankton", values = c(17, 16), 
+                     labels = c(expression(paste("> 63"~mu,"m")), 
+                                expression(paste("< 63"~mu,"m")))) +
+  ylab("C:N") +
+  xlab("plant material (g)") +
+  Fig.formatting 
+
 # no effect of treatment, but type important (higher in POM)
-# smoother significant for both 
+# smoother significant for both
+```
+
+```{r  C N and ratio model plots}
+### get legend
+extract.legend.C.N <- get_legend(
+  # create some space to the left of the legend
+  CN.T2.mod.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+## combine plots
+isoCNplot<- plot_grid(CvN.T1.mod.plot + theme(legend.position = "none"), 
+                    CvN.T2.mod.plot + theme(legend.position = "none"),
+                    CN.T1.mod.plot + theme(legend.position = "none"),
+                    CN.T2.mod.plot + theme(legend.position = "none"),
+                    extract.legend.C.N, rel_widths = c(8,8,8,8,3), ncol=5)
+
+ggsave("figures/isoCNplots.pdf", height=6, width=12, encod="MacRoman")
+
 ```
 
 ```{r control isotopes}
@@ -1893,12 +1907,16 @@ F.plant<-aggregate(at.P..15N~Plant, topes.controls, FUN=mean)
 # sage ~0.475
 # willow 0.371
 
-# 2 source mixing model (Post 2002)
+# 2 source mixing model (Post 2002), used d15N values here
 
 # alpha = percent Sage from food web 1
 # %Sage = (d15N sample - d15N base 2 [i.e., no-label food])/ (d15N sage food 1 - source 2)
 #  d15N values of base 2 = 11 permil for algae/plankton stock/willow
 #  d15N value of base 1 = 298 permil for sage
+
+# framed differently from Robinson 2001, TREE
+# xtracer = frction of tracer
+# Xtracer = (d15N-sample - d15N background) / (d15N-tracer - d15N-background)
 
 topes.trt$percent.sage<-(topes.trt$d15N-12)/(296-12)
 
