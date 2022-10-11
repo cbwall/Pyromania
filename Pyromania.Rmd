@@ -13,17 +13,34 @@ output:
     toc_depth: '4'
 ---
 
+### Project overview
+The goal of the Pyromania project is to test how terrestrial subsides (plant biomass loading) and burning influence aquatic productivity, trophic transfer, and water quality/chemistry. We used a manipulative experiment to assess a range of plant material quantities (0-400g/tank) and fire treatment (burned vs unburned material) and the non-linearity of these effects on aquatic systems through 4 time-point samplings. We used 400L aquatic mesocosms and ran the experiment for ~90d in 2021-2022.  
+
+
+![**Figure 1. Pyromania experimental setup**](output/tanks.jpg){ width=70%}
+**DATASETS**  
+This dataset is among 3 to be generated for the project and focuses on:  
+
+(1) **dissolved organic carbon** (DOC) and  
+(2) **total dissolved nitrogen (TDN)** concentrations  
+(3) **net ecosystem productivity and respiration** (NEP, NER) using whole mesocosm dissolved oxygen (O2) measurements  
+(4) **burning effects on donor plant material** using elemental analysis  
+(5) **greenhouse gas emissions** (methane (CH4), carbon dioxide (CO2)) from mesocosms    
+(6) **trophic transfer** using 15N-labeled sage plants to trace N from the plants into plankton.  
+
 ```{r setup chunk, setup, include = FALSE, cache=FALSE, message=FALSE, warning=FALSE}
 if (!require('knitr')) install.packages('knitr'); library('knitr')
 knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
+
+
+######### load in packages and set global settings
+
 
 # load packages
 if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
 
 # use pacman to load all the packages you are missing!
-pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'magrittr', 'effects', 'plyr', 'dplyr', 
-               'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats",
-               "tidymv")
+pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'magrittr', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv")
 
 ```
 
@@ -707,8 +724,7 @@ Fig.formatting<-(theme_classic()) +
 
 #########################################################
 ############################################################################
-###############################################################################################
-###################
+
 
 # total oxygen % plot for the 3 time points (dawn-dusk-dawn)
 
@@ -799,8 +815,7 @@ make figures of the data for timepoint 2
 ```{r Time2 O2}
 ############################################################
 ##############################################################################
-#############################################################################################
-###################
+
 
 # total oxygen % plot for the 3 time points (dawn-dusk-dawn)
 
@@ -889,8 +904,6 @@ make figures of the data for timepoint 3
 ```{r Time3 O2}
 ############################################################
 ##############################################################################
-#############################################################################################
-###################
 
 # total oxygen % plot for the 3 time points (dawn-dusk-dawn)
 
@@ -979,8 +992,6 @@ make figures of the data for timepoint 4
 ```{r Time4 O2}
 ############################################################
 ##############################################################################
-#############################################################################################
-###################
 
 # total oxygen % plot for the 3 time points (dawn-dusk-dawn)
 
@@ -1076,7 +1087,7 @@ O2change.alltimes<-plot_grid(
 #ggsave("figures/O2change.alltimes.pdf", height=12, width=10)
 ```
 
-Productivity models
+Productivity models and plots
 ```{r NEP models and individual plots}
 ####### Time 1
 
@@ -1410,7 +1421,7 @@ NER.mod.diffs<-plot_grid(
 #ggsave("figures/NER.mod.diffs.pdf", height=3, width=10)
 ```
 
-Compiled NEP-NER plots with model fits
+Compiled NEP-NER plots with model fits, and model difference outputs
 ```{r NEP NER model plots}
 NEP.NER.alltimes.long<-plot_grid(
   NEP.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-1"),
@@ -1439,10 +1450,10 @@ ggsave("figures/NEP.NER.mod.diffs.pdf", height=7, width=12)
   
 
 
-### Isotopes
+### Isotopes  
+Isotopes and C:N for starting materials used in the experiment and plankton fractions sampled at time 1 and time 2.
 
-Isotopes and C:N for plankton and starting materials
-```{r isotopes d15N}
+```{r read in isotope data}
 
 #########  Time 1 and Time 2
 topes<-read.csv("data/Isotopes/Pyro_isotopes.csv")
@@ -1465,9 +1476,11 @@ Total C vs total N  for plankton at Time1 and Time2. The model here is a linear 
 
 #plot for the model output on rawdata
 CvN.mod1.T1<-lm(Total.N..ug~Total.C..ug*Treatment, data=topes.trt[(topes.trt$Time.point=="T1"),])
-CvN.mod2.T1<-lm(Total.N..ug~Total.C..ug, data=topes.trt[(topes.trt$Time.point=="T1"),])
+
+CvN.mod2.T1<-lm(Total.N..ug~Total.C..ug + Treatment, data=topes.trt[(topes.trt$Time.point=="T1"),])
 
 anova(CvN.mod1.T1,CvN.mod2.T1) # no diff, go with simple model 'CvN.mod2.T1'
+Anova(CvN.mod2.T1, type=2)
 
 CvN.T1.mod.plot<-
   ggplot(data=topes.trt[(topes.trt$Time.point=="T1"),], 
@@ -1489,12 +1502,15 @@ CvN.T1.mod.plot<-
   Fig.formatting 
 
 
+#############################
 ### Time 2 C vs. N
 #plot for the model output on rawdata
 CvN.mod1.T2<-lm(Total.N..ug~Total.C..ug*Treatment, data=topes.trt[(topes.trt$Time.point=="T2"),])
-CvN.mod2.T2<-lm(Total.N..ug~Total.C..ug, data=topes.trt[(topes.trt$Time.point=="T2"),])
+
+CvN.mod2.T2<-lm(Total.N..ug~Total.C..ug + Treatment, data=topes.trt[(topes.trt$Time.point=="T2"),])
 
 anova(CvN.mod1.T2,CvN.mod2.T2) # no diff, go with simple model 'CvN.mod2.T2'
+Anova(CvN.mod2.T2, type=2)
 
 CvN.T2.mod.plot<-
   ggplot(data=topes.trt[(topes.trt$Time.point=="T2"),], 
@@ -1655,13 +1671,7 @@ ggsave("figures/isoCNplots.pdf", height=6, width=12, encod="MacRoman")
 The "controls" are the tin blanks, plankton, and starting materials
 ```{r control isotopes}
 ########## ########## ########## 
-########## control plots
-# set levels
-topes.controls$Type<-factor(topes.controls$Type, 
-                         levels=c("blank", "plankton.stock", 
-                                  "willow.unburned", "willow.burned",
-                                  "sage.unburned", "sage.burned", 
-                                  "sage.veryburned", "sage.stem.burned"))
+# run some stats to see how the control material differs from each other
 
 # make a burning treatment
 topes.controls$Burn.Trt=as.factor(word(topes.controls$Type, -1, sep="[.]"))
@@ -1765,10 +1775,19 @@ CN.cont.SD<-aggregate(C.N~Type, topes.controls, FUN=sd)
 CN.cont[3]<- CN.cont.SD[2]
 CN.cont[4]<- CN.cont.n[2]
 colnames(CN.cont)<-c("Type", "C.N", "SD", "n")
+```
 
+make boxplots of control sample d15N and C:N
+```{r control d15N and C:N boxplot}
+########## control plots
+# set levels
+topes.controls$Type<-factor(topes.controls$Type, 
+                         levels=c("blank", "plankton.stock", 
+                                  "willow.unburned", "willow.burned",
+                                  "sage.unburned", "sage.burned", 
+                                  "sage.veryburned", "sage.stem.burned"))
 
-
-#### controls d15N
+#### controls d15N boxplot
 iso.plot.control.d15N<-ggplot(data=topes.controls,  aes(x=Type, y=d15N, fill=Type)) +
   geom_boxplot() +
   geom_point(pch = 21, position = position_jitterdodge(), alpha=0.6)+
@@ -1804,20 +1823,15 @@ extract.legend.cont <- get_legend(
 
 
 ## combine 
-control.iso.alltime<- plot_grid(iso.plot.control.d15N + theme(legend.position = "none"), 
-                    iso.plot.control.CN + theme(legend.position = "none"),
-                    extract.legend.cont, rel_widths = c(8,8,3), ncol=3)
+control.iso.alltime<- 
+  plot_grid(iso.plot.control.d15N + theme(legend.position = "none"),
+            iso.plot.control.CN + theme(legend.position = "none"),
+            extract.legend.cont, rel_widths = c(8,8,3), ncol=3)
 
 ggsave("figures/iso.controls.pdf", encod="MacRoman", height=5, width=10)
-
-
-######## alternative figure
-d15N.plot<-plot_grid(iso.plot.control.d15N + theme(axis.text.x = element_blank()), 
-                     isotope.plots, rel_widths = c(11,16), ncol=2)
-ggsave("figures/iso.d15.control.trt.pdf", encod="MacRoman", height=5, width=13)
 ```
 
-Use a mixing model to calculate % sage
+Use a mixing model to calculate % sage for plankton
 ```{r percent sage}
 # mixing model
 head(topes.trt)
@@ -1847,55 +1861,7 @@ F.plant<-aggregate(at.P..15N~Plant, topes.controls, FUN=mean)
 
 topes.trt$percent.sage<-(topes.trt$d15N-12)/(296-12)*100
 
-
 # unicode text for micrometer = \u03BC, use this in legend
-
-iso.mix.T1<-ggplot(topes.trt[(topes.trt$Time.point=="T1"),], aes(x=plant.mass..g, y=100*percent.sage, color=Treatment)) +
-  geom_point(aes(shape=Type)) +
-  scale_shape_manual(name="Plankton", values = c(17, 16), 
-                     labels = c(expression(paste("> 63"~mu,"m")), 
-                                expression(paste("< 63"~mu,"m")))) +
-  scale_color_manual(name="Treatments", values = c("brown1", "mediumseagreen")) +
-  geom_smooth(method = "gam", formula = y ~ s(x, bs = "tp", k = 5),
-              aes(fill=Treatment), alpha=0.1, show.legend = FALSE) +
-  ylab("% Sage")+
-  xlab("plant material (g)") +
-  ggtitle("Time-1") +
-  coord_cartesian(ylim=c(0, 100)) +
-  Fig.formatting +
-  theme(legend.key.size = unit(1,"line"))
-
-
-######################
-
-iso.mix.T2<-ggplot(topes.trt[(topes.trt$Time.point=="T2"),], aes(x=plant.mass..g, y=100*percent.sage, color=Treatment)) +
-  geom_point(aes(shape=Type)) +
-  scale_shape_manual(name="Plankton", values = c(17, 16), 
-                     labels = c(expression(paste("> 63"~mu,"m")), 
-                                expression(paste("< 63"~mu,"m")))) +
-  scale_color_manual(name="Treatments", values = c("brown1", "mediumseagreen")) +
-  geom_smooth(method = "gam", formula = y ~ s(x, bs = "tp", k = 5),
-              aes(fill=Treatment), alpha=0.1, show.legend = FALSE) +
-  ylab("% Sage")+
-  xlab("plant material (g)") +
-  ggtitle("Time-2") +
-  coord_cartesian(ylim=c(0, 100)) +
-  Fig.formatting +
-  theme(legend.key.size = unit(1,"line"))
-
-
-# legend
-extract.legend.mix <- get_legend(
-  # create some space to the left of the legend
-  iso.mix.T2 + theme(legend.box.margin = margin(0, 0, 0, 10)))
-
-
-## combine 
-control.iso.alltime<- plot_grid(iso.mix.T1 + theme(legend.position = "none"), 
-                    iso.mix.T2 + theme(legend.position = "none"),
-                    extract.legend.mix, rel_widths = c(8,8,3), ncol=3)
-
-ggsave("figures/Isotope.mixmodel.pdf", encod="MacRoman", height=5, width=10)
 ```
 
 model for % sage
@@ -2161,7 +2127,9 @@ ggsave("figures/d15N.model.pdf", encod="MacRoman", height=5, width=10)
 
 
 ### Plant material
-Plant material for the starting material (sage or willow, stems or sticks). This is useful in determining how fire impacted the nutrients in the plant material
+Plant material for the starting material (sage or willow, stems or sticks). This is useful in determining how fire impacted the nutrients in the plant material.  
+
+First, run some stats to see what is happening and where differences lie.
 ```{r plant elemental}
 plant.nut<-read.csv("data/Pyro_plant material_elemental.csv")
 
@@ -2204,8 +2172,10 @@ anova(plant.ZN) # 3 way interaction, type and plant most key
 
 posthoc<-emmeans(plant.ZN, ~treatment| plant:type)
 multcomp::cld(posthoc, Letters=letters)
+```
 
-
+Make a figure of the elemental analysis data.
+```{r plant elemental figures}
 ####### figures
 N.plot<- ggplot(plant.nut, aes(x=int.fac, y=N, fill=treatment)) +
   geom_boxplot(alpha=0.7) +
@@ -2345,6 +2315,7 @@ GHG$Treatment<-as.factor(GHG$Treatment)
 # rename levels and then column
 GHG$Week<- revalue(GHG$Week, c("WK0"="T0", "WK1"="T1", "WK2"="T2", "WK3"="T3"))
 names(GHG)[names(GHG)=="Week"] <- "Time.point"
+
 
 # reorder columns and export
 GHG<- GHG %>% select(Time.point, Treatment, plant.mass..g, Tank, Gas, d13C, at.perc.13C, ppm)
