@@ -17,16 +17,16 @@ output:
 The goal of the Pyromania project is to test how terrestrial subsides (plant biomass loading) and burning influence aquatic productivity, trophic transfer, and water quality/chemistry. We used a manipulative experiment to assess a range of plant material quantities (0-400g/tank) and fire treatment (burned vs unburned material) and the non-linearity of these effects on aquatic systems through 4 time-point samplings. We used 400L aquatic mesocosms and ran the experiment for ~90d in 2021-2022.  
 
 
-![**Figure 1. Pyromania experimental setup**](output/tanks.jpg){ width=70%}
-**DATASETS**  
-This dataset is among 3 to be generated for the project and focuses on:  
+![**Figure 1. Pyromania experimental setup**](output/tanks.jpg){width=70%}
+**DATA SETS**  
+This data set is among 3 to be generated for the project and focuses on:  
 
 (1) **dissolved organic carbon** (DOC) and  
 (2) **total dissolved nitrogen (TDN)** concentrations  
 (3) **net ecosystem productivity and respiration** (NEP, NER) using whole mesocosm dissolved oxygen (O2) measurements  
 (4) **burning effects on donor plant material** using elemental analysis  
 (5) **greenhouse gas emissions** (methane (CH4), carbon dioxide (CO2)) from mesocosms    
-(6) **trophic transfer** using 15N-labeled sage plants to trace N from the plants into plankton.  
+(6) **trophic transfer** using 15N-labeled sage plants to trace N from the plants into plankton.    
 
 ```{r setup chunk, setup, include = FALSE, cache=FALSE, message=FALSE, warning=FALSE}
 if (!require('knitr')) install.packages('knitr'); library('knitr')
@@ -1714,7 +1714,16 @@ topes.controls.sage$Plant<-droplevels(topes.controls.sage$Plant)
 topes.controls.sage$Burn.Trt<-droplevels(topes.controls.sage$Burn.Trt)
 
 # how do different types of sage compare across burn/unburn
-mod.sage<-lm(d15N~Burn.Trt, data=topes.controls.sage)
+# first, no difference between burned or very burned sage
+anova(lm(d15N~Burn.Trt, data=topes.controls.sage[!(topes.controls.sage$Burn.Trt=="unburned"),]))
+
+# convert to just 2 levels, no difference here either
+topes.controls.sage$Burn.Unb<-ifelse(topes.controls.sage$Burn.Trt=="burned", "burned",
+                                     ifelse(topes.controls.sage$Burn.Trt=="very burned", "burned",
+                                     "unburned"))
+
+
+mod.sage<-lm(d15N~Burn.Trt, data=topes.controls.sage) # keep at 3 levels
 anova(mod.sage) 
 # no difference in d15N for burned, unburned, very burned sage (p=0.423)
 
@@ -1735,13 +1744,14 @@ topes.controls.will<-topes.controls[(topes.controls$Plant=="willow"),]
 topes.controls.will$Plant<-droplevels(topes.controls.will$Plant)
 topes.controls.will$Burn.Trt<-droplevels(topes.controls.will$Burn.Trt)
 
-mod<-lm(d15N~Burn.Trt, data=topes.controls.will)
+mod<-lm(C.N~Burn.Trt, data=topes.controls.will)
 anova(mod) 
 # no difference in burned/unburned willow d15N
 
 #### Willow C.N
-wilcox.test(C.N~Burn.Trt, data=topes.controls.will)
-# Willow: no difference in unburned, burned C:N (p=0.114)
+mod<-lm(C.N~Burn.Trt, data=topes.controls.will)
+anova(mod) 
+# Willow: no difference in unburned, burned C:N (p=0.061)
 
 par(mfrow=c(1,2))
 boxplot(d15N~Burn.Trt, data=topes.controls.will)
@@ -2137,14 +2147,14 @@ fac<-c("Sample.Name", "type", "plant", "treatment", "rep") # make factors
 plant.nut[fac]<-lapply(plant.nut[fac],factor)
 
 ######### %N
-plant.N<-lm(N~treatment +type + plant + treatment:type:plant, data=plant.nut)
+plant.N<-lm(N~treatment + type + plant + treatment:type:plant, data=plant.nut)
 anova(plant.N) # 3 way interaction
 
 posthoc<-emmeans(plant.N, ~treatment| plant:type)
 multcomp::cld(posthoc, Letters=letters)
 
 ########## %P 
-plant.P<-lm(P~treatment +type + plant, data=plant.nut)
+plant.P<-lm(P~treatment +type + plant + treatment:type:plant, data=plant.nut)
 anova(plant.P) # main effects only
 
 posthoc<-emmeans(plant.P, ~treatment| plant:type)
@@ -2152,7 +2162,7 @@ multcomp::cld(posthoc, Letters=letters)
 
 
 ########## %K
-plant.K<-lm(K~treatment +type + plant, data=plant.nut)
+plant.K<-lm(K~treatment +type + plant + treatment:type:plant, data=plant.nut)
 anova(plant.K) # main effects only
 
 posthoc<-emmeans(plant.K, ~treatment| plant:type)
@@ -2160,8 +2170,8 @@ multcomp::cld(posthoc, Letters=letters)
 
 
 ########## %S
-plant.S<-lm(S~treatment +type + plant + treatment:type:plant, data=plant.nut)
-anova(plant.S) # type:plant, main effects
+plant.S1<-lm(S~treatment + type + plant + treatment:type:plant, data=plant.nut)
+anova(plant.S1) # type:plant, main effects
 
 posthoc<-emmeans(plant.S, ~treatment| plant:type)
 multcomp::cld(posthoc, Letters=letters)
