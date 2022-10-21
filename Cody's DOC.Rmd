@@ -129,7 +129,7 @@ DOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=DOC..m
   xlab("")+
   ylab(expression("DOC mg" ~L^-1))+
   Fig.formatting
-
+  
 
 
 DOC.T1<-ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment, linetype=Treatment)) + 
