@@ -40,7 +40,7 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
 if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
 
 # use pacman to load all the packages you are missing!
-pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'magrittr', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv")
+pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'magrittr', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin")
 
 ```
 
@@ -123,13 +123,20 @@ EDF - effective degrees of freedom, equate with wiggliness, with edf =1 as a str
 ######## T0 model
 m1.DOC.T0.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T0", data = DOC.df, method = "REML")
 
-summary(m1.DOC.T0.gam)
-anova.gam(m1.DOC.T0.gam)
-gam.check(m1.DOC.T0.gam, rep=1000)
-draw(m1.DOC.T0.gam)
-concrvity(m1.DOC.T0.gam)
+m2.DOC.T0.gam=gam(DOC..mg.L ~  Treatment + s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
+
+m3.DOC.T0.gam=gam(DOC..mg.L ~  s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
+
+T0.DOC.AIC<-AIC(m1.DOC.T0.gam, m2.DOC.T0.gam, m3.DOC.T0.gam)
+# best is smoother solo
+
+summary(m3.DOC.T0.gam)
+anova.gam(m3.DOC.T0.gam)
+gam.check(m3.DOC.T0.gam, rep=1000)
+draw(m3.DOC.T0.gam)
+concrvity(m3.DOC.T0.gam)
 par(mfrow = c(2, 2))
-plot(m1.DOC.T0.gam, all.terms = TRUE, page=1)
+plot(m3.DOC.T0.gam, all.terms = TRUE, page=1)
 
 # model predictions
 DOC.diff.T0<-plot_difference(
@@ -142,15 +149,14 @@ DOC.diff.T0<-plot_difference(
 #plot for the model output on rawdata
 DOC.T0.mod.plot<-
   plot_smooths(
-  model = m1.DOC.T0.gam,
+  model = m3.DOC.T0.gam,
   series = plant.mass..g,
-  comparison = Treatment
 ) + 
   geom_point(data=DOC.df[(DOC.df$Time.point=="T0"),], 
              aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  coord_cartesian(ylim=c(0, 60)) +
-  ggtitle("Time-0") +
+  coord_cartesian(ylim=c(0, 5)) +
+  ggtitle("Day-0") +
   ylab("DOC (mg/L)") +
   xlab("plant material (g)") +
   Fig.formatting
@@ -158,6 +164,13 @@ DOC.T0.mod.plot<-
 
 ######## T1 model
 m1.DOC.T1.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = DOC.df, method = "REML")
+
+m2.DOC.T1.gam=gam(DOC..mg.L ~  Treatment + s(plant.mass..g), subset = Time.point=="T1", data = DOC.df, method = "REML")
+
+m3.DOC.T1.gam=gam(DOC..mg.L ~  s(plant.mass..g), subset = Time.point=="T1", data = DOC.df, method = "REML")
+
+T1.DOC.AIC<-AIC(m1.DOC.T1.gam, m2.DOC.T1.gam, m3.DOC.T1.gam)
+# best is smooth by factor
 
 summary(m1.DOC.T1.gam)
 anova.gam(m1.DOC.T1.gam)
@@ -174,9 +187,6 @@ DOC.diff.T1<-plot_difference(
   difference = list(Treatment = c("burned", "unburned"))
 )
 
-sm_diffs <- difference_smooths(m1.DOC.T1.gam, smooth = "s(plant.mass..g)")
-draw(sm_diffs)
-
 ###########  
 #plot for the model output on rawdata
 DOC.T1.mod.plot<-
@@ -189,7 +199,7 @@ DOC.T1.mod.plot<-
              aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   coord_cartesian(ylim=c(0, 60)) +
-  ggtitle("Time-1") +
+  ggtitle("Day-10") +
   ylab("DOC (mg/L)") +
   xlab("plant material (g)") +
   Fig.formatting
@@ -200,7 +210,15 @@ DOC.T1.mod.plot<-
 
 
 ########## T2
-m1.DOC.T2.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T2", data = DOC.df, method = "REML")
+m1.DOC.T2.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T2", data = DOC.df, method = "REML")
+
+m2.DOC.T2.gam=gam(DOC..mg.L ~  Treatment + s(plant.mass..g), subset = Time.point=="T2", data = DOC.df, method = "REML")
+
+m3.DOC.T2.gam=gam(DOC..mg.L ~  s(plant.mass..g), subset = Time.point=="T2", data = DOC.df, method = "REML")
+
+T2.DOC.AIC<-AIC(m1.DOC.T2.gam, m2.DOC.T2.gam, m3.DOC.T2.gam)
+
+# best is smooth by factor
 
 summary(m1.DOC.T2.gam)
 anova.gam(m1.DOC.T2.gam)
@@ -229,7 +247,7 @@ DOC.T2.mod.plot<-
              aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   coord_cartesian(ylim=c(0, 60)) +
-  ggtitle("Time-2") +
+  ggtitle("Day-31") +
   ylab("DOC (mg/L)") +
   xlab("plant material (g)") +
   Fig.formatting
@@ -240,7 +258,14 @@ DOC.T2.mod.plot<-
 
 
 ########## T3
-m1.DOC.T3.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T3", data = DOC.df, method = "REML")
+m1.DOC.T3.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T3", data = DOC.df, method = "REML")
+
+m2.DOC.T3.gam=gam(DOC..mg.L ~  Treatment + s(plant.mass..g), subset = Time.point=="T3", data = DOC.df, method = "REML")
+
+m3.DOC.T3.gam=gam(DOC..mg.L ~  s(plant.mass..g), subset = Time.point=="T3", data = DOC.df, method = "REML")
+
+T3.DOC.AIC<-AIC(m1.DOC.T3.gam, m2.DOC.T3.gam, m3.DOC.T3.gam)
+# best by factor smooth
 
 summary(m1.DOC.T3.gam)
 anova.gam(m1.DOC.T3.gam)
@@ -269,7 +294,7 @@ DOC.T3.mod.plot<-
              aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   coord_cartesian(ylim=c(0, 60)) +
-  ggtitle("Time-3") +
+  ggtitle("Day-59") +
   ylab("DOC (mg/L)") +
   xlab("plant material (g)") +
   Fig.formatting
@@ -279,36 +304,35 @@ DOC.T3.mod.plot<-
 
 
 ########## T4
-m1.DOC.T4.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), subset = Time.point=="T4", data = DOC.df, method = "REML")
+m1.DOC.T4.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T4", data = DOC.df, method = "REML")
 
-summary(m1.DOC.T4.gam)
-anova.gam(m1.DOC.T4.gam)
-gam.check(m1.DOC.T4.gam, rep=1000)
-draw(m1.DOC.T4.gam)
-concrvity(m1.DOC.T4.gam)
+m2.DOC.T4.gam=gam(DOC..mg.L ~  Treatment + s(plant.mass..g), subset = Time.point=="T4", data = DOC.df, method = "REML")
+
+m3.DOC.T4.gam=gam(DOC..mg.L ~  s(plant.mass..g), subset = Time.point=="T4", data = DOC.df, method = "REML")
+
+T4.DOC.AIC<-AIC(m1.DOC.T4.gam, m2.DOC.T4.gam, m3.DOC.T4.gam)
+
+# best is global
+summary(m3.DOC.T4.gam)
+anova.gam(m3.DOC.T4.gam)
+gam.check(m3.DOC.T4.gam, rep=1000)
+draw(m3.DOC.T4.gam)
+concrvity(m3.DOC.T4.gam)
 par(mfrow = c(2, 2))
-plot(m1.DOC.T4.gam, all.terms = TRUE, page=1)
-
-# model predictions
-DOC.diff.T4<-plot_difference(
-  m1.DOC.T4.gam,
-  series = plant.mass..g,
-  difference = list(Treatment = c("burned", "unburned"))
-)
+plot(m3.DOC.T4.gam, all.terms = TRUE, page=1)
 
 ###########  
 #plot for the model output on rawdata
 DOC.T4.mod.plot<-
   plot_smooths(
-  model = m1.DOC.T4.gam,
-  series = plant.mass..g,
-  comparison = Treatment
+  model = m3.DOC.T4.gam,
+  series = plant.mass..g
 ) + 
   geom_point(data=DOC.df[(DOC.df$Time.point=="T4"),], 
              aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   coord_cartesian(ylim=c(0, 60)) +
-  ggtitle("Time-4") +
+  ggtitle("Day-89") +
   ylab("DOC (mg/L)") +
   xlab("plant material (g)") +
   Fig.formatting
@@ -316,6 +340,8 @@ DOC.T4.mod.plot<-
 # no effect of treatment, smoothing significant across both treatments
 # DOC equivalent in  burned and unburned
 
+AIC.DOC<-bind_rows(T0.DOC.AIC, T1.DOC.AIC, T2.DOC.AIC, T3.DOC.AIC, T4.DOC.AIC)
+write.csv(AIC.DOC, "output/AIC.DOC.csv")
 ```
 
 compile raw plots and model-diff plots for final figures
@@ -332,18 +358,18 @@ extract.legend <- get_legend(
 
 
 DOC.alltimes<-plot_grid(
-  DOC.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Day-10"),
-  DOC.T2.mod.plot+ theme(legend.position = "none")+ ggtitle("Day-31"),
-  DOC.T3.mod.plot+ theme(legend.position = "none")+ ggtitle("Day-59"),
-  DOC.T4.mod.plot+ theme(legend.position = "none")+ ggtitle("Day-89"), extract.legend,
+  DOC.T1.mod.plot+ theme(legend.position = "none"),
+  DOC.T2.mod.plot+ theme(legend.position = "none"),
+  DOC.T3.mod.plot+ theme(legend.position = "none"),
+  DOC.T4.mod.plot+ theme(legend.position = "none"), extract.legend,
   rel_widths = c(8,8,8,8,3), ncol=5)
 ggsave("figures/DOC.alltimes.mod.pdf", height=4, width=12)
 
 DOC.mod.diffs<-plot_grid(
-  DOC.diff.T1+ theme(legend.position = "none")+ ggtitle("DOC - Time-1"),
-  DOC.diff.T2+ theme(legend.position = "none")+ ggtitle("Time-2"),
-  DOC.diff.T3+ theme(legend.position = "none")+ ggtitle("Time-3"),
-  DOC.diff.T4+ theme(legend.position = "none")+ ggtitle("Time-4"),
+  DOC.diff.T1+ theme(legend.position = "none")+ ggtitle("DOC - Day-10"),
+  DOC.diff.T2+ theme(legend.position = "none")+ ggtitle("Day-31"),
+  DOC.diff.T3+ theme(legend.position = "none")+ ggtitle("Day-59"),
+  DOC.diff.T4+ theme(legend.position = "none")+ ggtitle("Day-89"),
   rel_widths = c(8,8,8,8), ncol=4)
 ggsave("figures/DOC.mod.diffs.pdf", height=4, width=12)
 ```
@@ -356,6 +382,15 @@ TN.df<-DOC.df
 ######## T0 model
 m1.TN.T0.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
               subset = Time.point=="T0", data = TN.df, method = "REML")
+
+m2.TN.T0.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g), 
+              subset = Time.point=="T0", data = TN.df, method = "REML")
+
+m3.TN.T0.gam=gam(TN..mg.L ~ s(plant.mass..g), 
+              subset = Time.point=="T0", data = TN.df, method = "REML")
+
+T0.TN.AIC<-AIC(m1.TN.T0.gam, m2.TN.T0.gam, m3.TN.T0.gam)
+# best smooth by factor
 
 summary(m1.TN.T0.gam)
 anova.gam(m1.TN.T0.gam)
@@ -383,7 +418,7 @@ TN.T0.mod.plot<-
              aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +  
   coord_cartesian(ylim=c(0, 2)) +
-  ggtitle("Time 0") +
+  ggtitle("Day-0") +
   ylab("TN (mg/L)")  +
   xlab("plant material (g)") +
   Fig.formatting
@@ -391,16 +426,25 @@ TN.T0.mod.plot<-
 # no treatment effect, compare to simplified model (p=0.901)
 
 ######## T1 model
-m1.TN.T1.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g,  by=Treatment), 
+m1.TN.T1.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
               subset = Time.point=="T1", data = TN.df, method = "REML")
 
-summary(m1.TN.T1.gam)
-anova.gam(m1.TN.T1.gam)
-gam.check(m1.TN.T1.gam, rep=1000)
-draw(m1.TN.T1.gam)
-concrvity(m1.TN.T1.gam)
+m2.TN.T1.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g), 
+              subset = Time.point=="T1", data = TN.df, method = "REML")
+
+m3.TN.T1.gam=gam(TN..mg.L ~ s(plant.mass..g), 
+              subset = Time.point=="T1", data = TN.df, method = "REML")
+
+T1.TN.AIC<-AIC(m1.TN.T1.gam, m2.TN.T1.gam, m3.TN.T1.gam)
+#best global only
+
+summary(m3.TN.T1.gam)
+anova.gam(m3.TN.T1.gam)
+gam.check(m3.TN.T1.gam, rep=1000)
+draw(m3.TN.T1.gam)
+concrvity(m3.TN.T1.gam)
 par(mfrow = c(2, 2))
-plot(m1.TN.T1.gam, all.terms = TRUE, page=1)
+plot(m3.TN.T1.gam, all.terms = TRUE, page=1)
 
 # model predictions
 TN.diff.T1<-plot_difference(
@@ -412,15 +456,14 @@ TN.diff.T1<-plot_difference(
 ## plot for the model output on rawdata
 TN.T1.mod.plot<-
   plot_smooths(
-  model = m1.TN.T1.gam,
-  series = plant.mass..g,
-  comparison = Treatment
+  model = m3.TN.T1.gam,
+  series = plant.mass..g
 ) + 
   geom_point(data=TN.df[(TN.df$Time.point=="T1"),], 
              aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +  
   coord_cartesian(ylim=c(0, 2)) +
-  ggtitle("Time 1") +
+  ggtitle("Day-10") +
   ylab("TN (mg/L)")  +
   xlab("plant material (g)") +
   Fig.formatting
@@ -429,16 +472,25 @@ TN.T1.mod.plot<-
 
 
 ######## T2 model
-m1.TN.T2.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g,  by=Treatment), 
+m1.TN.T2.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
               subset = Time.point=="T2", data = TN.df, method = "REML")
 
-summary(m1.TN.T2.gam)
-anova.gam(m1.TN.T2.gam)
-gam.check(m1.TN.T2.gam, rep=1000)
-draw(m1.TN.T2.gam)
-concrvity(m1.TN.T2.gam)
+m2.TN.T2.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g), 
+              subset = Time.point=="T2", data = TN.df, method = "REML")
+
+m3.TN.T2.gam=gam(TN..mg.L ~ s(plant.mass..g), 
+              subset = Time.point=="T2", data = TN.df, method = "REML")
+
+T2.TN.AIC<-AIC(m1.TN.T2.gam, m2.TN.T2.gam, m3.TN.T2.gam)
+#best global with treatment term
+
+summary(m2.TN.T2.gam)
+anova.gam(m2.TN.T2.gam)
+gam.check(m2.TN.T2.gam, rep=1000)
+draw(m2.TN.T2.gam)
+concrvity(m2.TN.T2.gam)
 par(mfrow = c(2, 2))
-plot(m1.TN.T2.gam, all.terms = TRUE, page=1)
+plot(m2.TN.T2.gam, all.terms = TRUE, page=1)
 
 # model predictions
 TN.diff.T2<-plot_difference(
@@ -450,26 +502,34 @@ TN.diff.T2<-plot_difference(
 ## plot for the model output on rawdata
 TN.T2.mod.plot<-
   plot_smooths(
-  model = m1.TN.T2.gam,
-  series = plant.mass..g,
-  comparison = Treatment
+  model = m3.TN.T2.gam,
+  series = plant.mass..g
 ) + 
   geom_point(data=TN.df[(TN.df$Time.point=="T2"),], 
              aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +  
   coord_cartesian(ylim=c(0, 2)) +
-  ggtitle("Time 2") +
+  ggtitle("Day-31") +
   ylab("TN (mg/L)")  +
   xlab("plant material (g)") +
   Fig.formatting
 
-# Near treatment effect p=0.083, higher TN in unburned
+# Near treatment effect p=0.053, higher TN in unburned
 # smoother signif: 0.042
 
 
 ######## T3 model
-m1.TN.T3.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g,  by=Treatment), 
+m1.TN.T3.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
               subset = Time.point=="T3", data = TN.df, method = "REML")
+
+m2.TN.T3.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g), 
+              subset = Time.point=="T3", data = TN.df, method = "REML")
+
+m3.TN.T3.gam=gam(TN..mg.L ~ s(plant.mass..g), 
+              subset = Time.point=="T3", data = TN.df, method = "REML")
+
+T3.TN.AIC<-AIC(m1.TN.T3.gam, m2.TN.T3.gam, m3.TN.T3.gam)
+#best with smooth by factor term
 
 summary(m1.TN.T3.gam)
 anova.gam(m1.TN.T3.gam)
@@ -497,7 +557,7 @@ TN.T3.mod.plot<-
              aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +  
   coord_cartesian(ylim=c(0, 2)) +
-  ggtitle("Time 3") +
+  ggtitle("Day-59") +
   ylab("TN (mg/L)")  +
   xlab("plant material (g)") +
   Fig.formatting
@@ -507,8 +567,17 @@ TN.T3.mod.plot<-
 
 
 ######## T4 model
-m1.TN.T4.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g,  by=Treatment), 
+m1.TN.T4.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
               subset = Time.point=="T4", data = TN.df, method = "REML")
+
+m2.TN.T4.gam=gam(TN..mg.L ~ Treatment + s(plant.mass..g), 
+              subset = Time.point=="T4", data = TN.df, method = "REML")
+
+m3.TN.T4.gam=gam(TN..mg.L ~ s(plant.mass..g), 
+              subset = Time.point=="T4", data = TN.df, method = "REML")
+
+T4.TN.AIC<-AIC(m1.TN.T4.gam, m2.TN.T4.gam, m3.TN.T4.gam)
+#best  with smooth by factor term
 
 summary(m1.TN.T4.gam)
 anova.gam(m1.TN.T4.gam)
@@ -536,7 +605,7 @@ TN.T4.mod.plot<-
              aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +  
   coord_cartesian(ylim=c(0, 2)) +
-  ggtitle("Time 4") +
+  ggtitle("Day-89") +
   ylab("TN (mg/L)")  +
   xlab("plant material (g)") +
   Fig.formatting
@@ -545,28 +614,31 @@ TN.T4.mod.plot<-
 # effect of treatment (higher TN in the burned) (p=0.020)
 # significant smoother effect for burned treatment only (p=0.032)
 
+AIC.TN<-bind_rows(T0.TN.AIC, T1.TN.AIC, T2.TN.AIC, T3.TN.AIC, T4.TN.AIC)
+write.csv(AIC.TN, "output/AIC.TN.csv")
+
+
 ```
 
 compile plots
 ```{r TN plots compiled}
 ###### compile the plots with effect plots
+TN.T0.mod.plot # if we want it
 
 TN.mod.alltimes<-plot_grid(
-  TN.T0.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-0"),
-  TN.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-1"),
-  TN.T2.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-2"),
-  TN.T3.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-3"),
-  TN.T4.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-4"), extract.legend,
-  rel_widths = c(8,8,8,8,8,3), ncol=6)
+  TN.T1.mod.plot+ theme(legend.position = "none"),
+  TN.T2.mod.plot+ theme(legend.position = "none"),
+  TN.T3.mod.plot+ theme(legend.position = "none"),
+  TN.T4.mod.plot+ theme(legend.position = "none"), extract.legend,
+  rel_widths = c(8,8,8,8,3), ncol=5)
 ggsave("figures/TN.mods.plots.pdf", height=5, width=14)
 
 TN.mod.diffs<-plot_grid(
-  TN.diff.T0+ theme(legend.position = "none")+ ggtitle("TN - Time-0"),
-  TN.diff.T1+ theme(legend.position = "none")+ ggtitle("Time-1"),
-  TN.diff.T2+ theme(legend.position = "none")+ ggtitle("Time-2"),
-  TN.diff.T3+ theme(legend.position = "none")+ ggtitle("Time-3"),
-  TN.diff.T4+ theme(legend.position = "none")+ ggtitle("Time-4"),
-  rel_widths = c(8,8,8,8,8,3), ncol=6)
+  TN.diff.T1+ theme(legend.position = "none")+ ggtitle("Day-10"),
+  TN.diff.T2+ theme(legend.position = "none")+ ggtitle("Day-31"),
+  TN.diff.T3+ theme(legend.position = "none")+ ggtitle("Day-59"),
+  TN.diff.T4+ theme(legend.position = "none")+ ggtitle("Day-89"),
+  rel_widths = c(8,8,8,8,3), ncol=5)
 ggsave("figures/TN.mod.diffs.pdf", height=4, width=13)
 ```
 
@@ -1096,6 +1168,13 @@ Productivity models and plots
 
 m1.NEP.T1.gam=gam(NEP ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = O2.tanks, method = "REML")
 
+m2.NEP.T1.gam=gam(NEP ~ Treatment + s(plant.mass..g), subset = Time.point=="T1", data = O2.tanks, method = "REML")
+
+m3.NEP.T1.gam=gam(NEP ~ s(plant.mass..g), subset = Time.point=="T1", data = O2.tanks, method = "REML")
+
+T1.NEP.AIC<-AIC(m1.NEP.T1.gam, m2.NEP.T1.gam, m3.NEP.T1.gam)
+# model with plot smooth by factor not different from reduced model, go with smooth by factor
+
 summary(m1.NEP.T1.gam)
 anova.gam(m1.NEP.T1.gam)
 gam.check(m1.NEP.T1.gam, rep=1000)
@@ -1138,6 +1217,14 @@ NEP.T1.mod.plot<-
 
 m1.NEP.T2.gam=gam(NEP ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T2", data = O2.tanks, method = "REML")
 
+m2.NEP.T2.gam=gam(NEP ~ Treatment + s(plant.mass..g), subset = Time.point=="T2", data = O2.tanks, method = "REML")
+
+m3.NEP.T2.gam=gam(NEP ~ s(plant.mass..g), subset = Time.point=="T2", data = O2.tanks, method = "REML")
+
+T2.NEP.AIC<-AIC(m1.NEP.T2.gam, m2.NEP.T2.gam, m3.NEP.T2.gam)
+# model with plot smooth by factor not different from reduced model, go with smooth by factor
+
+
 summary(m1.NEP.T2.gam)
 anova.gam(m1.NEP.T2.gam)
 gam.check(m1.NEP.T2.gam, rep=1000)
@@ -1174,7 +1261,16 @@ NEP.T2.mod.plot<-
 
 ####### Time 3
 
+
 m1.NEP.T3.gam=gam(NEP ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T3", data = O2.tanks, method = "REML")
+
+m2.NEP.T3.gam=gam(NEP ~ Treatment + s(plant.mass..g), subset = Time.point=="T3", data = O2.tanks, method = "REML")
+
+m3.NEP.T3.gam=gam(NEP ~ s(plant.mass..g), subset = Time.point=="T3", data = O2.tanks, method = "REML")
+
+T3.NEP.AIC<-AIC(m1.NEP.T3.gam, m2.NEP.T3.gam, m3.NEP.T3.gam)
+# model with plot smooth by factor not different from reduced model, go with smooth by factor
+
 
 summary(m1.NEP.T3.gam)
 anova.gam(m1.NEP.T3.gam)
@@ -1214,6 +1310,14 @@ NEP.T3.mod.plot<-
 
 m1.NEP.T4.gam=gam(NEP ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T4", data = O2.tanks, method = "REML")
 
+m2.NEP.T4.gam=gam(NEP ~ Treatment + s(plant.mass..g), subset = Time.point=="T4", data = O2.tanks, method = "REML")
+
+m3.NEP.T4.gam=gam(NEP ~ s(plant.mass..g), subset = Time.point=="T4", data = O2.tanks, method = "REML")
+
+T4.NEP.AIC<-AIC(m1.NEP.T4.gam, m2.NEP.T4.gam, m3.NEP.T4.gam)
+# model with plot smooth by factor not different from reduced model, go with smooth by factor
+
+
 summary(m1.NEP.T4.gam)
 anova.gam(m1.NEP.T4.gam)
 gam.check(m1.NEP.T4.gam, rep=1000)
@@ -1246,21 +1350,34 @@ NEP.T4.mod.plot<-
 
 # no treatment effect (p=0.118)
 # smoother significant for burned (p=0.020) but not unburned (p=0.327)
+
+AIC.NEP<-bind_rows(T1.NEP.AIC, T2.NEP.AIC, T3.NEP.AIC,)
+write.csv(AIC.NEP, "output/AIC.NEP.csv")
+
 ```
 
 Respiration models and individual plots
 ```{r NER models and individual plots}
 ####### Time 1
 
+
 m1.NER.T1.gam=gam(NER ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = O2.tanks, method = "REML")
 
-summary(m1.NER.T1.gam)
-anova.gam(m1.NER.T1.gam)
-gam.check(m1.NER.T1.gam, rep=1000)
-draw(m1.NER.T1.gam)
-concrvity(m1.NER.T1.gam)
+m2.NER.T1.gam=gam(NER ~ Treatment + s(plant.mass..g), subset = Time.point=="T1", data = O2.tanks, method = "REML")
+
+m3.NER.T1.gam=gam(NER ~ s(plant.mass..g), subset = Time.point=="T1", data = O2.tanks, method = "REML")
+
+T1.NER.AIC<-AIC(m1.NER.T1.gam, m2.NER.T1.gam, m3.NER.T1.gam)
+# model with global best
+
+
+summary(m3.NER.T1.gam)
+anova.gam(m3.NER.T1.gam)
+gam.check(m3.NER.T1.gam, rep=1000)
+draw(m3.NER.T1.gam)
+concrvity(m3.NER.T1.gam)
 par(mfrow = c(2, 2))
-plot(m1.NER.T1.gam, all.terms = TRUE, page=1)
+plot(m3.NER.T1.gam, all.terms = TRUE, page=1)
 
 # model predictions
 NER.diff.T1<-plot_difference(
@@ -1273,9 +1390,8 @@ NER.diff.T1<-plot_difference(
 #plot for the model output on rawdata
 NER.T1.mod.plot<-
   plot_smooths(
-  model = m1.NER.T1.gam,
+  model = m3.NER.T1.gam,
   series = plant.mass..g,
-  comparison = Treatment
 ) + 
   geom_point(data=T1.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
@@ -1285,19 +1401,26 @@ NER.T1.mod.plot<-
   theme(legend.position = "right") +
   Fig.formatting
 
-# no treatment effect (p=0.247), smoothers significant (p<0.003)
+# no treatment effect (p=0.229), smoothers significant (p<0.001)
 
 ####### Time 2
 
 m1.NER.T2.gam=gam(NER ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T2", data = O2.tanks, method = "REML")
 
-summary(m1.NER.T2.gam)
-anova.gam(m1.NER.T2.gam)
-gam.check(m1.NER.T2.gam, rep=1000)
-draw(m1.NER.T2.gam)
-concrvity(m1.NER.T2.gam)
+m2.NER.T2.gam=gam(NER ~ Treatment + s(plant.mass..g), subset = Time.point=="T2", data = O2.tanks, method = "REML")
+
+m3.NER.T2.gam=gam(NER ~ s(plant.mass..g), subset = Time.point=="T2", data = O2.tanks, method = "REML")
+
+T2.NER.AIC<-AIC(m1.NER.T2.gam, m2.NER.T2.gam, m3.NER.T2.gam)
+# model with global + treatment best
+
+summary(m2.NER.T2.gam)
+anova.gam(m2.NER.T2.gam)
+gam.check(m2.NER.T2.gam, rep=1000)
+draw(m2.NER.T2.gam)
+concrvity(m2.NER.T2.gam)
 par(mfrow = c(2, 2))
-plot(m1.NER.T2.gam, all.terms = TRUE, page=1)
+plot(m2.NER.T2.gam, all.terms = TRUE, page=1)
 
 # model predictions
 NER.diff.T2<-plot_difference(
@@ -1310,9 +1433,8 @@ NER.diff.T2<-plot_difference(
 #plot for the model output on rawdata
 NER.T2.mod.plot<-
   plot_smooths(
-  model = m1.NER.T2.gam,
-  series = plant.mass..g,
-  comparison = Treatment
+  model = m3.NER.T2.gam,
+  series = plant.mass..g
 ) + 
   geom_point(data=T2.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
@@ -1327,8 +1449,15 @@ NER.T2.mod.plot<-
 
 
 ####### Time 3
-
 m1.NER.T3.gam=gam(NER ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T3", data = O2.tanks, method = "REML")
+
+m2.NER.T3.gam=gam(NER ~ Treatment + s(plant.mass..g), subset = Time.point=="T3", data = O2.tanks, method = "REML")
+
+m3.NER.T3.gam=gam(NER ~ s(plant.mass..g), subset = Time.point=="T3", data = O2.tanks, method = "REML")
+
+T3.NER.AIC<-AIC(m1.NER.T3.gam, m2.NER.T3.gam, m3.NER.T3.gam)
+# model smmoth by factor best
+
 
 summary(m1.NER.T3.gam)
 anova.gam(m1.NER.T3.gam)
@@ -1369,6 +1498,14 @@ NER.T3.mod.plot<-
 
 m1.NER.T4.gam=gam(NER ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T4", data = O2.tanks, method = "REML")
 
+m2.NER.T4.gam=gam(NER ~ Treatment + s(plant.mass..g), subset = Time.point=="T4", data = O2.tanks, method = "REML")
+
+m3.NER.T4.gam=gam(NER ~ s(plant.mass..g), subset = Time.point=="T4", data = O2.tanks, method = "REML")
+
+T4.NER.AIC<-AIC(m1.NER.T4.gam, m2.NER.T4.gam, m3.NER.T4.gam)
+# model with global + treatment best
+
+
 summary(m1.NER.T4.gam)
 anova.gam(m1.NER.T4.gam)
 gam.check(m1.NER.T4.gam, rep=1000)
@@ -1405,48 +1542,51 @@ NER.T4.mod.plot<-
 
 
 NER.mod.plot<-plot_grid(
-  NER.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-1"),
-  NER.T2.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-2"),
-  NER.T3.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-3"),
-  NER.T4.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-4"), extract.legend,
+  NER.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Day-10"),
+  NER.T2.mod.plot+ theme(legend.position = "none")+ ggtitle("Day-31"),
+  NER.T3.mod.plot+ theme(legend.position = "none")+ ggtitle("Day-59"),
+  NER.T4.mod.plot+ theme(legend.position = "none")+ ggtitle("Day-89"), extract.legend,
   rel_widths = c(8,8,8,8,3), ncol=5)
 
 #ggsave("figures/NER.mod.plot.long.pdf", height=6, width=12)
 
 #### model differences
 NER.mod.diffs<-plot_grid(
-  NER.diff.T1+ theme(legend.position = "none")+ ggtitle("Time-1"),
-  NER.diff.T2+ theme(legend.position = "none")+ ggtitle("Time-2"),
-  NER.diff.T3+ theme(legend.position = "none")+ ggtitle("Time-3"),
-  NER.diff.T4+ theme(legend.position = "none")+ ggtitle("Time-4"),
+  NER.diff.T1+ theme(legend.position = "none")+ ggtitle("NER-Day-10"),
+  NER.diff.T2+ theme(legend.position = "none")+ ggtitle("Day-31"),
+  NER.diff.T3+ theme(legend.position = "none")+ ggtitle("Day-59"),
+  NER.diff.T4+ theme(legend.position = "none")+ ggtitle("Day-89"),
   rel_widths = c(8,8,8,8), ncol=4)
 
 #ggsave("figures/NER.mod.diffs.pdf", height=3, width=10)
+
+AIC.NER<-bind_rows(T1.NER.AIC, T2.NER.AIC, T3.NER.AIC)
+write.csv(AIC.NER, "output/AIC.NER.csv")
 ```
 
 Compiled NEP-NER plots with model fits, and model difference outputs
 ```{r NEP NER model plots}
 NEP.NER.alltimes.long<-plot_grid(
-  NEP.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-1"),
-  NEP.T2.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-2"),
-  NEP.T3.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-3"),
-  NEP.T4.mod.plot+ theme(legend.position = "none")+ ggtitle("Time-4"), extract.legend,
-  NER.T1.mod.plot+ theme(legend.position = "none")+ ggtitle(""),
-  NER.T2.mod.plot+ theme(legend.position = "none")+ ggtitle(""),
-  NER.T3.mod.plot+ theme(legend.position = "none")+ ggtitle(""),
-  NER.T4.mod.plot+ theme(legend.position = "none")+ ggtitle(""), extract.legend,
+  NEP.T1.mod.plot+ theme(legend.position = "none"),
+  NEP.T2.mod.plot+ theme(legend.position = "none"),
+  NEP.T3.mod.plot+ theme(legend.position = "none"),
+  NEP.T4.mod.plot+ theme(legend.position = "none"), extract.legend,
+  NER.T1.mod.plot+ theme(legend.position = "none"),
+  NER.T2.mod.plot+ theme(legend.position = "none"),
+  NER.T3.mod.plot+ theme(legend.position = "none"),
+  NER.T4.mod.plot+ theme(legend.position = "none"), extract.legend,
   rel_widths = c(8,8,8,8,3, 8,8,8,8,3), ncol=5)
 ggsave("figures/NEP.NER.alltimes.long.pdf", height=7, width=12)
 
 NEP.NER.mod.diffs<-plot_grid(
-  NEP.diff.T1+ theme(legend.position = "none")+ ggtitle("NEP- Time-1"),
-  NEP.diff.T2+ theme(legend.position = "none")+ ggtitle("Time-2"),
-  NEP.diff.T3+ theme(legend.position = "none")+ ggtitle("Time-3"),
-  NEP.diff.T4+ theme(legend.position = "none")+ ggtitle("Time-4"),
-  NER.diff.T1+ theme(legend.position = "none")+ ggtitle("NER"),
-  NER.diff.T2+ theme(legend.position = "none")+ ggtitle(""),
-  NER.diff.T3+ theme(legend.position = "none")+ ggtitle(""),
-  NER.diff.T4+ theme(legend.position = "none")+ ggtitle(""),
+  NEP.diff.T1+ theme(legend.position = "none"),
+  NEP.diff.T2+ theme(legend.position = "none"),
+  NEP.diff.T3+ theme(legend.position = "none"),
+  NEP.diff.T4+ theme(legend.position = "none"),
+  NER.diff.T1+ theme(legend.position = "none"),
+  NER.diff.T2+ theme(legend.position = "none"),
+  NER.diff.T3+ theme(legend.position = "none"),
+  NER.diff.T4+ theme(legend.position = "none"),
   rel_widths = c(8,8,8,8,8,8,8,8), ncol=4)
 ggsave("figures/NEP.NER.mod.diffs.pdf", height=7, width=12)
 ```
@@ -1547,8 +1687,12 @@ m1b.T1.CN <- gam(C.N ~ Treatment + Type +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
+m1c.T1.CN <- gam(C.N ~ Treatment + Type +
+            s(plant.mass..g), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
-AIC(m1a.T1.CN, m1b.T1.CN)
+
+AIC(m1a.T1.CN, m1b.T1.CN, m1c.T1.CN)
 ## additive model best fit, but no treatment or type effect
 
 summary(m1b.T1.CN)
@@ -1604,8 +1748,11 @@ m1b.T2.CN <- gam(C.N ~ Treatment + Type +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
+m1c.T2.CN <- gam(C.N ~ Treatment + Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
-AIC(m1a.T2.CN, m1b.T2.CN)
+AIC(m1a.T2.CN, m1b.T2.CN, m1c.T2.CN)
 ## additive model best fit, but no treatment or type effect
 
 summary(m1b.T2.CN)
@@ -1695,16 +1842,20 @@ topes.controls.non.enrich$Plant<-droplevels(topes.controls.non.enrich$Plant)
 
 
 ######## test plant species differences
-wilcox.test(d15N~Plant, data=topes.controls.plants) # d15N sage and willow differ (p<0.001)
-wilcox.test(C.N~Plant, data=topes.controls.plants) # C.N sage and willow differ (p=0.013)
+mwu(topes.controls.plants, d15N, Plant)
+# d15N sage and willow differ (p<0.001)
+mwu(topes.controls.plants, C.N, Plant) 
+# C.N sage and willow differ (p=0.013)
+
 par(mfrow=c(1,2))
 boxplot(d15N~Plant, data=topes.controls.plants)
 boxplot(C.N~Plant, data=topes.controls.plants)
 
 
 ######## test difference between willow and plankton 
-wilcox.test(d15N~Plant, data=topes.controls.non.enrich) # d15N plankton and willow differ (p<0.001)
-wilcox.test(C.N~Plant, data=topes.controls.non.enrich) # C:N plankton and willow differ (p<0.001)
+mwu(topes.controls.non.enrich, d15N, Plant)
+ # d15N plankton and willow differ (p<0.001)
+mwu(topes.controls.non.enrich, C.N, Plant) # C:N plankton and willow differ (p<0.001)
 par(mfrow=c(1,2))
 boxplot(d15N~Plant, data=topes.controls.non.enrich)
 boxplot(C.N~Plant, data=topes.controls.non.enrich)
@@ -1888,11 +2039,16 @@ m1b.T1.sage <- gam(percent.sage ~ Treatment + Type +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
-AIC(m1a.T1.sage, m1b.T1.sage)
+m1c.T1.sage <- gam(percent.sage ~ Treatment + Type +
+            s(plant.mass..g), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+
+AIC(m1a.T1.sage, m1b.T1.sage, m1c.T1.sage)
 ## additive model best fit
 
 summary(m1b.T1.sage)
-anova.gam(m1b.T1.sage)
+anova.gam(m1c.T1.sage)
 gam.check(m1b.T1.sage, rep=1000)
 draw(m1b.T1.sage)
 concrvity(m1b.T1.sage)
@@ -1908,7 +2064,7 @@ per.Sage.diff.T1<-plot_difference(
 
 ###########  
 # model for smoothing
-m1c.T1.sage<- gam(percent.sage ~ Treatment +
+m1d.T1.sage<- gam(percent.sage ~ Treatment +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
@@ -1945,9 +2101,13 @@ m1b.T2.sage <- gam(percent.sage ~ Treatment + Type +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
+m1c.T2.sage <- gam(percent.sage ~ Treatment + Type +
+            s(plant.mass..g), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
 
-AIC(m1a.T2.sage, m1b.T2.sage) 
+
+AIC(m1a.T2.sage, m1b.T2.sage,m1c.T2.sage) 
 # m1b.T2.sage preferred
 # compare across
 
@@ -1968,7 +2128,7 @@ per.Sage.diff.T2<-plot_difference(
 
 ###########  
 # model for smoothing
-m1c.T2.sage<- gam(percent.sage ~ Treatment +
+m1d.T2.sage<- gam(percent.sage ~ Treatment +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
@@ -2027,7 +2187,11 @@ m1b.T1.d15N <- gam(d15N ~ Treatment + Type +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
-AIC(m1a.T1.d15N, m1b.T1.d15N)
+m1c.T1.d15N <- gam(d15N ~ Treatment + Type +
+            s(plant.mass..g), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+AIC(m1a.T1.d15N, m1b.T1.d15N, m1c.T1.d15N)
 ## additive model best fit
 
 summary(m1b.T1.d15N)
@@ -2047,7 +2211,7 @@ d15N.diff.T1<-plot_difference(
 
 ###########  
 # model for smoothing
-m1c.T1.d15N<- gam(d15N ~ Treatment +
+m1d.T1.d15N<- gam(d15N ~ Treatment +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
@@ -2084,7 +2248,12 @@ m1b.T2.d15N <- gam(d15N ~ Treatment + Type +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
-AIC(m1a.T2.d15N, m1b.T2.d15N)
+m1c.T2.d15N <- gam(d15N ~ Treatment + Type +
+            s(plant.mass..g), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+
+AIC(m1a.T2.d15N, m1b.T2.d15N, m1c.T2.d15N)
 ## additive model best fit
 
 summary(m1b.T2.d15N)
@@ -2104,7 +2273,7 @@ d15N.diff.T2<-plot_difference(
 
 ###########  
 # model for smoothing
-m1c.T2.d15N<- gam(d15N ~ Treatment +
+m1d.T2.d15N<- gam(d15N ~ Treatment +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
@@ -2273,6 +2442,12 @@ phos<-na.omit(phos)
 m1a.T2.phos<- gam(TP.umol..l ~ Treatment +
             s(plant.mass..g, by=Treatment), data=phos, method="REML", family="gaussian")
 
+m1b.T2.phos<- gam(TP.umol..l ~ Treatment +
+            s(plant.mass..g), data=phos, method="REML", family="gaussian")
+
+AIC(m1a.T2.phos,m1b.T2.phos)
+# factor smooth best
+
 summary(m1a.T2.phos)
 anova.gam(m1a.T2.phos)
 gam.check(m1a.T2.phos, rep=1000)
@@ -2342,7 +2517,7 @@ write.csv(GHG, "data/GH.gases/Pyro_GHG_cleaned.csv")
 
 ```
 
-Make plots and run modesl for CO2
+Make plots and run models for CO2
 ```{r CO2 model plots}
 CO2<-subset(GHG, Gas=="CO2")
 
@@ -2354,13 +2529,24 @@ m1a.T0.CO2<- gam(ppm ~ Treatment +
             s(plant.mass..g, by=Treatment), subset = Time.point=="T0", data = CO2,
             method="REML", family="gaussian")
 
+m1b.T0.CO2<- gam(ppm ~ Treatment +
+            s(plant.mass..g), subset = Time.point=="T0", data = CO2,
+            method="REML", family="gaussian")
+
+m1c.T0.CO2<- gam(ppm ~
+            s(plant.mass..g), subset = Time.point=="T0", data = CO2,
+            method="REML", family="gaussian")
+
+CO2.T0.AIC<-AIC(m1a.T0.CO2,m1b.T0.CO2, m1c.T0.CO2)
+#factor smooth best
+
 summary(m1a.T0.CO2)
 anova.gam(m1a.T0.CO2)
 gam.check(m1a.T0.CO2, rep=1000)
 draw(m1a.T0.CO2)
 concrvity(m1a.T0.CO2)
 par(mfrow = c(1, 2))
-plot(m1a.T2.phos, all.terms = TRUE, page=1)
+plot(m1a.T0.CO2, all.terms = TRUE, page=1)
 
 # model predictions
 CO2.diff.T0<-plot_difference(
@@ -2396,13 +2582,25 @@ m1a.T1.CO2<- gam(ppm ~ Treatment +
             s(plant.mass..g, by=Treatment), subset = Time.point=="T1", data = CO2,
             method="REML", family="gaussian")
 
+m1b.T1.CO2<- gam(ppm ~ Treatment +
+            s(plant.mass..g), subset = Time.point=="T1", data = CO2,
+            method="REML", family="gaussian")
+
+m1c.T1.CO2<- gam(ppm ~
+            s(plant.mass..g), subset = Time.point=="T1", data = CO2,
+            method="REML", family="gaussian")
+
+
+CO2.T1.AIC<-AIC(m1a.T1.CO2,m1b.T1.CO2, m1c.T1.CO2)
+#factor smooth best
+
 summary(m1a.T1.CO2)
 anova.gam(m1a.T1.CO2)
 gam.check(m1a.T1.CO2, rep=1000)
 draw(m1a.T1.CO2)
 concrvity(m1a.T1.CO2)
 par(mfrow = c(1, 2))
-plot(m1a.T2.phos, all.terms = TRUE, page=1)
+plot(m1a.T1.CO2, all.terms = TRUE, page=1)
 
 # model predictions
 CO2.diff.T1<-plot_difference(
@@ -2438,13 +2636,24 @@ m1a.T2.CO2<- gam(ppm ~ Treatment +
             s(plant.mass..g, by=Treatment), subset = Time.point=="T2", data = CO2,
             method="REML", family="gaussian")
 
+m1b.T2.CO2<- gam(ppm ~ Treatment +
+            s(plant.mass..g), subset = Time.point=="T2", data = CO2,
+            method="REML", family="gaussian")
+
+m1c.T2.CO2<- gam(ppm ~
+            s(plant.mass..g), subset = Time.point=="T2", data = CO2,
+            method="REML", family="gaussian")
+
+CO2.T2.AIC<-AIC(m1a.T2.CO2, m1b.T2.CO2, m1c.T2.CO2)
+# smooth by factor best
+
 summary(m1a.T2.CO2)
 anova.gam(m1a.T2.CO2)
 gam.check(m1a.T2.CO2, rep=1000)
 draw(m1a.T2.CO2)
 concrvity(m1a.T2.CO2)
 par(mfrow = c(1, 2))
-plot(m1a.T2.phos, all.terms = TRUE, page=1)
+plot(m1a.T2.CO2, all.terms = TRUE, page=1)
 
 # model predictions
 CO2.diff.T2<-plot_difference(
@@ -2481,13 +2690,24 @@ m1a.T3.CO2<- gam(ppm ~ Treatment +
             s(plant.mass..g, by=Treatment), subset = Time.point=="T3", data = CO2,
             method="REML", family="gaussian")
 
+m1b.T3.CO2<- gam(ppm ~ Treatment +
+            s(plant.mass..g), subset = Time.point=="T3", data = CO2,
+            method="REML", family="gaussian")
+
+m1c.T3.CO2<- gam(ppm ~
+            s(plant.mass..g), subset = Time.point=="T3", data = CO2,
+            method="REML", family="gaussian")
+
+CO2.T3.AIC<-AIC(m1a.T3.CO2, m1b.T3.CO2, m1c.T3.CO2)
+# smooth by factor best
+
 summary(m1a.T3.CO2)
 anova.gam(m1a.T3.CO2)
 gam.check(m1a.T3.CO2, rep=1000)
 draw(m1a.T3.CO2)
 concrvity(m1a.T3.CO2)
 par(mfrow = c(1, 2))
-plot(m1a.T3.phos, all.terms = TRUE, page=1)
+plot(m1a.T3.CO2, all.terms = TRUE, page=1)
 
 # model predictions
 CO2.diff.T3<-plot_difference(
@@ -2518,30 +2738,44 @@ CO2.T3.mod.plot
 
 # models and raw data
 CO2.model.plots<-plot_grid(
-  CO2.T0.mod.plot+ theme(legend.position= "none") + ggtitle( "T0"),
-  CO2.T1.mod.plot+ theme(legend.position= "none") + ggtitle( "T1"),
-  CO2.T2.mod.plot+ theme(legend.position= "none") + ggtitle( "T2"),
-  CO2.T3.mod.plot+ theme(legend.position= "none") + ggtitle( "T3"),
+  CO2.T0.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-0"),
+  CO2.T1.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-10"),
+  CO2.T2.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-31"),
+  CO2.T3.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-59"),
   extract.legend, 
   rel_widths = c(8,8,8,8,3), ncol=5)
 
 ### model differences
 CO2.plot.diff<-plot_grid(
   CO2.diff.T0+ ggtitle("CO2-T0"),
-  CO2.diff.T1+ ggtitle("T1"),
-  CO2.diff.T2+ ggtitle("T2"),
-  CO2.diff.T3+ ggtitle("T3"),
+  CO2.diff.T1+ ggtitle("Day-10"),
+  CO2.diff.T2+ ggtitle("Day-31"),
+  CO2.diff.T3+ ggtitle("Day-59"),
   rel_widths = c(8,8,8,8), ncol=4)
 
+AIC.CO2<-bind_rows(CO2.T0.AIC, CO2.T1.AIC, CO2.T2.AIC, CO2.T3.AIC)
+write.csv(AIC.CO2, "output/AIC.CO2.csv")
 ```
 
 Make plots and run models for methane.
 ```{r CH4 plots}
 CH4<-subset(GHG, Gas=="CH4")
 
+
 m1a.T0.CH4<- gam(ppm ~ Treatment +
             s(plant.mass..g, by=Treatment), subset = Time.point=="T0", data = CH4,
             method="REML", family="gaussian")
+
+m1b.T0.CH4<- gam(ppm ~ Treatment +
+            s(plant.mass..g), subset = Time.point=="T0", data = CH4,
+            method="REML", family="gaussian")
+
+m1c.T0.CH4<- gam(ppm ~
+            s(plant.mass..g), subset = Time.point=="T0", data = CH4,
+            method="REML", family="gaussian")
+
+CH4.T0.AIC<-AIC(m1a.T0.CH4, m1b.T0.CH4, m1c.T0.CH4)
+#factor by smooth best
 
 summary(m1a.T0.CH4)
 anova.gam(m1a.T0.CH4)
@@ -2549,7 +2783,7 @@ gam.check(m1a.T0.CH4, rep=1000)
 draw(m1a.T0.CH4)
 concrvity(m1a.T0.CH4)
 par(mfrow = c(1, 2))
-plot(m1a.T2.phos, all.terms = TRUE, page=1)
+plot(m1a.T0.CH4, all.terms = TRUE, page=1)
 
 # model predictions
 CH4.diff.T0<-plot_difference(
@@ -2585,13 +2819,24 @@ m1a.T1.CH4<- gam(ppm ~ Treatment +
             s(plant.mass..g, by=Treatment), subset = Time.point=="T1", data = CH4,
             method="REML", family="gaussian")
 
+m1b.T1.CH4<- gam(ppm ~ Treatment +
+            s(plant.mass..g), subset = Time.point=="T1", data = CH4,
+            method="REML", family="gaussian")
+
+m1c.T1.CH4<- gam(ppm ~
+            s(plant.mass..g), subset = Time.point=="T1", data = CH4,
+            method="REML", family="gaussian")
+
+CH4.T1.AIC<-AIC(m1a.T1.CH4, m1b.T1.CH4, m1c.T1.CH4)
+#factor by smooth best
+
 summary(m1a.T1.CH4)
 anova.gam(m1a.T1.CH4)
 gam.check(m1a.T1.CH4, rep=1000)
 draw(m1a.T1.CH4)
 concrvity(m1a.T1.CH4)
 par(mfrow = c(1, 2))
-plot(m1a.T2.phos, all.terms = TRUE, page=1)
+plot(m1a.T1.CH4, all.terms = TRUE, page=1)
 
 # model predictions
 CH4.diff.T1<-plot_difference(
@@ -2627,13 +2872,24 @@ m1a.T2.CH4<- gam(ppm ~ Treatment +
             s(plant.mass..g, by=Treatment), subset = Time.point=="T2", data = CH4,
             method="REML", family="gaussian")
 
-summary(m1a.T2.CH4)
-anova.gam(m1a.T2.CH4)
-gam.check(m1a.T2.CH4, rep=1000)
-draw(m1a.T2.CH4)
-concrvity(m1a.T2.CH4)
+m1b.T2.CH4<- gam(ppm ~ Treatment +
+            s(plant.mass..g), subset = Time.point=="T2", data = CH4,
+            method="REML", family="gaussian")
+
+m1c.T2.CH4<- gam(ppm ~
+            s(plant.mass..g), subset = Time.point=="T2", data = CH4,
+            method="REML", family="gaussian")
+
+CH4.T2.AIC<-AIC(m1a.T2.CH4, m1b.T2.CH4, m1c.T2.CH4)
+# global best
+
+summary(m1c.T2.CH4)
+anova.gam(m1c.T2.CH4)
+gam.check(m1c.T2.CH4, rep=1000)
+draw(m1c.T2.CH4)
+concrvity(m1c.T2.CH4)
 par(mfrow = c(1, 2))
-plot(m1a.T2.phos, all.terms = TRUE, page=1)
+plot(m1c.T2.CH4, all.terms = TRUE, page=1)
 
 # model predictions
 CH4.diff.T2<-plot_difference(
@@ -2646,9 +2902,8 @@ CH4.diff.T2<-plot_difference(
 #plot for the model output on rawdata
 CH4.T2.mod.plot<-
   plot_smooths(
-  model = m1a.T2.CH4,
+  model = m1c.T2.CH4,
   series = plant.mass..g,
-  comparison = Treatment
 )  + theme(legend.position = "none") +
   geom_point(data=CH4[(CH4$Time.point=="T2"),], 
              aes(x=plant.mass..g, y=ppm, color=Treatment)) +
@@ -2670,13 +2925,24 @@ m1a.T3.CH4<- gam(ppm ~ Treatment +
             s(plant.mass..g, by=Treatment), subset = Time.point=="T3", data = CH4,
             method="REML", family="gaussian")
 
-summary(m1a.T3.CH4)
-anova.gam(m1a.T3.CH4)
-gam.check(m1a.T3.CH4, rep=1000)
-draw(m1a.T3.CH4)
-concrvity(m1a.T3.CH4)
+m1b.T3.CH4<- gam(ppm ~ Treatment +
+            s(plant.mass..g), subset = Time.point=="T3", data = CH4,
+            method="REML", family="gaussian")
+
+m1c.T3.CH4<- gam(ppm ~
+            s(plant.mass..g), subset = Time.point=="T3", data = CH4,
+            method="REML", family="gaussian")
+
+CH4.T3.AIC<-AIC(m1a.T3.CH4, m1b.T3.CH4, m1c.T3.CH4)
+# global with treatment best
+
+summary(m1b.T3.CH4)
+anova.gam(m1b.T3.CH4)
+gam.check(m1b.T3.CH4, rep=1000)
+draw(m1b.T3.CH4)
+concrvity(m1b.T3.CH4)
 par(mfrow = c(1, 2))
-plot(m1a.T3.phos, all.terms = TRUE, page=1)
+plot(m1b.T3.CH4, all.terms = TRUE, page=1)
 
 # model predictions
 CH4.diff.T3<-plot_difference(
@@ -2689,9 +2955,8 @@ CH4.diff.T3<-plot_difference(
 #plot for the model output on rawdata
 CH4.T3.mod.plot<-
   plot_smooths(
-  model = m1a.T3.CH4,
+  model = m1c.T3.CH4,
   series = plant.mass..g,
-  comparison = Treatment
 )  + theme(legend.position = "none") +
   geom_point(data=CH4[(CH4$Time.point=="T3"),], 
              aes(x=plant.mass..g, y=ppm, color=Treatment)) +
@@ -2706,21 +2971,24 @@ CH4.T3.mod.plot<-
 CH4.T3.mod.plot
 
 CH4.plots<-plot_grid(
-  CH4.T0.mod.plot+ theme(legend.position= "none") + ggtitle( "T0"),
-  CH4.T1.mod.plot+ theme(legend.position= "none") + ggtitle( "T1"),
-  CH4.T2.mod.plot+ theme(legend.position= "none") + ggtitle( "T2"),
-  CH4.T3.mod.plot+ theme(legend.position= "none") + ggtitle( "T3"), 
+  CH4.T0.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-0"),
+  CH4.T1.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-10"),
+  CH4.T2.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-31"),
+  CH4.T3.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-59"), 
   extract.legend, 
   rel_widths = c(8,8,8,8,3), ncol=5)
 
 ### model differences
 CH4.plot.diff<-plot_grid(
-  CH4.diff.T0+ ggtitle("CH4-T0"),
-  CH4.diff.T1+ ggtitle("T1"),
-  CH4.diff.T2+ ggtitle("T2"),
-  CH4.diff.T3+ ggtitle("T3"),
+  CH4.diff.T0+ ggtitle("CH4-Day-0"),
+  CH4.diff.T1+ ggtitle("Day-10"),
+  CH4.diff.T2+ ggtitle("Day-31"),
+  CH4.diff.T3+ ggtitle("Day-59"),
   rel_widths = c(8,8,8,8), ncol=4)
 
+
+AIC.CH4<-bind_rows(CH4.T0.AIC, CH4.T1.AIC, CH4.T2.AIC, CH4.T3.AIC)
+write.csv(AIC.CH4, "output/AIC.CH4.csv")
 ```
 
 Compile the greenhouse gas plots
