@@ -2218,7 +2218,7 @@ m1d.T1.d15N<- gam(d15N ~ Treatment +
 #plot for the model output on rawdata
 d15N.T1.mod.plot<-
   plot_smooths(
-  model = m1c.T1.d15N,
+  model = m1d.T1.d15N,
   series = plant.mass..g,
   comparison = Treatment
 )  + theme(legend.position = "none") +
@@ -2280,7 +2280,7 @@ m1d.T2.d15N<- gam(d15N ~ Treatment +
 #plot for the model output on rawdata
 d15N.T2.mod.plot<-
   plot_smooths(
-  model = m1c.T2.d15N,
+  model = m1d.T2.d15N,
   series = plant.mass..g,
   comparison = Treatment
 )  + theme(legend.position = "none") +
