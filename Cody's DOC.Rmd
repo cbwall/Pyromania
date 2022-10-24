@@ -90,19 +90,12 @@ library(dplyr)
 DOC.df<- DOC.df %>% 
   dplyr::select(File, Time.point, Treatment, Tank, plant.mass..g, DOC..mg.L, TN..mg.L) 
 
-<<<<<<< HEAD
 
-=======
+DOC.df$Treatment=as.factor(DOC.df$Treatment)
+DOC.df$Time.point=as.factor(DOC.df$Time.point)
+DOC.df$plant.mass..g=as.numeric(DOC.df$plant.mass..g)
 
 
-
-#visualize
-ggplot(DOC.df, aes(x = hum, y = spec, colour = Treatment)) +
-    geom_point() +
-    facet_grid(~Time.point)+
-    geom_smooth(method = 'gam', se = FALSE) 
-
->>>>>>> ec586a7382aec292ba46042e721e0f8385b128a0
 
 
 mean(DOC_T1[DOC_T1$Treatment=="burned",]$DOC..mg.L)
@@ -114,12 +107,102 @@ mean(DOC_T4[DOC_T4$Treatment=="unburned",]$DOC..mg.L)
 
 ```
 
+
+DOC analysis: 
+T1 model
+```{r}
+library(mgcv)
+library(gratia)
+library(car)
+
+#Time 0
+m0.DOC.treatment=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T0", data = DOC.df, method = "REML")
+
+m0.DOC.global=gam(DOC..mg.L ~ Treatment + s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
+
+m0.DOC.global.max=gam(DOC..mg.L ~ s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
+
+AIC(m0.DOC.treatment, m0.DOC.global, m0.DOC.global.max)
+
+
+#Time 1
+m1.DOC.treatment=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = DOC.df, method = "REML")
+
+m1.DOC.global=gam(DOC..mg.L ~ Treatment + s(plant.mass..g), subset = Time.point=="T1", data = DOC.df, method = "REML")
+
+m1.DOC.global.max=gam(DOC..mg.L ~ s(plant.mass..g), subset = Time.point=="T1", data = DOC.df, method = "REML")
+
+#Time 2
+m2.gam.treatment=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T2", data = DOC.df, method = "REML")
+
+m2.gam.global=gam(DOC..mg.L ~ Treatment + s(plant.mass..g), subset = Time.point=="T2", data = DOC.df, method = "REML")
+
+m2.gam.global.max=gam(DOC..mg.L ~ s(plant.mass..g), subset = Time.point=="T2", data = DOC.df, method = "REML")
+
+AIC(m2.gam.treatment, m2.gam.global, m2.gam.global.max)
+
+#Time3
+m3.gam.treatment=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T3", data = DOC.df, method = "REML")
+
+m3.gam.global=gam(DOC..mg.L ~ Treatment + s(plant.mass..g), subset = Time.point=="T3", data = DOC.df, method = "REML")
+
+m2.gam.global.max=gam(DOC..mg.L ~ s(plant.mass..g), subset = Time.point=="T3", data = DOC.df, method = "REML")
+
+
+#Time 4
+m4.gam.treatment=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T4", data = DOC.df, method = "REML")
+
+m4.gam.global=gam(DOC..mg.L ~ Treatment + s(plant.mass..g), subset = Time.point=="T4", data = DOC.df, method = "REML")
+
+m4.gam.global.max=gam(DOC..mg.L ~ s(plant.mass..g), subset = Time.point=="T4", data = DOC.df, method = "REML")
+
+AIC(m4.gam.treatment, m4.gam.global, m4.gam.global.max)
+
+ anova(m1.gam)
+summary(m1.gam)
+anova.gam(m1.gam)
+gam.check(m1.gam, rep=1000)
+draw(m1.gam)
+concrvity(m1.gam)
+par(mfrow = c(1, 2))
+plot(m1.gam, all.terms = TRUE, page=1)
+
+#CI
+ci <- confint(m1.gam, type = "confidence")
+head(ci)
+```
+
+
 DOC plots: biomass is a proxy for DOC 
 ```{r}
 library(ggtext)
 library(mgcv)
+library(gratia)
+library(tidymv)
 
-DOC.T0<-ggplot(DOC.df[(DOC.df$Time.point=="T0"),], aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment, linetype=Treatment)) +
+DOC.T0<-plot_smooths(
+  model = m0.DOC.treatment,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=DOC.df[(DOC.df$Time.point=="T0"),], 
+             aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  scale_fill_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Day 10") +
+  ylab(expression("DOC mg" ~L^-1))+
+  xlab("plant material (g)") +
+  Fig.formatting
+
+DOC.T0
+  
+
+plot_smooths(
+  model = m1.DOC.treatment,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
   geom_point(alpha=0.4) +
   scale_color_manual(values = c("darkred", "darkgreen")) + 
   scale_fill_manual(values = c("darkred", "darkgreen")) + 
@@ -314,30 +397,6 @@ ggsave("figures/DOC.TN.plots.pdf", height=7, width=14.5)
 ```
 
 
-DOC analysis: 
-T1 model
-```{r}
-library(mgcv)
-library(gratia)
-library(car)
-m1.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = DOC.df2, method = "REML")
-
-
-AIC(m1.gam, m1.gam.wo)
-
-anova(m1.gam)
-summary(m1.gam)
-anova.gam(m1.gam)
-gam.check(m1.gam, rep=1000)
-draw(m1.gam)
-concrvity(m1.gam)
-par(mfrow = c(1, 2))
-plot(m1.gam, all.terms = TRUE, page=1)
-
-#CI
-ci <- confint(m1.gam, type = "confidence")
-head(ci)
-```
 DOC varies non-linearly across the plant mass gradient, with highest levels of DOC in intermediate/high mass tanks.
 
 There is also a pronounced difference in DOC between the treatment, with high levels in unburned, compared to burned.
@@ -1550,10 +1609,7 @@ ggsave("figures/mass.plant_type_decomp.pdf", height=8, width=12)
 
 ```
 
-<<<<<<< HEAD
 
-=======
->>>>>>> ec586a7382aec292ba46042e721e0f8385b128a0
 
 GAM for sage/willow
 ```{r}
@@ -1572,7 +1628,7 @@ plant.perc.gam=gam(percent.change ~ Treatment*type + s(plant.specific.mass..g, b
 summary(plant.perc.gam)
 anova(plant.perc.gam)
 
-<<<<<<< HEAD
+
 mean(plant.df[plant.df$type=="sage",]$abs.change)
 mean(plant.df[plant.df$type=="willow",]$abs.change)
 ```
@@ -1594,7 +1650,7 @@ suva.T0<-ggplot(suva.df[(suva.df$Time.point=="T0"),], aes(x=plant.mass..g, y=SUV
  ylab(expression('SUVA'["254"]~'(mgC'~ L^-1~m^-1*')'))+
   coord_cartesian(ylim = c(0,6))+
   Fig.formatting
-=======
+
 plant.perc.gam=gam(percent.change ~ Treatment*type + s(plant.specific.mass..g, by=type), data=plant.df, method= "REML", select=T)
 summary(plant.perc.gam)
 anova(plant.perc.gam)
@@ -1609,7 +1665,7 @@ SUVA plots
 ```{r}
 
 
->>>>>>> ec586a7382aec292ba46042e721e0f8385b128a0
+
 
 suva.T0<-ggplot(suva.df[(suva.df$Time.point=="T0"),], aes(x=plant.mass..g, y=SUVA, color=Treatment, linetype=Treatment)) +
   geom_point(alpha=0.4) +
@@ -1622,7 +1678,7 @@ suva.T0<-ggplot(suva.df[(suva.df$Time.point=="T0"),], aes(x=plant.mass..g, y=SUV
   coord_cartesian(ylim = c(0,6))+
   Fig.formatting
 
-<<<<<<< HEAD
+
 suva.T1<-ggplot(suva.df[(suva.df$Time.point=="T1"),], aes(x=plant.mass..g, y=SUVA, color=Treatment, linetype=Treatment)) +
   geom_point(alpha=0.4) +
   scale_color_manual(values = c("darkred", "darkgreen")) + 
