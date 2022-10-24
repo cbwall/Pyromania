@@ -118,6 +118,8 @@ library(car)
 #Time 0
 m0.DOC.treatment=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T0", data = DOC.df, method = "REML")
 
+summary(m0.DOC.treatment)
+
 m0.DOC.global=gam(DOC..mg.L ~ Treatment + s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
 
 m0.DOC.global.max=gam(DOC..mg.L ~ s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
@@ -131,6 +133,9 @@ m1.DOC.treatment=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), su
 m1.DOC.global=gam(DOC..mg.L ~ Treatment + s(plant.mass..g), subset = Time.point=="T1", data = DOC.df, method = "REML")
 
 m1.DOC.global.max=gam(DOC..mg.L ~ s(plant.mass..g), subset = Time.point=="T1", data = DOC.df, method = "REML")
+
+AIC(m1.DOC.treatment, m1.DOC.global, m1.DOC.global.max)
+
 
 #Time 2
 m2.gam.treatment=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T2", data = DOC.df, method = "REML")
