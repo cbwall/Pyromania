@@ -1,0 +1,10 @@
+"","mod.rep","df","AIC"
+"m1.NER.T1","~Treatment + s(plant.mass..g, by= Treatment)",8.00991745005403,207.947961248615
+"m2.NER.T1","~Treatment + s(plant.mass..g)",6.07837907680016,203.583546949112
+"m3.NER.T1","~s(plant.mass..g)",5.06784483419299,203.321338333356
+"m1.NER.T2","~Treatment + s(plant.mass..g, by= Treatment)",5.00033604606181,189.613404074113
+"m2.NER.T2","~Treatment + s(plant.mass..g)",9.61988068218013,173.330456296524
+"m3.NER.T2","~s(plant.mass..g)",8.30884951860333,179.685447623714
+"m1.NER.T3","~Treatment + s(plant.mass..g, by= Treatment)",11.57666065183,164.932373038283
+"m2.NER.T3","~Treatment + s(plant.mass..g)",7.38075457226909,167.569910122527
+"m3.NER.T3","~s(plant.mass..g)",6.25271302950014,170.750378522261
