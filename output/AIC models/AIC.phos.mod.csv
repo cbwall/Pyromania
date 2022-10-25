@@ -1,4 +1,4 @@
 "","mod.phos","df","AIC"
-"m1a.T2.phos","Treatment + s(plant.mass..g, by=Treatment)",9.89602221623907,100.076244462829
-"m1b.T2.phos","Treatment + s(plant.mass..g)",5.85879730712134,117.895623958664
-"m1C.T2.phos","s(plant.mass..g)",4.7504556170776,116.924551976482
+"m1.T2.phos","Treatment + s(plant.mass..g, by=Treatment)",9.89602221623907,100.076244462829
+"m2.T2.phos","Treatment + s(plant.mass..g)",5.85879730712134,117.895623958664
+"m3.T2.phos","s(plant.mass..g)",4.7504556170776,116.924551976482

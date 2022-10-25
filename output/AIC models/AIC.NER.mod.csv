@@ -1,4 +1,4 @@
-"","mod.rep","df","AIC"
+"","mod.rep3","df","AIC"
 "m1.NER.T1","~Treatment + s(plant.mass..g, by= Treatment)",8.00991745005403,207.947961248615
 "m2.NER.T1","~Treatment + s(plant.mass..g)",6.07837907680016,203.583546949112
 "m3.NER.T1","~s(plant.mass..g)",5.06784483419299,203.321338333356

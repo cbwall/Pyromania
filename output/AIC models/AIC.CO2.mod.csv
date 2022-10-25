@@ -1,13 +1,13 @@
 "","mod.ghg","df","AIC"
-"m1a.T0.CO2","Treatment +s(plant.mass..g, by=Treatment)",8.70802876526927,314.422087949466
-"m1b.T0.CO2","Treatment + s(plant.mass..g)",4.00068637038883,326.905331453102
-"m1c.T0.CO2","s(plant.mass..g)",3.00056165600711,333.161961795101
-"m1a.T1.CO2","Treatment +s(plant.mass..g, by=Treatment)",9.12822604236377,420.546315730408
-"m1b.T1.CO2","Treatment + s(plant.mass..g)",6.48129893928372,421.350215885378
-"m1c.T1.CO2","s(plant.mass..g)",5.30827193795688,427.789872920037
-"m1a.T2.CO2","Treatment +s(plant.mass..g, by=Treatment)",10.3680801275686,411.973346312593
-"m1b.T2.CO2","Treatment + s(plant.mass..g)",4.00051786271101,428.072129991877
-"m1c.T2.CO2","s(plant.mass..g)",3.00055366941745,426.343745211798
-"m1a.T3.CO2","Treatment +s(plant.mass..g, by=Treatment)",7.30789309716032,417.542039267961
-"m1b.T3.CO2","Treatment + s(plant.mass..g)",5.66458090701275,428.623822150717
-"m1c.T3.CO2","s(plant.mass..g)",4.63924424013867,428.678109451443
+"m1.T0.CO2","Treatment +s(plant.mass..g, by=Treatment)",8.70802876526927,314.422087949466
+"m2.T0.CO2","Treatment + s(plant.mass..g)",4.00068637038883,326.905331453102
+"m3.T0.CO2","s(plant.mass..g)",3.00056165600711,333.161961795101
+"m1.T1.CO2","Treatment +s(plant.mass..g, by=Treatment)",9.12822604236377,420.546315730408
+"m2.T1.CO2","Treatment + s(plant.mass..g)",6.48129893928372,421.350215885378
+"m3.T1.CO2","s(plant.mass..g)",5.30827193795688,427.789872920037
+"m1.T2.CO2","Treatment +s(plant.mass..g, by=Treatment)",10.3680801275686,411.973346312593
+"m2.T2.CO2","Treatment + s(plant.mass..g)",4.00051786271101,428.072129991877
+"m3.T2.CO2","s(plant.mass..g)",3.00055366941745,426.343745211798
+"m1.T3.CO2","Treatment +s(plant.mass..g, by=Treatment)",7.30789309716032,417.542039267961
+"m2.T3.CO2","Treatment + s(plant.mass..g)",5.66458090701275,428.623822150717
+"m3.T3.CO2","s(plant.mass..g)",4.63924424013867,428.678109451443
