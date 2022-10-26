@@ -8,3 +8,6 @@
 "m1.NEP.T3","~Treatment + s(plant.mass..g, by= Treatment)",10.9871218144768,175.729129916779
 "m2.NEP.T3","~Treatment + s(plant.mass..g)",7.29815029664482,175.221755856863
 "m3.NEP.T3","~s(plant.mass..g)",6.10327427714483,181.18408111189
+"m1.NEP.T4","~Treatment + s(plant.mass..g, by= Treatment)",7.36170878631847,187.369642016909
+"m2.NEP.T4","~Treatment + s(plant.mass..g)",5.81235809144297,192.161680380623
+"m3.NEP.T4","~s(plant.mass..g)",4.78105814321139,192.531949130377

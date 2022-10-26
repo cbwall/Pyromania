@@ -1680,11 +1680,11 @@ NEP.T4.mod.plot<-
 
 mod.NERNEP<-rep(c("~Treatment + s(plant.mass..g, by= Treatment)", 
               "~Treatment + s(plant.mass..g)", 
-              "~s(plant.mass..g)"), times=3)
+              "~s(plant.mass..g)"), times=4)
 
 mod.NERNEP.df<- data.frame(mod.NERNEP)
 
-AIC.NEP<-bind_rows(T1.NEP.AIC, T2.NEP.AIC, T3.NEP.AIC)
+AIC.NEP<-bind_rows(T1.NEP.AIC, T2.NEP.AIC, T3.NEP.AIC, T4.NEP.AIC)
 AIC.NEP.mod<-cbind(mod.NERNEP.df, AIC.NEP)
 write.csv(AIC.NEP.mod, "output/AIC models/AIC.NEP.mod.csv")
 
@@ -1767,11 +1767,13 @@ NER.diff.T2<-plot_difference(
 #plot for the model output on rawdata
 NER.T2.mod.plot<-
   plot_smooths(
-  model = m3.NER.T2,
-  series = plant.mass..g
+  model = m2.NER.T2,
+  series = plant.mass..g, 
+  comparison= Treatment,
 ) + 
   geom_point(data=T2.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_line(aes(fill=Treatment, linetype=Treatment)) +
   coord_cartesian(ylim=c(-40, 10)) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
@@ -1894,7 +1896,7 @@ NER.mod.diffs<-plot_grid(
 
 #ggsave("figures/NER.mod.diffs.pdf", height=3, width=10)
 
-AIC.NER<-bind_rows(T1.NER.AIC, T2.NER.AIC, T3.NER.AIC)
+AIC.NER<-bind_rows(T1.NER.AIC, T2.NER.AIC, T3.NER.AIC, T4.NER.AIC)
 AIC.NER.mod<-cbind(mod.NERNEP.df, AIC.NER)
 
 write.csv(AIC.NER.mod, "output/AIC models/AIC.NER.mod.csv")
