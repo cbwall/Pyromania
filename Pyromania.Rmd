@@ -848,11 +848,13 @@ dawn1.diff.T1<-plot_difference(
 #plot for the model output on rawdata
 dawn1.T1.mod.plot<-
   plot_smooths(
-  model = m3.dawn1.T1,
+  model = m2.dawn1.T1,
   series = plant.mass..g,
+  comparison=Treatment
 ) + 
   geom_point(data=T1.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  geom_line(aes(fill=Treatment, linetype=Treatment)) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T1.dawn1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -893,11 +895,13 @@ dusk1.diff.T1<-plot_difference(
 #plot for the model output on rawdata
 dusk1.T1.mod.plot<-
   plot_smooths(
-  model = m3.dusk1.T1,
-  series = plant.mass..g
+  model = m2.dusk1.T1,
+  series = plant.mass..g,
+  comparison= Treatment
 ) + 
   geom_point(data=T1.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  geom_line(aes(fill=Treatment, linetype=Treatment)) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ggtitle("T1.dusk1")+
   coord_cartesian(ylim=c(-30, 150)) +
@@ -938,12 +942,15 @@ dawn2.diff.T1<-plot_difference(
 #plot for the model output on rawdata
 dawn2.T1.mod.plot<-
   plot_smooths(
-  model = m3.dawn2.T1,
-  series = plant.mass..g
+  model = m2.dawn2.T1,
+  series = plant.mass..g,
+  comparison=Treatment
 ) + 
   geom_point(data=T1.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  geom_line(aes(fill=Treatment, linetype=Treatment)) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  
   ggtitle("T1.dawn2")+
   coord_cartesian(ylim=c(-30, 150)) +
   ylab(expression(paste("O"[2],"%"))) +
@@ -2017,37 +2024,33 @@ CvN.T2.mod.plot<-
 C:N vs. plant material models and plot, fit with GAMs
 ```{r  CN models}
 ############# all plankton T1
-m1.T1.CN <- gam(C.N ~ Treatment*Type +
-            s(plant.mass..g, by=Treatment), 
+m1.T1.CN <- gam(C.N ~ Treatment + Type +
+            s(plant.mass..g, by=Treatment),
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
 m2.T1.CN <- gam(C.N ~ Treatment + Type +
-            s(plant.mass..g, by=Treatment), 
-            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
-
-m3.T1.CN <- gam(C.N ~ Treatment + Type +
             s(plant.mass..g), 
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
-m4.T1.CN <- gam(C.N ~
+m3.T1.CN <- gam(C.N ~
             s(plant.mass..g), 
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
 
-AIC.CN.T1<-AIC(m1.T1.CN, m2.T1.CN, m3.T1.CN, m4.T1.CN)
+AIC.CN.T1<-AIC(m1.T1.CN, m2.T1.CN, m3.T1.CN)
 ## additive model best fit, but no treatment or type effect
 
-summary(m2.T1.CN)
-anova.gam(m2.T1.CN)
-gam.check(m2.T1.CN, rep=1000)
-draw(m2.T1.CN)
-concrvity(m2.T1.CN)
+summary(m1.T1.CN)
+anova.gam(m1.T1.CN)
+gam.check(m1.T1.CN, rep=1000)
+draw(m1.T1.CN)
+concrvity(m1.T1.CN)
 par(mfrow = c(1, 2))
-plot(m2.T1.CN, all.terms = TRUE, page=1)
+plot(m1.T1.CN, all.terms = TRUE, page=1)
 
 # model predictions
 CN.diff.T1<-plot_difference(
-  m2.T1.CN,
+  m1.T1.CN,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
 )
@@ -2082,37 +2085,33 @@ CN.T1.mod.plot<-
 # smoother significant for both 
 
 ############# all plankton T2
-m1.T2.CN <- gam(C.N ~ Treatment*Type +
+m1.T2.CN <- gam(C.N ~ Treatment + Type +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
 m2.T2.CN <- gam(C.N ~ Treatment + Type +
-            s(plant.mass..g, by=Treatment), 
-            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
-
-m3.T2.CN <- gam(C.N ~ Treatment + Type +
             s(plant.mass..g), 
             subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
-m4.T2.CN <- gam(C.N ~
+m3.T2.CN <- gam(C.N ~
             s(plant.mass..g), 
             subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
 
-AIC.CN.T2<-AIC(m1.T2.CN, m2.T2.CN, m3.T2.CN, m4.T2.CN)
+AIC.CN.T2<-AIC(m1.T2.CN, m2.T2.CN, m3.T2.CN)
 ## additive model best fit, but no treatment or type effect
 
-summary(m2.T2.CN)
-anova.gam(m2.T2.CN)
+summary(m1.T2.CN)
+anova.gam(m1.T2.CN)
 gam.check(m2.T2.CN, rep=1000)
-draw(m2.T2.CN)
-concrvity(m2.T2.CN)
+draw(m1.T2.CN)
+concrvity(m1.T2.CN)
 par(mfrow = c(1, 2))
-plot(m2.T2.CN, all.terms = TRUE, page=1)
+plot(m1.T2.CN, all.terms = TRUE, page=1)
 
 # model predictions
 CN.diff.T2<-plot_difference(
-  m2.T2.CN,
+  m1.T2.CN,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
 )
@@ -2150,8 +2149,7 @@ CN.T2.mod.plot<-
 Compile CvsN and C:N vs. plant material plots and models
 ```{r  C N and ratio model plots}
 ## AIC table
-mod.CN<-rep(c("Treatment * Type + s(plant.mass..g, by=Treatment)", 
-              "Treatment + Type + s(plant.mass..g, by=Treatment)", 
+mod.CN<-rep(c("Treatment + Type + s(plant.mass..g, by=Treatment)", 
               "Treatment + Type + s(plant.mass..g)",
               "s(plant.mass..g)"), times=2)
 
@@ -2391,37 +2389,33 @@ topes.trt$percent.sage<-(topes.trt$d15N-12)/(296-12)*100
 model for % sage
 ```{r percent sage models}
 ############# all plankton T1
-m1.T1.sage <- gam(percent.sage ~ Treatment*Type +
+m1.T1.sage <- gam(percent.sage ~ Treatment + Type +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
 m2.T1.sage <- gam(percent.sage ~ Treatment + Type +
-            s(plant.mass..g, by=Treatment), 
-            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
-
-m3.T1.sage <- gam(percent.sage ~ Treatment + Type +
             s(plant.mass..g), 
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
-m4.T1.sage <- gam(percent.sage ~
+m3.T1.sage <- gam(percent.sage ~
                      s(plant.mass..g), 
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
 
-AIC.sage.T1<-AIC(m1.T1.sage, m2.T1.sage, m3.T1.sage, m4.T1.sage)
+AIC.sage.T1<-AIC(m1.T1.sage, m2.T1.sage, m3.T1.sage)
 ## additive model best fit
 
-summary(m2.T1.sage)
-anova.gam(m2.T1.sage)
-gam.check(m2.T1.sage, rep=1000)
-draw(m2.T1.sage)
-concrvity(m2.T1.sage)
+summary(m1.T1.sage)
+anova.gam(m1.T1.sage)
+gam.check(m1.T1.sage, rep=1000)
+draw(m1.T1.sage)
+concrvity(m1.T1.sage)
 par(mfrow = c(1, 2))
-plot(m2.T1.sage, all.terms = TRUE, page=1)
+plot(m1.T1.sage, all.terms = TRUE, page=1)
 
 # model predictions
 per.Sage.diff.T1<-plot_difference(
-  m2.T1.sage,
+  m1.T1.sage,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
 )
@@ -2457,38 +2451,34 @@ per.Sage.T1.mod.plot<-
 
 
 ############# all plankton T2
-m1.T2.sage <- gam(percent.sage ~ Treatment*Type +
+m1.T2.sage <- gam(percent.sage ~ Treatment + Type +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
 m2.T2.sage <- gam(percent.sage ~ Treatment + Type +
-            s(plant.mass..g, by=Treatment), 
-            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
-
-m3.T2.sage <- gam(percent.sage ~ Treatment + Type +
             s(plant.mass..g), 
             subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
-m4.T2.sage <- gam(percent.sage ~
+m3.T2.sage <- gam(percent.sage ~
                      s(plant.mass..g), 
             subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
 
-AIC.sage.T2<-AIC(m1.T2.sage, m2.T2.sage, m3.T2.sage, m4.T2.sage)
+AIC.sage.T2<-AIC(m1.T2.sage, m2.T2.sage, m3.T2.sage)
 # m2.T2.sage preferred
 # compare across
 
-summary(m2.T2.sage)
-anova.gam(m2.T2.sage)
-gam.check(m2.T2.sage, rep=1000)
-draw(m2.T2.sage)
-concrvity(m2.T2.sage)
+summary(m1.T2.sage)
+anova.gam(m1.T2.sage)
+gam.check(m1.T2.sage, rep=1000)
+draw(m1.T2.sage)
+concrvity(m1.T2.sage)
 par(mfrow = c(1, 2))
-plot(m2.T2.sage, all.terms = TRUE, page=1)
+plot(m1.T2.sage, all.terms = TRUE, page=1)
 
 # model predictions
 per.Sage.diff.T2<-plot_difference(
-  m2.T2.sage,
+  m1.T2.sage,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
 )
@@ -2527,8 +2517,7 @@ per.Sage.T2.mod.plot<-
 model plots for percent sage mixing model
 ```{r percent sage model plots}
 ## AIC table
-mod.sag.top<-rep(c("Treatment * Type + s(plant.mass..g, by=Treatment)", 
-              "Treatment + Type + s(plant.mass..g, by=Treatment)", 
+mod.sag.top<-rep(c( "Treatment + Type + s(plant.mass..g, by=Treatment)", 
               "Treatment + Type + s(plant.mass..g)",
               "s(plant.mass..g)"), times=2)
 
@@ -2559,36 +2548,32 @@ make d15N plots as well -- these follow the % sage, but are informative with the
 #### d15N isotope plots for treatments
 
 ############# all plankton T1
-m1.T1.d15N<- gam(d15N ~ Treatment*Type +
+m1.T1.d15N <- gam(d15N ~ Treatment + Type +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
 m2.T1.d15N <- gam(d15N ~ Treatment + Type +
-            s(plant.mass..g, by=Treatment), 
-            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
-
-m3.T1.d15N <- gam(d15N ~ Treatment + Type +
             s(plant.mass..g), 
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
-m4.T1.d15N <- gam(d15N ~
+m3.T1.d15N <- gam(d15N ~
             s(plant.mass..g), 
             subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
-AIC.d15N.T1<-AIC(m1.T1.d15N, m2.T1.d15N, m3.T1.d15N, m4.T1.d15N)
+AIC.d15N.T1<-AIC(m1.T1.d15N, m2.T1.d15N, m3.T1.d15N)
 ## additive model best fit
 
-summary(m2.T1.d15N)
-anova.gam(m2.T1.d15N)
-gam.check(m2.T1.d15N, rep=1000)
-draw(m2.T1.d15N)
-concrvity(m2.T1.d15N)
+summary(m1.T1.d15N)
+anova.gam(m1.T1.d15N)
+gam.check(m1.T1.d15N, rep=1000)
+draw(m1.T1.d15N)
+concrvity(m1.T1.d15N)
 par(mfrow = c(1, 2))
-plot(m2.T1.d15N, all.terms = TRUE, page=1)
+plot(m1.T1.d15N, all.terms = TRUE, page=1)
 
 # model predictions
 d15N.diff.T1<-plot_difference(
-  m2.T1.d15N,
+  m1.T1.d15N,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
 )
@@ -2624,37 +2609,33 @@ d15N.T1.mod.plot<-
 
 
 ############# all plankton T2
-m1.T2.d15N<- gam(d15N ~ Treatment*Type +
+m1.T2.d15N <- gam(d15N ~ Treatment + Type +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
 m2.T2.d15N <- gam(d15N ~ Treatment + Type +
-            s(plant.mass..g, by=Treatment), 
-            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
-
-m3.T2.d15N <- gam(d15N ~ Treatment + Type +
             s(plant.mass..g), 
             subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
-m4.T2.d15N <- gam(d15N ~
+m3.T2.d15N <- gam(d15N ~
             s(plant.mass..g), 
             subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
 
-AIC.d15N.T2<-AIC(m1.T2.d15N, m2.T2.d15N, m3.T2.d15N, m4.T2.d15N)
+AIC.d15N.T2<-AIC(m1.T2.d15N, m2.T2.d15N, m3.T2.d15N)
 ## additive model best fit
 
-summary(m2.T2.d15N)
-anova.gam(m2.T2.d15N)
-gam.check(m2.T2.d15N, rep=1000)
-draw(m2.T2.d15N)
-concrvity(m2.T2.d15N)
+summary(m1.T2.d15N)
+anova.gam(m1.T2.d15N)
+gam.check(m1.T2.d15N, rep=1000)
+draw(m1.T2.d15N)
+concrvity(m1.T2.d15N)
 par(mfrow = c(1, 2))
-plot(m2.T2.d15N, all.terms = TRUE, page=1)
+plot(m1.T2.d15N, all.terms = TRUE, page=1)
 
 # model predictions
 d15N.diff.T2<-plot_difference(
-  m2.T2.d15N,
+  m1.T2.d15N,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
 )
@@ -2693,8 +2674,7 @@ ggsave("figures/d15N.model.pdf", encod="MacRoman", height=5, width=10)
 
 ################
 
-mod.d15N<-rep(c("Treatment * Type + s(plant.mass..g, by=Treatment)", 
-              "Treatment + Type + s(plant.mass..g, by=Treatment)", 
+mod.d15N<-rep(c("Treatment + Type + s(plant.mass..g, by=Treatment)", 
               "Treatment + Type + s(plant.mass..g)",
               "s(plant.mass..g)"), times=2)
 
@@ -3420,12 +3400,14 @@ CH4.diff.T3<-plot_difference(
 #plot for the model output on rawdata
 CH4.T3.mod.plot<-
   plot_smooths(
-  model = m3.T3.CH4,
+  model = m2.T3.CH4,
   series = plant.mass..g,
+  comparison=Treatment
 )  + theme(legend.position = "none") +
   geom_point(data=CH4[(CH4$Time.point=="T3"),], 
              aes(x=plant.mass..g, y=ppm, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  geom_line(aes(fill=Treatment, linetype=Treatment)) +
   ylab(expression(paste("CH4", ~(ppm), sep=""))) +
   xlab("plant material (g)") +
   ggtitle("Time-3") +
@@ -3433,7 +3415,6 @@ CH4.T3.mod.plot<-
   Fig.formatting +
   theme(legend.key.size = unit(1,"line"))
 
-CH4.T3.mod.plot
 
 CH4.plots<-plot_grid(
   CH4.T0.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-0"),
