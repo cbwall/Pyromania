@@ -667,6 +667,14 @@ DOC_T2$sr=suva.df[suva.df$Time.point=="T2",]$Spectral.Slope.Ratio
 DOC_T3$sr=suva.df[suva.df$Time.point=="T3",]$Spectral.Slope.Ratio
 DOC_T4$sr=suva.df[suva.df$Time.point=="T4",]$Spectral.Slope.Ratio
 
+
+DOC_T0$fr=index.df[index.df$Time.point=="T0",]$Freshness.Index
+DOC_T1$fr=index.df[index.df$Time.point=="T1",]$Freshness.Index
+DOC_T2$fr=index.df[index.df$Time.point=="T2",]$Freshness.Index
+DOC_T3$fr=index.df[index.df$Time.point=="T3",]$Freshness.Index
+DOC_T4$fr=index.df[index.df$Time.point=="T4",]$Freshness.Index
+
+
 DOC.df<-rbind(DOC_T0, DOC_T1, DOC_T2, DOC_T3, DOC_T4)
 
 #Extract file
@@ -690,7 +698,7 @@ DOC.df$Time.point<- as.factor(ifelse(DOC.df$File=="DOC_T0.csv", "T0",
 #rearrange
 library(dplyr)
 DOC.df<- DOC.df %>% 
-  dplyr::select(File, Time.point, Treatment, Tank, plant.mass..g, DOC..mg.L, TN..mg.L, SUVA, sr, hix, fl) 
+  dplyr::select(File, Time.point, Treatment, Tank, plant.mass..g, DOC..mg.L, TN..mg.L, SUVA, sr, hix, fl, fr) 
 
 DOC.df=DOC.df%>%
     mutate_if(is.character,as.factor)
@@ -1533,92 +1541,96 @@ ggsave("figures/hix.mod.diffs.pdf", height=4, width=12)
 
 
 Freshness analysis and plots
-```{r HIX analysis and plots}
+```{r Freshness analysis and plots}
 ######## T0 model
-m1.hix.T0.gam=gam(hix ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T0", data = DOC.df, method = "REML")
+m1.fr.T0.gam=gam(fr ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T0", data = DOC.df, method = "REML")
 
-m2.hix.T0.gam=gam(hix ~  Treatment + s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
+m2.fr.T0.gam=gam(fr ~  Treatment + s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
 
-m3.hix.T0.gam=gam(hix ~  s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
+m3.fr.T0.gam=gam(fr ~  s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
 
-T0.hix.AIC<-AIC(m1.hix.T0.gam, m2.hix.T0.gam, m3.hix.T0.gam)
-T0.hix.AIC
+T0.fr.AIC<-AIC(m1.fr.T0.gam, m2.fr.T0.gam, m3.fr.T0.gam)
+T0.fr.AIC
 # best is two smoother 
 
-summary(m1.hix.T0.gam)
-anova.gam(m1.hix.T0.gam)
+summary(m1.fr.T0.gam)
+anova.gam(m1.fr.T0.gam)
 gam.check(m1.hix.T0.gam, rep=1000)
-draw(m1.hix.T0.gam)
-concrvity(m1.hix.T0.gam)
+draw(m1.fr.T0.gam)
+concrvity(m1.fr.T0.gam)
 par(mfrow = c(2, 2))
-plot(m1.hix.T0.gam, all.terms = TRUE, page=1)
+plot(m1.fr.T0.gam, all.terms = TRUE, page=1)
 
 # model predictions
-hix.diff.T0<-plot_difference(
-  m1.hix.T0.gam,
+fr.diff.T0<-plot_difference(
+  m1.fr.T0.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
 )
 
 ###########  
-hix.T0.mod.plot<-
+fr.T0.mod.plot<-
   plot_smooths(
-  model = m1.hix.T0.gam,
+  model = m1.fr.T0.gam,
   series = plant.mass..g,
 ) + 
   geom_point(data=DOC.df[(DOC.df$Time.point=="T0"),], 
-             aes(x=plant.mass..g, y=hix, color=Treatment)) +
+             aes(x=plant.mass..g, y=fr, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
     scale_fill_manual(values = c("brown1", "mediumseagreen")) +
   ggtitle("Day-0") +
-  ylab("HIX")+
+    ylab(expression("Freshness"~italic(alpha)~":"~italic(beta)))+
   xlab("plant material (g)") +
   Fig.formatting
 
+fr.T0.mod.plot
+
 
 ######## T1 model
-m1.hix.T1.gam=gam(hix ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = DOC.df, method = "REML")
+m1.fr.T1.gam=gam(fr ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = DOC.df, method = "REML")
 
-m2.hix.T1.gam=gam(hix ~  Treatment + s(plant.mass..g), subset = Time.point=="T1", data = DOC.df, method = "REML")
+m2.fr.T1.gam=gam(fr ~  Treatment + s(plant.mass..g), subset = Time.point=="T1", data = DOC.df, method = "REML")
 
-m3.hix.T1.gam=gam(hix ~  s(plant.mass..g), subset = Time.point=="T1", data = DOC.df, method = "REML")
+m3.fr.T1.gam=gam(fr ~  s(plant.mass..g), subset = Time.point=="T1", data = DOC.df, method = "REML")
 
-T1.hix.AIC<-AIC(m1.hix.T1.gam, m2.hix.T1.gam, m3.hix.T1.gam)
-T1.hix.AIC
+T1.fr.AIC<-AIC(m1.fr.T1.gam, m2.fr.T1.gam, m3.fr.T1.gam)
+T1.fr.AIC
 # best is two smoother
 
-summary(m3.hix.T1.gam)
-anova.gam(m3.hix.T1.gam)
-gam.check(m3.sr.T1.gam, rep=1000)
-draw(m3.hix.T1.gam)
-concrvity(m3.hix.T1.gam)
+summary(m1.fr.T1.gam)
+anova.gam(m1.fr.T1.gam)
+gam.check(m1.fr.T1.gam, rep=1000)
+draw(m1.fr.T1.gam)
+concrvity(m1.fr.T1.gam)
 par(mfrow = c(2, 2))
-plot(m3.hix.T1.gam, all.terms = TRUE, page=1)
+plot(m1.fr.T1.gam, all.terms = TRUE, page=1)
 
 # model predictions
-hix.diff.T1<-plot_difference(
-  m1.hix.T1.gam,
+fr.diff.T1<-plot_difference(
+  m1.fr.T1.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
 )
 
 ###########  
 #plot for the model output on rawdata
-hix.T1.mod.plot<-
+fr.T1.mod.plot<-
   plot_smooths(
-  model = m3.hix.T1.gam,
+  model = m1.fr.T1.gam,
   series = plant.mass..g,
+  comparison = Treatment
 ) + 
   geom_point(data=DOC.df[(DOC.df$Time.point=="T1"),], 
-             aes(x=plant.mass..g, y=hix, color=Treatment)) +
+             aes(x=plant.mass..g, y=fr, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
     scale_fill_manual(values = c("brown1", "mediumseagreen")) +
-  coord_cartesian(ylim = c(0,6))+
   ggtitle("Day-10") +
-  ylab("HIX")+
+  ylim(0.25,1.75)+
+  ylab(expression("Freshness"~"("~italic(alpha)~":"~italic(beta)~")"))+
   xlab("") +
   Fig.formatting
-hix.T1.mod.plot
+
+fr.T1.mod.plot
 
 
 
@@ -1627,50 +1639,51 @@ hix.T1.mod.plot
 
 
 ########## T2
-m1.hix.T2.gam=gam(hix ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T2", data = DOC.df, method = "REML")
+m1.fr.T2.gam=gam(fr ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T2", data = DOC.df, method = "REML")
 
-m2.hix.T2.gam=gam(hix ~  Treatment + s(plant.mass..g), subset = Time.point=="T2", data = DOC.df, method = "REML")
+m2.fr.T2.gam=gam(fr ~  Treatment + s(plant.mass..g), subset = Time.point=="T2", data = DOC.df, method = "REML")
 
-m3.hix.T2.gam=gam(hix ~  s(plant.mass..g), subset = Time.point=="T2", data = DOC.df, method = "REML")
+m3.fr.T2.gam=gam(fr ~  s(plant.mass..g), subset = Time.point=="T2", data = DOC.df, method = "REML")
 
-T2.hix.AIC<-AIC(m1.hix.T2.gam, m2.hix.T2.gam, m3.hix.T2.gam)
-T2.hix.AIC
+T2.fr.AIC<-AIC(m1.fr.T2.gam, m2.fr.T2.gam, m3.fr.T2.gam)
+T2.fr.AIC
 
 # best is global smooth 
 
-summary(m2.hix.T2.gam)
-anova.gam(m2.hix.T2.gam)
-gam.check(m2.hix.T2.gam, rep=1000)
-draw(m2.hix.T2.gam)
-concrvity(m2.hix.T2.gam)
+summary(m1.fr.T2.gam)
+anova.gam(m1.fr.T2.gam)
+gam.check(m1.fr.T2.gam, rep=1000)
+draw(m1.fr.T2.gam)
+concrvity(m1.fr.T2.gam)
 par(mfrow = c(2, 2))
-plot(m2.hix.T2.gam, all.terms = TRUE, page=1)
+plot(m1.fr.T2.gam, all.terms = TRUE, page=1)
 
 # model predictions
-hix.diff.T2<-plot_difference(
-  m1.hix.T2.gam,
+fr.diff.T2<-plot_difference(
+  m1.fr.T2.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
 )
 
 ###########  
 #plot for the model output on rawdata
-hix.T2.mod.plot<-
+fr.T2.mod.plot<-
   plot_smooths(
-  model = m3.hix.T2.gam,
+  model = m1.fr.T2.gam,
   series = plant.mass..g,
+  comparison = Treatment
 ) + 
   geom_point(data=DOC.df[(DOC.df$Time.point=="T2"),], 
-             aes(x=plant.mass..g, y=hix, color=Treatment)) +
+             aes(x=plant.mass..g, y=fr, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
   scale_fill_manual(values = c("brown1", "mediumseagreen")) +
-  coord_cartesian(ylim = c(0,6))+
+ ylim(0.25,1.75)+
   ggtitle("Day-31") +
   ylab("") +
   xlab("plant material (g)") +
   Fig.formatting
 
-
+fr.T2.mod.plot
 
 # NO effect of treatment, smoothing significant across both treatments
 # DOC equivalent in burned and unburned 
@@ -1678,44 +1691,44 @@ hix.T2.mod.plot<-
 
 
 ########## T3
-m1.hix.T3.gam=gam(hix ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T3", data = DOC.df, method = "REML")
+m1.fr.T3.gam=gam(fr ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T3", data = DOC.df, method = "REML")
 
-m2.hix.T3.gam=gam(hix ~  Treatment + s(plant.mass..g), subset = Time.point=="T3", data = DOC.df, method = "REML")
+m2.fr.T3.gam=gam(fr ~  Treatment + s(plant.mass..g), subset = Time.point=="T3", data = DOC.df, method = "REML")
 
-m3.hix.T3.gam=gam(hix ~  s(plant.mass..g), subset = Time.point=="T3", data = DOC.df, method = "REML")
+m3.fr.T3.gam=gam(fr ~  s(plant.mass..g), subset = Time.point=="T3", data = DOC.df, method = "REML")
 
-T3.hix.AIC<-AIC(m1.hix.T3.gam, m2.hix.T3.gam, m3.hix.T3.gam)
-T3.hix.AIC
+T3.fr.AIC<-AIC(m1.fr.T3.gam, m2.fr.T3.gam, m3.fr.T3.gam)
+T3.fr.AIC
 # best by factor smooth
 
-summary(m1.hix.T3.gam)
-anova.gam(m1.hix.T3.gam)
-gam.check(m1.hix.T3.gam, rep=1000)
-draw(m1.hix.T3.gam)
-concrvity(m1.hix.T3.gam)
+summary(m2.fr.T3.gam)
+anova.gam(m2.fr.T3.gam)
+gam.check(m2.fr.T3.gam, rep=1000)
+draw(m2.fr.T3.gam)
+concrvity(m2.fr.T3.gam)
 par(mfrow = c(2, 2))
-plot(m1.hix.T3.gam, all.terms = TRUE, page=1)
+plot(m2.fr.T3.gam, all.terms = TRUE, page=1)
 
 # model predictions
-hix.diff.T3<-plot_difference(
-  m1.hix.T3.gam,
+fr.diff.T3<-plot_difference(
+  m1.fr.T3.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
 )
 
 ###########  
 #plot for the model output on rawdata
-hix.T3.mod.plot<-
+fr.T3.mod.plot<-
   plot_smooths(
-  model = m1.hix.T3.gam,
+  model = m2.fr.T3.gam,
   series = plant.mass..g,
   comparison = Treatment
 ) + 
   geom_point(data=DOC.df[(DOC.df$Time.point=="T3"),], 
-             aes(x=plant.mass..g, y=hix, color=Treatment)) +
+             aes(x=plant.mass..g, y=fr, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
     scale_fill_manual(values = c("brown1", "mediumseagreen")) +
-  coord_cartesian(ylim = c(0,6))+
+ ylim(0.25,1.75)+
   ggtitle("Day-59") +
   ylab("") +
   xlab("") +
@@ -1726,44 +1739,44 @@ hix.T3.mod.plot<-
 
 
 ########## T4
-m1.hix.T4.gam=gam(hix ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T4", data = DOC.df, method = "REML")
+m1.fr.T4.gam=gam(fr ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T4", data = DOC.df, method = "REML")
 
-m2.hix.T4.gam=gam(hix ~  Treatment + s(plant.mass..g), subset = Time.point=="T4", data = DOC.df, method = "REML")
+m2.fr.T4.gam=gam(fr ~  Treatment + s(plant.mass..g), subset = Time.point=="T4", data = DOC.df, method = "REML")
 
-m3.hix.T4.gam=gam(hix ~  s(plant.mass..g), subset = Time.point=="T4", data = DOC.df, method = "REML")
+m3.fr.T4.gam=gam(fr ~  s(plant.mass..g), subset = Time.point=="T4", data = DOC.df, method = "REML")
 
-T4.hix.AIC<-AIC(m1.hix.T4.gam, m2.hix.T4.gam, m3.hix.T4.gam)
-T4.hix.AIC
+T4.fr.AIC<-AIC(m1.fr.T4.gam, m2.fr.T4.gam, m3.fr.T4.gam)
+T4.fr.AIC
 
 # best is global
-summary(m1.hix.T4.gam)
-anova.gam(m1.hix.T4.gam)
-gam.check(m1.hix.T4.gam, rep=1000)
-draw(m1.hix.T4.gam)
-concrvity(m1.hix.T4.gam)
+summary(m2.fr.T4.gam)
+anova.gam(m2.fr.T4.gam)
+gam.check(m2.fr.T4.gam, rep=1000)
+draw(m2.fr.T4.gam)
+concrvity(m2.fr.T4.gam)
 par(mfrow = c(2, 2))
-plot(m1.hix.T4.gam, all.terms = TRUE, page=1)
+plot(m2.fr.T4.gam, all.terms = TRUE, page=1)
 
 # model predictions
-hix.diff.T4<-plot_difference(
-  m1.hix.T4.gam,
+fr.diff.T4<-plot_difference(
+  m1.fr.T4.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
 )
 
 ###########  
 #plot for the model output on rawdata
-hix.T4.mod.plot<-
+fr.T4.mod.plot<-
   plot_smooths(
-  model = m1.hix.T4.gam,
+  model = m2.fr.T4.gam,
   series = plant.mass..g,
   comparison = Treatment
 ) + 
   geom_point(data=DOC.df[(DOC.df$Time.point=="T4"),], 
-             aes(x=plant.mass..g, y=hix, color=Treatment)) +
+             aes(x=plant.mass..g, y=fr, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
     scale_fill_manual(values = c("brown1", "mediumseagreen")) +
-  coord_cartesian(ylim = c(0,6))+
+ ylim(0.25,1.75)+
   ggtitle("Day-89") +
   ylab("") +
   xlab("") +
@@ -1773,9 +1786,9 @@ hix.T4.mod.plot<-
 
 # no effect of treatment, smoothing significant across both treatments
 # DOC equivalent in  burned and unburned
-AIC.hix<-bind_rows(T0.hix.AIC, T1.hix.AIC, T2.hix.AIC, T3.hix.AIC, T4.hix.AIC)
-AIC.hix.mod<-cbind(mod.column, AIC.hix)
-write.csv(AIC.hix.mod, "output/AIC models/AIC.hix.csv")
+AIC.fr<-bind_rows(T0.fr.AIC, T1.fr.AIC, T2.fr.AIC, T3.fr.AIC, T4.fr.AIC)
+AIC.fr.mod<-cbind(mod.column, AIC.fr)
+write.csv(AIC.fr.mod, "output/AIC models/AIC.fr.csv")
 
 
 ```
@@ -1783,27 +1796,304 @@ write.csv(AIC.hix.mod, "output/AIC models/AIC.hix.csv")
 Freshness: compile raw plots and model-diff plots for final figures
 ```{r sr model plots compiled}
 
-hix.alltimes<-plot_grid(
-  hix.T1.mod.plot+ theme(legend.position = "none"),
-    hix.T2.mod.plot+ theme(legend.position = "none"),
-   hix.T3.mod.plot+ theme(legend.position = "none"),
-    hix.T4.mod.plot+ theme(legend.position = "none"), extract.legend,
+fr.alltimes<-plot_grid(
+  fr.T1.mod.plot+ theme(legend.position = "none"),
+    fr.T2.mod.plot+ theme(legend.position = "none"),
+   fr.T3.mod.plot+ theme(legend.position = "none"),
+    fr.T4.mod.plot+ theme(legend.position = "none"), extract.legend,
   rel_widths = c(8,8,8,8,3), ncol=5)
 
-hix.alltimes
-ggsave("figures/hix.alltimes.mod.pdf", height=4, width=12)
+fr.alltimes
+ggsave("figures/fr.alltimes.mod.pdf", height=4, width=12)
 
-hix.mod.diffs<-plot_grid(
-  hix.diff.T1+ theme(legend.position = "none")+ ggtitle("SUVA - Day-10"),
-  hix.diff.T2+ theme(legend.position = "none")+ ggtitle("Day-31"),
-  hix.diff.T3+ theme(legend.position = "none")+ ggtitle("Day-59"),
-  hix.diff.T4+ theme(legend.position = "none")+ ggtitle("Day-89"),
+fr.mod.diffs<-plot_grid(
+  fr.diff.T1+ theme(legend.position = "none")+ ggtitle("SUVA - Day-10"),
+  fr.diff.T2+ theme(legend.position = "none")+ ggtitle("Day-31"),
+  fr.diff.T3+ theme(legend.position = "none")+ ggtitle("Day-59"),
+  fr.diff.T4+ theme(legend.position = "none")+ ggtitle("Day-89"),
   rel_widths = c(8,8,8,8), ncol=4)
 
-hix.mod.diffs
-ggsave("figures/hix.mod.diffs.pdf", height=4, width=12)
+fr.mod.diffs
+ggsave("figures/fr.mod.diffs.pdf", height=4, width=12)
 ```
 
+
+Fluorescence analysis and plots
+```{r Freshness analysis and plots}
+######## T0 model
+m1.fr.T0.gam=gam(fr ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T0", data = DOC.df, method = "REML")
+
+m2.fr.T0.gam=gam(fr ~  Treatment + s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
+
+m3.fr.T0.gam=gam(fr ~  s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
+
+T0.fr.AIC<-AIC(m1.fr.T0.gam, m2.fr.T0.gam, m3.fr.T0.gam)
+T0.fr.AIC
+# best is two smoother 
+
+summary(m1.fr.T0.gam)
+anova.gam(m1.fr.T0.gam)
+gam.check(m1.hix.T0.gam, rep=1000)
+draw(m1.fr.T0.gam)
+concrvity(m1.fr.T0.gam)
+par(mfrow = c(2, 2))
+plot(m1.fr.T0.gam, all.terms = TRUE, page=1)
+
+# model predictions
+fr.diff.T0<-plot_difference(
+  m1.fr.T0.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+fr.T0.mod.plot<-
+  plot_smooths(
+  model = m1.fr.T0.gam,
+  series = plant.mass..g,
+) + 
+  geom_point(data=DOC.df[(DOC.df$Time.point=="T0"),], 
+             aes(x=plant.mass..g, y=fr, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+    scale_fill_manual(values = c("brown1", "mediumseagreen")) +
+  ggtitle("Day-0") +
+    ylab(expression("Freshness"~italic(alpha)~":"~italic(beta)))+
+  xlab("plant material (g)") +
+  Fig.formatting
+
+fr.T0.mod.plot
+
+
+######## T1 model
+m1.fr.T1.gam=gam(fr ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = DOC.df, method = "REML")
+
+m2.fr.T1.gam=gam(fr ~  Treatment + s(plant.mass..g), subset = Time.point=="T1", data = DOC.df, method = "REML")
+
+m3.fr.T1.gam=gam(fr ~  s(plant.mass..g), subset = Time.point=="T1", data = DOC.df, method = "REML")
+
+T1.fr.AIC<-AIC(m1.fr.T1.gam, m2.fr.T1.gam, m3.fr.T1.gam)
+T1.fr.AIC
+# best is two smoother
+
+summary(m1.fr.T1.gam)
+anova.gam(m1.fr.T1.gam)
+gam.check(m1.fr.T1.gam, rep=1000)
+draw(m1.fr.T1.gam)
+concrvity(m1.fr.T1.gam)
+par(mfrow = c(2, 2))
+plot(m1.fr.T1.gam, all.terms = TRUE, page=1)
+
+# model predictions
+fr.diff.T1<-plot_difference(
+  m1.fr.T1.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+fr.T1.mod.plot<-
+  plot_smooths(
+  model = m1.fr.T1.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=DOC.df[(DOC.df$Time.point=="T1"),], 
+             aes(x=plant.mass..g, y=fr, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+    scale_fill_manual(values = c("brown1", "mediumseagreen")) +
+  ggtitle("Day-10") +
+  ylim(0.25,1.75)+
+  ylab(expression("Freshness"~"("~italic(alpha)~":"~italic(beta)~")"))+
+  xlab("") +
+  Fig.formatting
+
+fr.T1.mod.plot
+
+
+
+# effect of treatment, smoothing significant across both treatments
+# DOC higher in  unburned, relative to burned
+
+
+########## T2
+m1.fr.T2.gam=gam(fr ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T2", data = DOC.df, method = "REML")
+
+m2.fr.T2.gam=gam(fr ~  Treatment + s(plant.mass..g), subset = Time.point=="T2", data = DOC.df, method = "REML")
+
+m3.fr.T2.gam=gam(fr ~  s(plant.mass..g), subset = Time.point=="T2", data = DOC.df, method = "REML")
+
+T2.fr.AIC<-AIC(m1.fr.T2.gam, m2.fr.T2.gam, m3.fr.T2.gam)
+T2.fr.AIC
+
+# best is global smooth 
+
+summary(m1.fr.T2.gam)
+anova.gam(m1.fr.T2.gam)
+gam.check(m1.fr.T2.gam, rep=1000)
+draw(m1.fr.T2.gam)
+concrvity(m1.fr.T2.gam)
+par(mfrow = c(2, 2))
+plot(m1.fr.T2.gam, all.terms = TRUE, page=1)
+
+# model predictions
+fr.diff.T2<-plot_difference(
+  m1.fr.T2.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+fr.T2.mod.plot<-
+  plot_smooths(
+  model = m1.fr.T2.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=DOC.df[(DOC.df$Time.point=="T2"),], 
+             aes(x=plant.mass..g, y=fr, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  scale_fill_manual(values = c("brown1", "mediumseagreen")) +
+ ylim(0.25,1.75)+
+  ggtitle("Day-31") +
+  ylab("") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+fr.T2.mod.plot
+
+# NO effect of treatment, smoothing significant across both treatments
+# DOC equivalent in burned and unburned 
+# DOC more variable/wonky across gradient in burned
+
+
+########## T3
+m1.fr.T3.gam=gam(fr ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T3", data = DOC.df, method = "REML")
+
+m2.fr.T3.gam=gam(fr ~  Treatment + s(plant.mass..g), subset = Time.point=="T3", data = DOC.df, method = "REML")
+
+m3.fr.T3.gam=gam(fr ~  s(plant.mass..g), subset = Time.point=="T3", data = DOC.df, method = "REML")
+
+T3.fr.AIC<-AIC(m1.fr.T3.gam, m2.fr.T3.gam, m3.fr.T3.gam)
+T3.fr.AIC
+# best by factor smooth
+
+summary(m2.fr.T3.gam)
+anova.gam(m2.fr.T3.gam)
+gam.check(m2.fr.T3.gam, rep=1000)
+draw(m2.fr.T3.gam)
+concrvity(m2.fr.T3.gam)
+par(mfrow = c(2, 2))
+plot(m2.fr.T3.gam, all.terms = TRUE, page=1)
+
+# model predictions
+fr.diff.T3<-plot_difference(
+  m1.fr.T3.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+fr.T3.mod.plot<-
+  plot_smooths(
+  model = m2.fr.T3.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=DOC.df[(DOC.df$Time.point=="T3"),], 
+             aes(x=plant.mass..g, y=fr, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+    scale_fill_manual(values = c("brown1", "mediumseagreen")) +
+ ylim(0.25,1.75)+
+  ggtitle("Day-59") +
+  ylab("") +
+  xlab("") +
+  Fig.formatting
+
+# effect of treatment, smoothing significant across both treatments
+# DOC higher in  burned vs. unburned
+
+
+########## T4
+m1.fr.T4.gam=gam(fr ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T4", data = DOC.df, method = "REML")
+
+m2.fr.T4.gam=gam(fr ~  Treatment + s(plant.mass..g), subset = Time.point=="T4", data = DOC.df, method = "REML")
+
+m3.fr.T4.gam=gam(fr ~  s(plant.mass..g), subset = Time.point=="T4", data = DOC.df, method = "REML")
+
+T4.fr.AIC<-AIC(m1.fr.T4.gam, m2.fr.T4.gam, m3.fr.T4.gam)
+T4.fr.AIC
+
+# best is global
+summary(m2.fr.T4.gam)
+anova.gam(m2.fr.T4.gam)
+gam.check(m2.fr.T4.gam, rep=1000)
+draw(m2.fr.T4.gam)
+concrvity(m2.fr.T4.gam)
+par(mfrow = c(2, 2))
+plot(m2.fr.T4.gam, all.terms = TRUE, page=1)
+
+# model predictions
+fr.diff.T4<-plot_difference(
+  m1.fr.T4.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+fr.T4.mod.plot<-
+  plot_smooths(
+  model = m2.fr.T4.gam,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=DOC.df[(DOC.df$Time.point=="T4"),], 
+             aes(x=plant.mass..g, y=fr, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+    scale_fill_manual(values = c("brown1", "mediumseagreen")) +
+ ylim(0.25,1.75)+
+  ggtitle("Day-89") +
+  ylab("") +
+  xlab("") +
+  Fig.formatting
+
+
+
+# no effect of treatment, smoothing significant across both treatments
+# DOC equivalent in  burned and unburned
+AIC.fr<-bind_rows(T0.fr.AIC, T1.fr.AIC, T2.fr.AIC, T3.fr.AIC, T4.fr.AIC)
+AIC.fr.mod<-cbind(mod.column, AIC.fr)
+write.csv(AIC.fr.mod, "output/AIC models/AIC.fr.csv")
+
+
+```
+
+Fluorescence: compile raw plots and model-diff plots for final figures
+```{r sr model plots compiled}
+
+fr.alltimes<-plot_grid(
+  fr.T1.mod.plot+ theme(legend.position = "none"),
+    fr.T2.mod.plot+ theme(legend.position = "none"),
+   fr.T3.mod.plot+ theme(legend.position = "none"),
+    fr.T4.mod.plot+ theme(legend.position = "none"), extract.legend,
+  rel_widths = c(8,8,8,8,3), ncol=5)
+
+fr.alltimes
+ggsave("figures/fr.alltimes.mod.pdf", height=4, width=12)
+
+fr.mod.diffs<-plot_grid(
+  fr.diff.T1+ theme(legend.position = "none")+ ggtitle("SUVA - Day-10"),
+  fr.diff.T2+ theme(legend.position = "none")+ ggtitle("Day-31"),
+  fr.diff.T3+ theme(legend.position = "none")+ ggtitle("Day-59"),
+  fr.diff.T4+ theme(legend.position = "none")+ ggtitle("Day-89"),
+  rel_widths = c(8,8,8,8), ncol=4)
+
+fr.mod.diffs
+ggsave("figures/fr.mod.diffs.pdf", height=4, width=12)
+```
 
 
 
