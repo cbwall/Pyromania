@@ -1,0 +1,10 @@
+"","mod.degra.rep","df","AIC"
+"m1.photo.perc","~Treatment + s(plant.mass..g, by= Treatment)",3.00015462535555,198.052060541097
+"m2.photo.perc","~Treatment + s(plant.mass..g)",3.00022812027567,198.052166155441
+"m3.photo.perc","~s(plant.mass..g)",2.00022603577991,197.998275951524
+"m1.microbe.perc","~Treatment + s(plant.mass..g, by= Treatment)",9.59434589875339,186.384526711733
+"m2.microbe.perc","~Treatment + s(plant.mass..g)",6.70374943887458,182.138189865821
+"m3.microbe.perc","~s(plant.mass..g)",5.69217129581574,181.492213033302
+"m1.total.perc","~Treatment + s(plant.mass..g, by= Treatment)",9.65933078548033,186.385831485705
+"m2.total.perc","~Treatment + s(plant.mass..g)",6.97110245874119,181.105809514488
+"m3.total.perc","~s(plant.mass..g)",6.0134507475318,179.410141478707
