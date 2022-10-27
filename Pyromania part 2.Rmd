@@ -13,6 +13,7 @@ output:
     toc_depth: '4'
 ---
 
+Pyromania data for zooplanktona and chlorophyll
 ```{r setup chunk, setup, include = FALSE, cache=FALSE, message=FALSE, warning=FALSE}
 if (!require('knitr')) install.packages('knitr'); library('knitr')
 knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
@@ -614,3 +615,89 @@ p2<-ggplot(CH2, aes(y=ppm, x=Plant.mass..g, color = factor(Treatment))) +
 p2
 ```
 
+
+
+###Chlorophyll  
+import   
+- may not be useful...
+```{r chlorophyll, eval =FALSE}
+## import treatment IDs
+chl.dat<- read.csv("data/Pyro_chlorophyll.csv")  
+chl.dat<-chl.dat[!(chl.dat$Time.point=="First.round"),] # remove first round from aborted mission
+
+#remove outlier
+chl.out.rem<-chl.dat[!(chl.dat$chla..ug.L>=10),]
+
+
+#plot
+
+chla.T0<-ggplot(chl.dat[(chl.dat$Time.point=="T0"),], aes(x=plant.mass..g, y=chla..ug.L, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 20)) +
+  ggtitle("Time-0") +
+  ylab(expression(paste("chlorophyll", ~(mu*g~L^-1), sep=""))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+chla.T1<-ggplot(chl.dat[(chl.dat$Time.point=="T1"),], aes(x=plant.mass..g, y=chla..ug.L, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 20)) +
+  ggtitle("Time-1") +
+  ylab(expression(paste("chlorophyll", ~(mu*g~L^-1), sep=""))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+chla.T2<-ggplot(chl.dat[(chl.dat$Time.point=="T2"),], aes(x=plant.mass..g, y=chla..ug.L, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 20)) +
+  ggtitle("Time-2") +
+  ylab(expression(paste("chlorophyll", ~(mu*g~L^-1), sep=""))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+chla.T3<-ggplot(chl.dat[(chl.dat$Time.point=="T3"),], aes(x=plant.mass..g, y=chla..ug.L, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 20)) +
+  ggtitle("Time-3") +
+  ylab(expression(paste("chlorophyll", ~(mu*g~L^-1), sep=""))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+chla.T4<-ggplot(chl.dat[(chl.dat$Time.point=="T4"),], aes(x=plant.mass..g, y=chla..ug.L, color=Treatment)) +
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  coord_cartesian(ylim=c(0, 20)) +
+  ggtitle("Time-4") +
+  ylab(expression(paste("chlorophyll", ~(mu*g~L^-1), sep=""))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+chl.plots<-plot_grid(
+  chla.T0+ theme(legend.position = "none"),
+  chla.T2+ theme(legend.position = "none"),
+  chla.T2+ theme(legend.position = "none"),
+  chla.T3+ theme(legend.position = "none"),
+  chla.T4+ theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,8,8,8,3), ncol=6)
+
+
+chl.plots
+
+ggsave("figures/chla.alltime.pdf", height=5, width=15)
+
+
+
+```
+  

@@ -1,7 +1,7 @@
 ---
 title: "Pyromania"
-author: "C Wall"
-date: "1/4/2021"
+author: "C Wall, C Spiegel, J Shurin"
+date: "10/27/2022"
 output:
   html_document:
     code_folding: hide
@@ -13,11 +13,16 @@ output:
     toc_depth: '4'
 ---
 
-### Project overview
+## Project overview
 The goal of the Pyromania project is to test how terrestrial subsides (plant biomass loading) and burning influence aquatic productivity, trophic transfer, and water quality/chemistry. We used a manipulative experiment to assess a range of plant material quantities (0-400g/tank) and fire treatment (burned vs unburned material) and the non-linearity of these effects on aquatic systems through 4 time-point samplings. We used 400L aquatic mesocosms and ran the experiment for ~90d in 2021-2022.  
 
-
-![**Figure 1. Pyromania experimental setup**](output/tanks.jpg){width=70%}
+<center>  
+  
+![**Figure 1. Pyromania experimental setup**](output/tanks.jpg){width=50%}
+  
+</center>  
+  
+  
 **DATA SETS**  
 This data set is among 3 to be generated for the project and focuses on:  
 
@@ -40,24 +45,51 @@ knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
 if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
 
 # use pacman to load all the packages you are missing!
-pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'magrittr', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin")
+pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'magrittr', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans")
+
+Fig.formatting<-(theme_classic()) +
+  theme(text=element_text(size=10),
+        axis.line=element_blank(),
+        legend.text.align = 0,
+        legend.text=element_text(size=10),
+        #legend.title = element_blank(),
+        panel.border = element_rect(fill=NA, colour = "black", size=1),
+        aspect.ratio=1, 
+        axis.ticks.length=unit(0.25, "cm"),
+        axis.text.y=element_text(
+          margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=10), 
+        axis.text.x=element_text(
+          margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=8)) +
+  theme(legend.key.size = unit(0.4, "cm")) +
+  theme(aspect.ratio=1.3) +
+  theme(panel.spacing=unit(c(0, 0, 0, 0), "cm"))
+
 
 ```
+  
+**General notes on GAM analyses**  
+We fit the *generalized additive models (GAMs)* via restricted maximum likelihood (REML) to give stable results with the smoothing parameter `(sp)` to determine the non-linear relationship between response variables and plant-biomass loading (x-axis). We use automatic smoothing with `k` value generated automatically from the models, which will set the line 'wiggliness'. Too low and the relationship becomes linear; too high, and the wiggliness goes haywire.  
+  
+When using the non-linear smoothing, this is the `s(x)`. When the variable is inside the smooth function, this accounts for the nonlinear shape. We do not use *additive* non-linear smoothing, which is when two smoothers together, as `s(x1) + s(x2)`, instead we use factor-smooth interaction (*detailed below*). In addition, we use Treatment (and occasionally plankton size fractions, or *Type*) as predictors outside of the smooth terms `s(x1)`; this allows for linearity. Continuous variables are rarely linear in GAMs, however, setting categorical variables as linear predictors is more common.
 
+Factor-smooth interactions are written as `s(x1 by = fac)`. This sets different smoothers for different variables of "fac". Usually, the different smoothers are combined with a varying intercept in case the different categories are different in means and slopes, this would be by adding the `fac + s(x1 by = fac)`, where the `+fac` allows for a different slope. Similarly, in the absence of `by = fac`, the smoother is considered a global smoother `s(x1)`, fitting a single line to all the data. If a global smoother is combined with a factor term, then this is akin to varying the intercept but keeping the same slope: `fac + s(x1)`.  
+  
+The `EDF - effective degrees of freedom` equate with wiggliness, where edf =1 is a straight line, and higher edfs as more wiggly. GAM smoother significance is described as not being able to draw a horizontal line through the data. Finally, it is also advised to check model concurvity, which is the collinearity with models from 0-1.
 
-###DOC  
+### DOC  
 import and do a loop to clean up all files and make stacked data in single df
-```{r DOC import}
+```{r DOC import, results='hide'}
+detach("package:dplyr", unload = TRUE)
+library(dplyr)
+
 ## import treatment IDs
 IDs<-read.csv("data/treatment.IDs.csv")
 
 ##### grab files in a list
 Total.DOC.files <- list.files(path="data/DOC.TN", pattern = "csv$", full.names = T)
-Total.DOC.files
 
 ##### what are the file names, sans extensions using package 'tools'
 file.names<-file_path_sans_ext(list.files(path="data/DOC.TN", pattern = "csv$", full.names = F))
-file.names
 ############ formatting all data in for loop
   for(i in 1:length(Total.DOC.files))
     {
@@ -74,8 +106,8 @@ file.names
   }
 ########## this is the end of the loop
 
-
-ls() #see all dfs you've made, the above will be df matching their file names
+#see all dfs you've made, the above will be df matching their file names
+# ls() 
 
 #Combine files from loop to single df
 DOC.df<-rbind(DOC_T0, DOC_T1, DOC_T2, DOC_T3, DOC_T4)
@@ -104,21 +136,7 @@ DOC.df<- DOC.df %>%
 DOC.df$Treatment<-as.factor(DOC.df$Treatment)
 ```
 
-DOC analysis: 
-
-- notes on GAMS....
-Note that fitting via restricted maximum likelihood (REML) is advised to give stable results. Fitting the smoothing parameter (sp) to user defined levels not advisable (but certainly is done). 
-Number of basis functions important as well, small # of basis functions (k) will limit wiggliness (and make the model more linear than should be). This wiggliness is set by using the k values. Don't want too high, or too low... 
-
-When using the non-linear smoothing, this is the s(xxxx). Can add a new predictor by adding another smooth function with s(x1) + s(x2). When the variable is inside the smooth function, this is to account for the nonlinear shape. Two smoothing together and you have ADDITIVE Nonlinear modeling. Not all variables need to be non-linear, but adding a predictor outside of the s() then this is allowing for linearity. 
-
-In practice, continuous variables are rarely linear in GAMs, automatic smoothing will make a linear shape if setting high smoothing function (ie.. s =1000), then a non-linear variable appears linear. However, setting categorical variables as predicots linear is more common.
-
-Factor-smooth interaction also an option, this is when s(x1 by = fac), this sets different smoothing for different variables of "fac". Usually, the different smoothers are combined with a varying intercept incase the different categories are different in means and slopes, this would be by adding the s(x1 by = fac) + fac, wheere the +fac allows for a different slope
-
-EDF - effective degrees of freedom, equate with wiggliness, with edf =1 as a straight line, and higher edfs as more wiggly. GAM smoother significance is described as not being able to draw a horizontal line through the data. Always check concurvity, which is the collinearity with models from 0-1.
-
-```{r DOC analysis and individual plots}
+```{r DOC analysis and individual plots, results='hide', fig.show='hide'}
 
 ######## T0 model
 m1.DOC.T0<-gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T0", data = DOC.df, method = "REML")
@@ -321,6 +339,13 @@ concrvity(m3.DOC.T4)
 par(mfrow = c(2, 2))
 plot(m3.DOC.T4, all.terms = TRUE, page=1)
 
+# model predictions
+DOC.diff.T4<-plot_difference(
+  m1.DOC.T4,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
 ###########  
 #plot for the model output on rawdata
 DOC.T4.mod.plot<-
@@ -352,12 +377,38 @@ AIC.DOC.mod<-cbind(mod.DOC.df, AIC.DOC)
 
 write.csv(AIC.DOC.mod, "output/AIC models/AIC.DOC.csv")
 ```
+  
+#### DOC tables
+**Table: Results for DOC Time-0**
+```{r TO DOC}
+anova.gam(m3.DOC.T0)
+```
+  
+**Table: Results for DOC Time-1**
+```{r T1 DOC}
+anova.gam(m1.DOC.T2)
+```
 
-compile raw plots and model-diff plots for final figures
-```{r DOC model plots compiled}
+**Table: Results for DOC Time-2**
+```{r T2 DOC}
+anova.gam(m1.DOC.T2)
+```
 
+**Table: Results for DOC Time-3**
+```{r T3 DOC}
+anova.gam(m1.DOC.T3)
+```
+
+**Table: Results for DOC Time-4**
+```{r T4 DOC}
+anova.gam(m3.DOC.T4)
+```
+
+#### DOC figures
+Compile raw plots and model-diff plots for final figures.  
+```{r DOC all figures}
 # Time 0 if we want it
-DOC.T0.mod.plot
+# DOC.T0.mod.plot
 
 ###### compile the plots with effect plots
 
@@ -374,6 +425,11 @@ DOC.alltimes<-plot_grid(
   rel_widths = c(8,8,8,8,3), ncol=5)
 ggsave("figures/DOC.alltimes.mod.pdf", height=4, width=12)
 
+DOC.alltimes
+```
+  
+Model differences between the two factor-smoothers
+```{r DOC mod diffs}
 DOC.mod.diffs<-plot_grid(
   DOC.diff.T1+ theme(legend.position = "none")+ ggtitle("DOC - Day-10"),
   DOC.diff.T2+ theme(legend.position = "none")+ ggtitle("Day-31"),
@@ -381,11 +437,14 @@ DOC.mod.diffs<-plot_grid(
   DOC.diff.T4+ theme(legend.position = "none")+ ggtitle("Day-89"),
   rel_widths = c(8,8,8,8), ncol=4)
 ggsave("figures/DOC.mod.diffs.pdf", height=4, width=12)
+
+DOC.mod.diffs
 ```
+
 
 ### Total N
 Total N analysis and plots, running models and making model-diff plots
-```{r TN analysis and individual plots}
+```{r TN analysis and individual plots, results='hide', fig.show='hide'}
 TN.df<-DOC.df
 
 ######## T0 model
@@ -511,11 +570,13 @@ TN.diff.T2<-plot_difference(
 ## plot for the model output on rawdata
 TN.T2.mod.plot<-
   plot_smooths(
-  model = m3.TN.T2,
-  series = plant.mass..g
+  model = m2.TN.T2,
+  series = plant.mass..g,
+  comparison=Treatment
 ) + 
   geom_point(data=TN.df[(TN.df$Time.point=="T2"),], 
              aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
+  geom_line(aes(fill=Treatment, linetype=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +  
   coord_cartesian(ylim=c(0, 2)) +
   ggtitle("Day-31") +
@@ -636,10 +697,36 @@ write.csv(AIC.TN.mod, "output/AIC models/AIC.TN.mod.csv")
 
 ```
 
-compile plots
+#### TDN tables  
+**Results for TDN Time-0**
+```{r TO TDN}
+anova.gam(m1.TN.T0)
+```
+  
+**Table: Results for TDN Time-1**
+```{r T1 TDN}
+anova.gam(m3.TN.T1)
+```
+
+**Table: Results for TDN Time-2**
+```{r T2 TDN}
+anova.gam(m2.TN.T2)
+```
+
+**Table: Results for TDN Time-3**
+```{r T3 TDN}
+anova.gam(m1.TN.T3)
+```
+
+**Table: Results for TDN Time-4**
+```{r T4 TDN}
+anova.gam(m1.TN.T4)
+```
+
+#### Nitrogen figures  
+Compile raw plots and model-diff plots for final figures. 
 ```{r TN plots compiled}
 ###### compile the plots with effect plots
-TN.T0.mod.plot # if we want it
 
 TN.mod.alltimes<-plot_grid(
   TN.T0.mod.plot+ theme(legend.position = "none"), 
@@ -650,6 +737,11 @@ TN.mod.alltimes<-plot_grid(
   rel_widths = c(8,8,8,8,8,3), ncol=6)
 ggsave("figures/TN.mods.plots.pdf", height=4, width=13)
 
+TN.mod.alltimes
+```
+  
+Model differences between the two factor-smoothers
+```{r TN modd diff plots compiled}
 TN.mod.diffs<-plot_grid(
   TN.diff.T0+ theme(legend.position = "none")+ ggtitle("Day-0"),
   TN.diff.T1+ theme(legend.position = "none")+ ggtitle("Day-10"),
@@ -658,9 +750,12 @@ TN.mod.diffs<-plot_grid(
   TN.diff.T4+ theme(legend.position = "none")+ ggtitle("Day-89"),
   rel_widths = c(8,8,8,8,8,3), ncol=6)
 ggsave("figures/TN.mod.diffs.pdf", height=4, width=13)
+
+TN.mod.diffs
 ```
 
-###YSI  
+
+### YSI  
 Import YSI data and produce plots of changes in O2% and net ecosystem productivity (NEP) and net ecosystem respiration (NER)  
 ```{r YSI organized}
 #load YSI data
@@ -794,29 +889,11 @@ O2.tanks[cols] <- lapply(O2.tanks[cols], factor) # make all these factors
 O2.tanks$plant.mass..g<-as.numeric(O2.tanks$plant.mass..g)
 ```
   
-TIME POINT 1: Change in O2% and NEP and NER --   
-make figures of the data for timepoint 1  
-```{r Time1 O2}
-########## 
-Fig.formatting<-(theme_classic()) +
-  theme(text=element_text(size=10),
-        axis.line=element_blank(),
-        legend.text.align = 0,
-        legend.text=element_text(size=10),
-        #legend.title = element_blank(),
-        panel.border = element_rect(fill=NA, colour = "black", size=1),
-        aspect.ratio=1, 
-        axis.ticks.length=unit(0.25, "cm"),
-        axis.text.y=element_text(
-          margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=10), 
-        axis.text.x=element_text(
-          margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=8)) +
-  theme(legend.key.size = unit(0.4, "cm")) +
-  theme(aspect.ratio=1.3) +
-  theme(panel.spacing=unit(c(0, 0, 0, 0), "cm"))
-
+####DO and O2%  
+TIME POINT 1: Change in O2% from dissolved oxygen  
+```{r Time1 O2, results='hide', fig.show='hide'}
 #########################################################
-############################################################################
+##################################################################
 # total oxygen % plot for the 3 time points (dawn-dusk-dawn)
 
 m1.dawn1.T1<-gam(dawn1 ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = O2.tanks, method = "REML")
@@ -968,10 +1045,15 @@ O2.T1<-plot_grid(
   extract.legend, 
   rel_widths = c(8,8,8,3), ncol=4)
 ```
-  
-TIME POINT 2: Change in O2% and NEP and NER --
-make figures of the data for timepoint 2
-```{r Time2 O2}
+
+Table: Results for Time-1 DO%
+```{r O2 T1 plot}
+O2.T1
+```
+
+
+TIME POINT 2: Change in O2% from dissolved oxygen
+```{r Time2 O2, results='hide', fig.show='hide'}
 ############################################################
 ##############################################################################
 # total oxygen % plot for the 3 time points (dawn-dusk-dawn)
@@ -1122,9 +1204,13 @@ O2.T2<-plot_grid(
   rel_widths = c(8,8,8,3), ncol=4)
 ```
 
-TIME POINT 3: Change in O2% and NEP and NER --
-make figures of the data for timepoint 3
-```{r Time3 O2}
+Table: Results for Time-2 DO%
+```{r O2 T2 plot}
+O2.T2
+```
+
+TIME POINT 3: Change in O2% from dissolved oxygen
+```{r Time3 O2, results='hide', fig.show='hide'}
 ############################################################
 ##############################################################################
 #### Dawn1
@@ -1274,10 +1360,14 @@ O2.T3<-plot_grid(
   extract.legend, 
   rel_widths = c(8,8,8,3), ncol=4)
 ```
-  
-TIME POINT 4: Change in O2% and NEP and NER --
-make figures of the data for timepoint 4
-```{r Time4 O2}
+
+Table: Results for Time-3 DO%
+```{r O2 T3 plot, results='hide', fig.show='hide'}
+O2.T3
+```
+
+TIME POINT 4: Change in O2% from dissolved oxygen
+```{r Time4 O2, results='hide', fig.show='hide'}
 ############################################################
 ##############################################################################
 # total oxygen % plot for the 3 time points (dawn-dusk-dawn)
@@ -1428,8 +1518,13 @@ O2.T4<-plot_grid(
   rel_widths = c(8,8,8,3), ncol=4)
 ```
 
+Table: Results for Time-4 DO%
+```{r O2 T4 plot}
+O2.T4
+```
+
 Combine and export all the O2 data with plot-difference and model AIC tables 
-```{r O2 plots and models}
+```{r O2 plots and models, results='hide'}
 #### model differences
 O2.mod.diffs<-plot_grid(
   dawn1.diff.T1+ theme(legend.position = "none")+ ggtitle("T1-Dawn1"),
@@ -1481,23 +1576,9 @@ AIC.O2.mod<-cbind(mod.O2.df, AIC.O2)
 write.csv(AIC.O2.mod, "output/AIC models/AIC.O2.mod.csv")
 ```
 
-Generate dataframes for NEP and NER change in O2
-```{r NEP NER O2 compile}
-########## ########## ########## ########## ########## 
-########## compile all figs
-
-##### All dawn-dusk-dawn measurements
-O2change.alltimes<-plot_grid(
-  O2.T1,
-  O2.T2,
-  O2.T3,
-  O2.T4, ncol=1)
-
-#ggsave("figures/O2change.alltimes.pdf", height=12, width=10)
-```
-
-Productivity models and plots
-```{r NEP models and individual plots}
+#### NEP and NER
+Generate dataframes for NEP and NER change in O2.  Productivity models and plots
+```{r NEP models and individual plots, results='hide', fig.show='hide'}
 ####### Time 1
 
 m1.NEP.T1<-gam(NEP ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = O2.tanks, method = "REML")
@@ -1697,11 +1778,30 @@ write.csv(AIC.NEP.mod, "output/AIC models/AIC.NEP.mod.csv")
 
 ```
 
+**Table: Results for Time-1 NEP**
+```{r NEP T1 table}
+anova.gam(m1.NEP.T1)
+```
+
+**Table: Results for Time-2 NEP**
+```{r NEP T2 table}
+anova.gam(m1.NEP.T2)
+```
+
+**Table: Results for Time-3 NEP**
+```{r NEP T3 table}
+anova.gam(m1.NEP.T3)
+```
+
+**Table: Results for Time-4 NEP**
+```{r NEP T4 table}
+anova.gam(m1.NEP.T4)
+```
+
+  
 Respiration models and individual plots
-```{r NER models and individual plots}
+```{r NER models and individual plots, results='hide', fig.show='hide'}
 ####### Time 1
-
-
 m1.NER.T1<-gam(NER ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = O2.tanks, method = "REML")
 
 m2.NER.T1<-gam(NER ~ Treatment + s(plant.mass..g), subset = Time.point=="T1", data = O2.tanks, method = "REML")
@@ -1909,7 +2009,29 @@ AIC.NER.mod<-cbind(mod.NERNEP.df, AIC.NER)
 write.csv(AIC.NER.mod, "output/AIC models/AIC.NER.mod.csv")
 ```
 
-Compiled NEP-NER plots with model fits, and model difference outputs
+  
+**Table: Results for Time-1 NER**
+```{r}
+anova.gam(m3.NER.T1)
+```
+  
+**Table: Results for Time-2 NER**
+```{r}
+anova.gam(m2.NER.T2)
+```
+  
+**Table: Results for Time-3 NER**
+```{r}
+anova.gam(m1.NER.T3)
+```
+  
+**Table: Results for Time-4 NER**
+```{r}
+anova.gam(m1.NER.T4)
+```
+
+  
+Compiled NEP-NER plots with model fits
 ```{r NEP NER model plots}
 NEP.NER.alltimes.long<-plot_grid(
   NEP.T1.mod.plot+ theme(legend.position = "none"),
@@ -1923,6 +2045,11 @@ NEP.NER.alltimes.long<-plot_grid(
   rel_widths = c(8,8,8,8,3, 8,8,8,8,3), ncol=5)
 ggsave("figures/NEP.NER.alltimes.long.pdf", height=7, width=12)
 
+NEP.NER.alltimes.long
+```
+
+Model differences between the two factor-smoothers
+```{r NEP NER model diff plots}
 NEP.NER.mod.diffs<-plot_grid(
   NEP.diff.T1+ theme(legend.position = "none"),
   NEP.diff.T2+ theme(legend.position = "none"),
@@ -1934,6 +2061,8 @@ NEP.NER.mod.diffs<-plot_grid(
   NER.diff.T4+ theme(legend.position = "none"),
   rel_widths = c(8,8,8,8,8,8,8,8), ncol=4)
 ggsave("figures/NEP.NER.mod.diffs.pdf", height=7, width=12)
+
+NEP.NER.mod.diffs
 ```
   
 
@@ -1953,6 +2082,7 @@ topes[cols] <- lapply(topes[cols], factor) # make all these factors
 ##### make data frames
 # treatment data df
 topes.trt<-topes[(topes$Treatment=="burned" | topes$Treatment=="unburned"),]
+topes.trt<-droplevels(topes.trt)
 
 # control and start plant materials df
 topes.controls<-topes[!(topes$Treatment=="burned" | topes$Treatment=="unburned"),]
@@ -2022,11 +2152,11 @@ CvN.T2.mod.plot<-
 ```
 
 C:N vs. plant material models and plot, fit with GAMs
-```{r  CN models}
+```{r CN models, results='hide', fig.show='hide'}
 ############# all plankton T1
 m1.T1.CN <- gam(C.N ~ Treatment + Type +
             s(plant.mass..g, by=Treatment),
-            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+        subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
 m2.T1.CN <- gam(C.N ~ Treatment + Type +
             s(plant.mass..g), 
@@ -2048,6 +2178,11 @@ concrvity(m1.T1.CN)
 par(mfrow = c(1, 2))
 plot(m1.T1.CN, all.terms = TRUE, page=1)
 
+# model for smoothing
+msmooth.T1.CN<- gam(C.N ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
 # model predictions
 CN.diff.T1<-plot_difference(
   m1.T1.CN,
@@ -2055,16 +2190,13 @@ CN.diff.T1<-plot_difference(
   difference = list(Treatment = c("burned", "unburned"))
 )
 
+
 ###########  
-# model for smoothing
-msmooth.T1.CN<- gam(C.N ~ Treatment +
-            s(plant.mass..g, by=Treatment), 
-            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
 #plot for the model output on rawdata
 CN.T1.mod.plot<-
   plot_smooths(
-  model = msmooth.T1.CN,
+  model = m1.T1.CN,
   series = plant.mass..g,
   comparison = Treatment
 )  + theme(legend.position = "none") +
@@ -2082,7 +2214,7 @@ CN.T1.mod.plot<-
   Fig.formatting 
 
 # no effect of type or treatment
-# smoother significant for both 
+# smoother significant for both
 
 ############# all plankton T2
 m1.T2.CN <- gam(C.N ~ Treatment + Type +
@@ -2109,18 +2241,19 @@ concrvity(m1.T2.CN)
 par(mfrow = c(1, 2))
 plot(m1.T2.CN, all.terms = TRUE, page=1)
 
-# model predictions
-CN.diff.T2<-plot_difference(
-  m1.T2.CN,
-  series = plant.mass..g,
-  difference = list(Treatment = c("burned", "unburned"))
-)
 
 ###########  
 # model for smoothing
 msmooth.T2.CN<- gam(C.N ~ Treatment +
             s(plant.mass..g, by=Treatment), 
             subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+# model predictions
+CN.diff.T2<-plot_difference(
+  msmooth.T2.CN,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
 
 #plot for the model output on rawdata
 CN.T2.mod.plot<-
@@ -2174,6 +2307,7 @@ isoCNplot<- plot_grid(CvN.T1.mod.plot + theme(legend.position = "none"),
 
 ggsave("figures/isoCNplots.pdf", height=6, width=12, encod="MacRoman")
 
+isoCNplot
 ```
 
 The "controls" are the tin blanks, plankton, and starting materials
@@ -2354,7 +2488,7 @@ ggsave("figures/iso.controls.pdf", encod="MacRoman", height=5, width=10)
 ```
 
 Use a mixing model to calculate % sage for plankton
-```{r percent sage}
+```{r percent sage, results='hide'}
 # mixing model
 head(topes.trt)
 topes.trt<-droplevels(topes.trt)
@@ -2387,7 +2521,7 @@ topes.trt$percent.sage<-(topes.trt$d15N-12)/(296-12)*100
 ```
 
 model for % sage
-```{r percent sage models}
+```{r percent sage models, results ='hide', fig.show='hide'}
 ############# all plankton T1
 m1.T1.sage <- gam(percent.sage ~ Treatment + Type +
             s(plant.mass..g, by=Treatment), 
@@ -2541,6 +2675,7 @@ sage.mix.model<- plot_grid(per.Sage.T1.mod.plot + theme(legend.position = "none"
 
 ggsave("figures/Isotope.mixmodel.pdf", encod="MacRoman", height=5, width=10)
 
+sage.mix.model
 ```
 
 make d15N plots as well -- these follow the % sage, but are informative with the control plots to see the d15N of plankton and the 2 end members.
@@ -2772,7 +2907,7 @@ multcomp::cld(posthoc, Letters=letters)
 plant.ZN.wil<-lm(ZN~treatment*type, data=will.nut)
 Anova(plant.ZN.wil, type=3) #no effect
 
-posthoc<-emmeans(plant.ZN, ~treatment| type)
+posthoc<-emmeans(plant.ZN.wil, ~treatment| type)
 multcomp::cld(posthoc, Letters=letters)
 ```
 
@@ -3416,7 +3551,7 @@ CH4.T3.mod.plot<-
   theme(legend.key.size = unit(1,"line"))
 
 
-CH4.plots<-plot_grid(
+CH4.model.plots<-plot_grid(
   CH4.T0.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-0"),
   CH4.T1.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-10"),
   CH4.T2.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-31"),
@@ -3444,7 +3579,7 @@ write.csv(AIC.CH4.mod, "output/AIC models/AIC.CH4.mod.csv")
 Compile the greenhouse gas plots
 ```{r combine GHG plots}
 
-GHG.plots<-plot_grid(CO2.plots, CH4.plots, ncol=1)
+GHG.plots<-plot_grid(CO2.model.plots, CH4.model.plots, ncol=1)
 ggsave("figures/GHG.mod.plots.pdf", height=7, width=12)
 
 
@@ -3453,92 +3588,5 @@ ggsave("figures/GHG.mod.diff.pdf", height=7, width=12)
 
 
 ```
-
-
-###Chlorophyll  
-import   
-- may not be useful...
-```{r chlorophyll, eval =FALSE}
-## import treatment IDs
-chl.dat<- read.csv("data/Pyro_chlorophyll.csv")  
-chl.dat<-chl.dat[!(chl.dat$Time.point=="First.round"),] # remove first round from aborted mission
-
-#remove outlier
-chl.out.rem<-chl.dat[!(chl.dat$chla..ug.L>=10),]
-
-
-#plot
-
-chla.T0<-ggplot(chl.dat[(chl.dat$Time.point=="T0"),], aes(x=plant.mass..g, y=chla..ug.L, color=Treatment)) +
-  geom_point() +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 20)) +
-  ggtitle("Time-0") +
-  ylab(expression(paste("chlorophyll", ~(mu*g~L^-1), sep=""))) +
-  xlab("plant material (g)") +
-  Fig.formatting
-
-
-chla.T1<-ggplot(chl.dat[(chl.dat$Time.point=="T1"),], aes(x=plant.mass..g, y=chla..ug.L, color=Treatment)) +
-  geom_point() +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 20)) +
-  ggtitle("Time-1") +
-  ylab(expression(paste("chlorophyll", ~(mu*g~L^-1), sep=""))) +
-  xlab("plant material (g)") +
-  Fig.formatting
-
-chla.T2<-ggplot(chl.dat[(chl.dat$Time.point=="T2"),], aes(x=plant.mass..g, y=chla..ug.L, color=Treatment)) +
-  geom_point() +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 20)) +
-  ggtitle("Time-2") +
-  ylab(expression(paste("chlorophyll", ~(mu*g~L^-1), sep=""))) +
-  xlab("plant material (g)") +
-  Fig.formatting
-
-chla.T3<-ggplot(chl.dat[(chl.dat$Time.point=="T3"),], aes(x=plant.mass..g, y=chla..ug.L, color=Treatment)) +
-  geom_point() +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 20)) +
-  ggtitle("Time-3") +
-  ylab(expression(paste("chlorophyll", ~(mu*g~L^-1), sep=""))) +
-  xlab("plant material (g)") +
-  Fig.formatting
-
-chla.T4<-ggplot(chl.dat[(chl.dat$Time.point=="T4"),], aes(x=plant.mass..g, y=chla..ug.L, color=Treatment)) +
-  geom_point() +
-  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
-  coord_cartesian(ylim=c(0, 20)) +
-  ggtitle("Time-4") +
-  ylab(expression(paste("chlorophyll", ~(mu*g~L^-1), sep=""))) +
-  xlab("plant material (g)") +
-  Fig.formatting
-
-
-chl.plots<-plot_grid(
-  chla.T0+ theme(legend.position = "none"),
-  chla.T2+ theme(legend.position = "none"),
-  chla.T2+ theme(legend.position = "none"),
-  chla.T3+ theme(legend.position = "none"),
-  chla.T4+ theme(legend.position = "none"),
-  extract.legend, 
-  rel_widths = c(8,8,8,8,8,3), ncol=6)
-
-
-chl.plots
-
-ggsave("figures/chla.alltime.pdf", height=5, width=15)
-
-
-
-```
-  
-  
 
 
