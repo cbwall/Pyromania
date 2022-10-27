@@ -1144,7 +1144,9 @@ m2.sr.T3.gam=gam(sr ~  Treatment + s(plant.mass..g), subset = Time.point=="T3", 
 
 m3.sr.T3.gam=gam(sr ~  s(plant.mass..g), subset = Time.point=="T3", data = DOC.df, method = "REML")
 
-T3.sr.AIC<-AIC(m1.sr.T3.gam, m2.sr.T3.gam, m3.sr.T3.gam)
+m4.sr.T3.gam=gam(sr ~  Treatment + s(plant.mass..g, m=c(2,0)), subset = Time.point=="T3", data = DOC.df, method = "ML")
+
+T3.sr.AIC<-AIC(m1.sr.T3.gam, m2.sr.T3.gam, m3.sr.T3.gam, m4.sr.T3.gam)
 T3.sr.AIC
 # best by factor smooth
 
@@ -1371,7 +1373,9 @@ m2.hix.T2.gam=gam(hix ~  Treatment + s(plant.mass..g), subset = Time.point=="T2"
 
 m3.hix.T2.gam=gam(hix ~  s(plant.mass..g), subset = Time.point=="T2", data = DOC.df, method = "REML")
 
-T2.hix.AIC<-AIC(m1.hix.T2.gam, m2.hix.T2.gam, m3.hix.T2.gam)
+m4.hix.T2.gam=gam(hix ~  Treatment + s(plant.mass..g, m=c(2,0)), subset = Time.point=="T2", data = DOC.df, method = "REML")
+
+T2.hix.AIC<-AIC(m1.hix.T2.gam, m2.hix.T2.gam, m3.hix.T2.gam, m4.hix.T2.gam)
 T2.hix.AIC
 
 # best is global smooth 
@@ -1703,7 +1707,9 @@ m2.fr.T3.gam=gam(fr ~  Treatment + s(plant.mass..g), subset = Time.point=="T3", 
 
 m3.fr.T3.gam=gam(fr ~  s(plant.mass..g), subset = Time.point=="T3", data = DOC.df, method = "REML")
 
-T3.fr.AIC<-AIC(m1.fr.T3.gam, m2.fr.T3.gam, m3.fr.T3.gam)
+m4.fr.T3.gam=gam(fr ~  Treatment + s(plant.mass..g, m=c(2,0)), subset = Time.point=="T3", data = DOC.df, method = "REML")
+
+T3.fr.AIC<-AIC(m1.fr.T3.gam, m2.fr.T3.gam, m3.fr.T3.gam, m4.fr.T3.gam)
 T3.fr.AIC
 # best by factor smooth
 
@@ -1752,7 +1758,9 @@ m2.fr.T4.gam=gam(fr ~  Treatment + s(plant.mass..g), subset = Time.point=="T4", 
 
 m3.fr.T4.gam=gam(fr ~  s(plant.mass..g), subset = Time.point=="T4", data = DOC.df, method = "REML")
 
-T4.fr.AIC<-AIC(m1.fr.T4.gam, m2.fr.T4.gam, m3.fr.T4.gam)
+m4.fr.T4.gam=gam(fr ~  Treatment + s(plant.mass..g, m=c(2,0)), subset = Time.point=="T4", data = DOC.df, method = "REML")
+
+T4.fr.AIC<-AIC(m1.fr.T4.gam, m2.fr.T4.gam, m3.fr.T4.gam, m4.fr.T4.gam)
 T4.fr.AIC
 
 # best is global
@@ -2329,7 +2337,9 @@ m2.total.perc=gam(percent.change.DOC ~ Treatment +s(plant.mass..g), data=total.d
 
 m3.total.perc=gam(percent.change.DOC ~ s(plant.mass..g), data=total.df, method="REML", select= T, subset= Time.point=="T1")
 
-total.AIC=AIC(m1.total.perc, m2.total.perc, m3.total.perc)
+m4.total.perc=gam(percent.change.DOC ~ s(plant.mass..g, m=c(2,0)), data=total.df, method="REML", select= T, subset= Time.point=="T1")
+
+total.AIC=AIC(m1.total.perc, m2.total.perc, m3.total.perc, m4.total.perc)
 total.AIC
 # global smooth
 
@@ -2386,1277 +2396,153 @@ ggsave("figures/degra.mod.plot.pdf", height=4, width=12)
 ```
 
 
+Sage and Willow Decomposition Analysis
+```{r Sage and Willow analysis and plots}
+#load file
+plant.df=read.csv("/Users/Cody1/Desktop/GitHub/Pyromania2/data/decomp.weights.csv")
+plant.df=plant.df[-c(61:82), ]
+names(plant.df)[9]="perc.delta"
 
+#make sure we have factors
+plant.df=plant.df%>%
+    mutate_if(is.character,as.factor)
 
+#add propotion column so it can be arcsine transformed
+plant.df$perc.delta=(100*(plant.df[plant.df$plant.type=="sage" | plant.df$plant.type=="willow",]$dry.mass..g.bag.corrected-plant.df[plant.df$plant.type=="sage" | plant.df$plant.type=="willow",]$plant.specific.mass..g)/(plant.df[plant.df$plant.type=="sage" | plant.df$plant.type=="willow",]$plant.specific.mass..g))
 
-Sage and Willow Decomp Plots (% mass remaining)
-```{r}
-Fig.formatting.decomp<-(theme_classic()) +
-  theme(text=element_text(size=14),
-        legend.text.align = 0,
-        panel.border = element_rect(fill=NA, colour = "black", size=1),
-        aspect.ratio=1, 
-        axis.ticks.length=unit(0.25, "cm"),
-        axis.text.y=element_text(
-        margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=12), 
-        axis.text.x=element_text(
-        margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=12)) +
-  theme(legend.key.size = unit(0.4, "cm")) +
-  theme(aspect.ratio=1.3) +
-  theme(panel.spacing=unit(c(0, 0, 0, 0), "cm"))
+#remove NaN
+plant.df[is.na(plant.df)] <- 0 
 
+#add delta
+plant.df$delta=plant.df[plant.df$plant.type=="sage" | plant.df$plant.type=="willow",]$plant.specific.mass..g-plant.df[plant.df$plant.type=="sage" | plant.df$plant.type=="willow",]$dry.mass..g.bag.corrected
 
-#sage treatment decomp
-mass.sage.decomp.plot=ggplot(plant.df[(plant.df$type=="sage"),], aes(x=plant.specific.mass..g, y=percent.change, color=Treatment, linetype=Treatment))+ 
-  geom_point(alpha=0.4)+
-   geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.3) +
- scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  ggtitle("Sage") +
-  ylab(expression(paste("Change Sage (%)"))) +
-  xlab("Plant specific mass (g)")+
-  Fig.formatting+
-  coord_cartesian(ylim = c(-80,-8))
+plant.df$n.delta=plant.df$delta/plant.df$plant.specific.mass..g
 
-mass.sage.decomp.abs.plot=ggplot(plant.df[(plant.df$type=="sage"),], aes(x=plant.specific.mass..g, y=abs.change, color=Treatment, linetype=Treatment))+ 
-  geom_point(alpha=0.4)+
-   geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.3) +
- scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  ggtitle("Sage") +
-  ylab(expression(paste(Delta~"Sage mass (g)"))) +
-  xlab("Plant specific mass (g)")+
-  Fig.formatting
- 
+#arcsine
+plant.df$delta.trans=asin(sqrt(plant.df$n.delta))
+hist(plant.df$perc.delta)
 
+###Sage
+m1.sage.gam=gam(perc.delta ~ treatment +s(plant.specific.mass..g, by= treatment), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
 
-mass.sage.decomp.abs.plot=mass.sage.decomp.abs.plot+ labs(tag = "A")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
+hist(m1.sage.gam$residuals)
 
-mass.sage.decomp.plot=mass.sage.decomp.plot+ labs(tag = "C")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
+m2.sage.gam=gam(perc.delta ~ treatment +s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
 
+m3.sage.gam=gam(perc.delta ~ s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
 
+sage.AIC=AIC(m1.sage.gam, m2.sage.gam, m3.sage.gam)
+sage.AIC
 
-sage.plots=plot_grid(mass.sage.decomp.abs.plot, mass.sage.decomp.plot, nrow=2)
+qqPlot(plant.df$perc.delta)
+# global smooth
 
-  
-#willow decomp
-mass.willow.decomp.plot=ggplot(plant.df[(plant.df$type=="willow"),], aes(x=plant.specific.mass..g, y=percent.change, color=Treatment, linetype=Treatment))+ 
-   geom_point(alpha=0.4)+
-   geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.3) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-   scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  ggtitle("Willow") +
-  ylab("Change Willow (%)") +
-   xlab("Plant specific mass (g)")+
-  coord_cartesian(ylim = c(-80,-8))+
-  Fig.formatting
-
-mass.willow.decomp.plot
-
-
-mass.willow.decomp.abs.plot=ggplot(plant.df[(plant.df$type=="willow"),], aes(x=plant.specific.mass..g, y=abs.change, color=Treatment, linetype=Treatment))+ 
-   geom_point(alpha=0.4)+
-   geom_smooth(method=gam, formula= y~s(x), aes(fill=Treatment), alpha=0.3) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-   scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  ggtitle("Willow") +
-  ylab(expression(Delta~"Willow mass (g)")) +
-   xlab("Plant specific mass (g)")+
-  Fig.formatting
-
-mass.willow.decomp.abs.plot=mass.willow.decomp.abs.plot + labs(tag = "B")+
-<<<<<<< HEAD
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-mass.willow.decomp.plot=mass.willow.decomp.plot + labs(tag = "D")+
-=======
->>>>>>> ec586a7382aec292ba46042e721e0f8385b128a0
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-mass.willow.decomp.plot=mass.willow.decomp.plot + labs(tag = "D")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-
-
-willow.plots=plot_grid(mass.willow.decomp.abs.plot, mass.willow.decomp.plot, nrow=2)
-
-willow.plots=plot_grid(mass.willow.decomp.abs.plot, mass.willow.decomp.plot, nrow=2)
-
-#combine them
-
-mass.decomp.plots=plot_grid(
-  sage.plots, willow.plots, ncol=2)
-
-
-
-mass.decomp.plots
-ggsave("figures/mass.plant_type_decomp.pdf", height=8, width=12)
-
-
-```
-
-
-
-GAM for sage/willow
-```{r}
-plant.gam=gam(abs.change ~ Treatment*type + s(plant.specific.mass..g, by=type), data=plant.df, method= "REML", select=T)
-summary(plant.gam)
-anova(plant.gam)
-
-GAM for sage/willow
-```{r}
-plant.gam=gam(abs.change ~ Treatment*type + s(plant.specific.mass..g, by=type), data=plant.df, method= "REML", select=T)
-summary(plant.gam)
-anova(plant.gam)
-
-
-plant.perc.gam=gam(percent.change ~ Treatment*type + s(plant.specific.mass..g, by=type), data=plant.df, method= "REML", select=T)
-summary(plant.perc.gam)
-anova(plant.perc.gam)
-
-
-mean(plant.df[plant.df$type=="sage",]$abs.change)
-mean(plant.df[plant.df$type=="willow",]$abs.change)
-```
-
-
-
-SUVA plots
-```{r}
-
-
-
-suva.T0<-ggplot(suva.df[(suva.df$Time.point=="T0"),], aes(x=plant.mass..g, y=SUVA, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-0") +
-  xlab("")+
- ylab(expression('SUVA'["254"]~'(mgC'~ L^-1~m^-1*')'))+
-  coord_cartesian(ylim = c(0,6))+
-  Fig.formatting
-
-plant.perc.gam=gam(percent.change ~ Treatment*type + s(plant.specific.mass..g, by=type), data=plant.df, method= "REML", select=T)
-summary(plant.perc.gam)
-anova(plant.perc.gam)
-
-mean(plant.df[plant.df$type=="sage",]$abs.change)
-mean(plant.df[plant.df$type=="willow",]$abs.change)
-```
-
-
-
-SUVA plots
-```{r}
-
-
-
-
-suva.T0<-ggplot(suva.df[(suva.df$Time.point=="T0"),], aes(x=plant.mass..g, y=SUVA, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-0") +
-  xlab("")+
- ylab(expression('SUVA'["254"]~'(mgC'~ L^-1~m^-1*')'))+
-  coord_cartesian(ylim = c(0,6))+
-  Fig.formatting
-
-
-suva.T1<-ggplot(suva.df[(suva.df$Time.point=="T1"),], aes(x=plant.mass..g, y=SUVA, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-1") +
-  xlab("Plant mass (g)")+
-ylab(expression('SUVA'["254"]~'(mgC'~ L^-1~m^-1*')'))+
-  ylim(1.2,3.5)+
-  Fig.formatting
-suva.T1
-=======
->>>>>>> ec586a7382aec292ba46042e721e0f8385b128a0
-
-suva.T1<-ggplot(suva.df[(suva.df$Time.point=="T1"),], aes(x=plant.mass..g, y=SUVA, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-1") +
-<<<<<<< HEAD
-  xlab("")+
-   ylab(bquote(""))+
-  ylim(0,6)+
-  Fig.formatting
-
-  
-  
-suva.T2<-ggplot(suva.df[(suva.df$Time.point=="T2"),], aes(x=plant.mass..g, y=SUVA, color=Treatment, linetype=Treatment)) +
-=======
-  xlab("Plant mass (g)")+
-ylab(expression('SUVA'["254"]~'(mgC'~ L^-1~m^-1*')'))+
-  ylim(1.2,3.5)+
-  Fig.formatting
-suva.T1
-
-suva.T1<-ggplot(suva.df[(suva.df$Time.point=="T1"),], aes(x=plant.mass..g, y=SUVA, color=Treatment, linetype=Treatment)) +
->>>>>>> ec586a7382aec292ba46042e721e0f8385b128a0
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-<<<<<<< HEAD
-  ggtitle("Time-2") +
-  xlab("Plant mass (g)")+
-  ylab(expression(""))+
-    ylim(0,6)+
-  Fig.formatting
-
-suva.T2
-=======
-  ggtitle("Time-1") +
-  xlab("")+
-   ylab(bquote(""))+
-  ylim(0,6)+
-  Fig.formatting
-
-  
-  
-suva.T2<-ggplot(suva.df[(suva.df$Time.point=="T2"),], aes(x=plant.mass..g, y=SUVA, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-2") +
-  xlab("Plant mass (g)")+
-  ylab(expression(""))+
-    ylim(0,6)+
-  Fig.formatting
->>>>>>> ec586a7382aec292ba46042e721e0f8385b128a0
-
-suva.T2
-
-
-suva.T3<-ggplot(suva.df[(suva.df$Time.point=="T3"),], aes(x=plant.mass..g, y=SUVA, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-3") +
-  xlab("")+
-  ylab(expression(""))+
-    coord_cartesian(ylim = c(0,6))+
-  Fig.formatting
-
-suva.T3<-ggplot(suva.df[(suva.df$Time.point=="T3"),], aes(x=plant.mass..g, y=SUVA, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-3") +
-  xlab("")+
-  ylab(expression(""))+
-    coord_cartesian(ylim = c(0,6))+
-  Fig.formatting
-
-suva.T4<-ggplot(suva.df[(suva.df$Time.point=="T4"),], aes(x=plant.mass..g, y=SUVA, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-4") +
-  xlab("")+
-  ylab(expression(""))+
-    coord_cartesian(ylim = c(0,6))+
-  Fig.formatting
-
-<<<<<<< HEAD
-extract.legend5 <- get_legend(
-  # create some space to the left of the legend
-  suva.T0 + theme(legend.box.margin = margin(0, 0, 0, 10)))
-
-library(ggplot2)
-library(cowplot)
-library(grid)
-library(gridExtra)
-library(ggpubr)
-
-
-suva.plots<-plot_grid(
-  suva.T0+ theme(legend.position = "none"),
-  suva.T1+ theme(legend.position = "none"),
-  suva.T2+ theme(legend.position = "none"),
-  suva.T3+ theme(legend.position = "none"),
-  suva.T4+ theme(legend.position = "none"),
-  extract.legend5,
-  rel_widths = c(50,50,50,50,50, 20), ncol=6)
-
-suva.plots
-
-suva.plots=suva.plots+ labs(tag = "D")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-
-
-ggsave("figures/suva.pdf", height=5, width=17.5)
-
-
-
-```
-
-
-SR plots
-```{r}
-
-sr.T0<-ggplot(suva.df[(suva.df$Time.point=="T0"),], aes(x=plant.mass..g, y=Spectral.Slope.Ratio, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-0") +
-  xlab("")+
-  ylab(expression('S'[italic(R)]))+
-coord_cartesian(ylim=c(1,6))+
-  Fig.formatting
-
-sr.T0
-=======
-suva.T4<-ggplot(suva.df[(suva.df$Time.point=="T4"),], aes(x=plant.mass..g, y=SUVA, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-4") +
-  xlab("")+
-  ylab(expression(""))+
-    coord_cartesian(ylim = c(0,6))+
-  Fig.formatting
-
-extract.legend5 <- get_legend(
-  # create some space to the left of the legend
-  suva.T0 + theme(legend.box.margin = margin(0, 0, 0, 10)))
-
-library(ggplot2)
-library(cowplot)
-library(grid)
-library(gridExtra)
-library(ggpubr)
-
-
-suva.plots<-plot_grid(
-  suva.T0+ theme(legend.position = "none"),
-  suva.T1+ theme(legend.position = "none"),
-  suva.T2+ theme(legend.position = "none"),
-  suva.T3+ theme(legend.position = "none"),
-  suva.T4+ theme(legend.position = "none"),
-  extract.legend5,
-  rel_widths = c(50,50,50,50,50, 20), ncol=6)
-
-suva.plots
-
-suva.plots=suva.plots+ labs(tag = "D")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-
-
-ggsave("figures/suva.pdf", height=5, width=17.5)
-
-
->>>>>>> ec586a7382aec292ba46042e721e0f8385b128a0
-
-
-<<<<<<< HEAD
-
-sr.T1<-ggplot(suva.df[(suva.df$Time.point=="T1"),], aes(x=plant.mass..g, y=Spectral.Slope.Ratio, color=Treatment, linetype=Treatment)) +
-=======
-
-SR plots
-```{r}
-
-sr.T0<-ggplot(suva.df[(suva.df$Time.point=="T0"),], aes(x=plant.mass..g, y=Spectral.Slope.Ratio, color=Treatment, linetype=Treatment)) +
->>>>>>> ec586a7382aec292ba46042e721e0f8385b128a0
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-<<<<<<< HEAD
-  ggtitle("Time-1") +
-  xlab("")+
-  ylab("")+
-   coord_cartesian(ylim=c(0,3))+
-  Fig.formatting
-
-sr.T1
-
-  
-sr.T2<-ggplot(suva.df[(suva.df$Time.point=="T2"),], aes(x=plant.mass..g, y=Spectral.Slope.Ratio, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-2") +
-  xlab("Plant mass (g)")+
-  ylab(bquote(""))+
-     coord_cartesian(ylim=c(0,3))+
-  Fig.formatting
-
-
-
-sr.T3<-ggplot(suva.df[(suva.df$Time.point=="T3"),], aes(x=plant.mass..g, y=Spectral.Slope.Ratio, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-3") +
-  xlab("")+
-  ylab(bquote(""))+
-     coord_cartesian(ylim=c(0,3))+
-  Fig.formatting
-
-
-sr.T4<-ggplot(suva.df[(suva.df$Time.point=="T4"),], aes(x=plant.mass..g, y=Spectral.Slope.Ratio, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-4") +
-  xlab("")+
-  ylab(bquote(""))+
-     coord_cartesian(ylim=c(0,3))+
-  Fig.formatting
-
-extract.legend5 <- get_legend(
-  # create some space to the left of the legend
-  sr.T0 + theme(legend.box.margin = margin(0, 0, 0, 10)))
-
-
-sr.plots<-plot_grid(
-  sr.T0+ theme(legend.position = "none"),
-  sr.T1+ theme(legend.position = "none"),
-  sr.T2+ theme(legend.position = "none"),
-  sr.T3+ theme(legend.position = "none"),
-  sr.T4+ theme(legend.position = "none"),
-  extract.legend5,
-  rel_widths = c(50,50,50,50,50, 20), ncol=6)
-
-sr.plots
-
-=======
-  ggtitle("Time-0") +
-  xlab("")+
-  ylab(expression('S'[italic(R)]))+
-coord_cartesian(ylim=c(1,6))+
-  Fig.formatting
-
-sr.T0
-
-
-
-sr.T1<-ggplot(suva.df[(suva.df$Time.point=="T1"),], aes(x=plant.mass..g, y=Spectral.Slope.Ratio, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-1") +
-  xlab("")+
-  ylab("")+
-   coord_cartesian(ylim=c(0,3))+
-  Fig.formatting
-
-sr.T1
-
-  
-sr.T2<-ggplot(suva.df[(suva.df$Time.point=="T2"),], aes(x=plant.mass..g, y=Spectral.Slope.Ratio, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-2") +
-  xlab("Plant mass (g)")+
-  ylab(bquote(""))+
-     coord_cartesian(ylim=c(0,3))+
-  Fig.formatting
-
-
-
-sr.T3<-ggplot(suva.df[(suva.df$Time.point=="T3"),], aes(x=plant.mass..g, y=Spectral.Slope.Ratio, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-3") +
-  xlab("")+
-  ylab(bquote(""))+
-     coord_cartesian(ylim=c(0,3))+
-  Fig.formatting
-
-
-sr.T4<-ggplot(suva.df[(suva.df$Time.point=="T4"),], aes(x=plant.mass..g, y=Spectral.Slope.Ratio, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-4") +
-  xlab("")+
-  ylab(bquote(""))+
-     coord_cartesian(ylim=c(0,3))+
-  Fig.formatting
-
-extract.legend5 <- get_legend(
-  # create some space to the left of the legend
-  sr.T0 + theme(legend.box.margin = margin(0, 0, 0, 10)))
-
-
-sr.plots<-plot_grid(
-  sr.T0+ theme(legend.position = "none"),
-  sr.T1+ theme(legend.position = "none"),
-  sr.T2+ theme(legend.position = "none"),
-  sr.T3+ theme(legend.position = "none"),
-  sr.T4+ theme(legend.position = "none"),
-  extract.legend5,
-  rel_widths = c(50,50,50,50,50, 20), ncol=6)
-
-sr.plots
-
->>>>>>> ec586a7382aec292ba46042e721e0f8385b128a0
-sr.plots=sr.plots+ labs(tag = "C")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-
-
-ggsave("figures/sr.plots.pdf", height=5, width=17.5)
-
-
-
-```
-
-Combine UVBIO T1 with DOC T1
-
-```{r}
-
-UVBIO.T1.DOC.abs=UVBIO.T1.DOC.abs + labs(tag = "A")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-
-
-DOC.uvbio.abs.plots=plot_grid(UVBIO.T1.DOC.abs, UVBIO.T1.effect.abs, nrow=2)
-
-
-UVBIO.T1.DOC=UVBIO.T1.DOC +labs(tag = "C")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-DOC.uvbio.perc.plots=plot_grid(UVBIO.T1.DOC, UVBIO.T1.effect, nrow=2)
-
-
-UVBIO.T1.effect.abs=UVBIO.T1.effect.abs + labs(tag = "A")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-UVBIO.T1.effect=UVBIO.T1.effect + labs(tag = "B")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-
-
-all.DOC.uvbio.plots=plot_grid(UVBIO.T1.effect.abs, UVBIO.T1.effect, nrow=2)
-
-
-ggsave("figures/T1.DOC.degra.combo.plot.pdf", height=10, width=11)
-
-
-```
-
-
-Combine UVBIO T1 with SUVA T1
-
-```{r}
-
-suva.T1=suva.T1 + labs(tag = "A")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-UVBIO.T1.DOC.suva=UVBIO.T1.DOC.suva +labs(tag = "B")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-suva.uvbio.plots=plot_grid(suva.T1, UVBIO.T1.DOC.suva, ncol=2)
-
-UVBIO.T1.effect.suva=UVBIO.T1.effect.suva + labs(tag = "C")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-<<<<<<< HEAD
-
-
-all.suva.uvbio.plots=plot_grid(suva.uvbio.plots, UVBIO.T1.effect.suva, nrow=2)
-
-
-ggsave("figures/T1.suva.degra.combo.plot.pdf", height=10, width=11)
-
-
-```
-
-
-Combine UVBIO T1 with HIX T1
-
-```{r}
-
-hix.T1=hix.T1 + labs(tag = "A")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-UVBIO.T1.DOC.hix=UVBIO.T1.DOC.hix +labs(tag = "B")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-hix.uvbio.plots=plot_grid(hix.T1, UVBIO.T1.DOC.hix, ncol=2)
-
-UVBIO.T1.effect.hix=UVBIO.T1.effect.hix + labs(tag = "C")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-
-all.hix.uvbio.plots=plot_grid(hix.uvbio.plots, UVBIO.T1.effect.hix, nrow=2)
-
-all.hix.uvbio.plots
-
-ggsave("figures/T1.HIX.degra.combo.plot.pdf", height=10, width=11)
-
-
-```
-
-
-Combine UVBIO T1 with SPEC T1
-
-```{r}
-
-sr.T1=sr.T1 + labs(tag = "A")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-UVBIO.T1.DOC.spec=UVBIO.T1.DOC.spec +labs(tag = "B")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-=======
-
-
-all.suva.uvbio.plots=plot_grid(suva.uvbio.plots, UVBIO.T1.effect.suva, nrow=2)
-
-
-ggsave("figures/T1.suva.degra.combo.plot.pdf", height=10, width=11)
-
-
-```
-
-
-Combine UVBIO T1 with HIX T1
-
-```{r}
-
-hix.T1=hix.T1 + labs(tag = "A")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-UVBIO.T1.DOC.hix=UVBIO.T1.DOC.hix +labs(tag = "B")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-hix.uvbio.plots=plot_grid(hix.T1, UVBIO.T1.DOC.hix, ncol=2)
-
-UVBIO.T1.effect.hix=UVBIO.T1.effect.hix + labs(tag = "C")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-
-all.hix.uvbio.plots=plot_grid(hix.uvbio.plots, UVBIO.T1.effect.hix, nrow=2)
-
-all.hix.uvbio.plots
-
-ggsave("figures/T1.HIX.degra.combo.plot.pdf", height=10, width=11)
-
-
-```
-
-
-Combine UVBIO T1 with SPEC T1
-
-```{r}
-
-sr.T1=sr.T1 + labs(tag = "A")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-UVBIO.T1.DOC.spec=UVBIO.T1.DOC.spec +labs(tag = "B")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
->>>>>>> ec586a7382aec292ba46042e721e0f8385b128a0
-spec.uvbio.plots=plot_grid(sr.T1, UVBIO.T1.DOC.spec, ncol=2)
-
-UVBIO.T1.effect.spec=UVBIO.T1.effect.spec+ labs(tag = "C")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-
-all.spec.uvbio.plots=plot_grid(spec.uvbio.plots, UVBIO.T1.effect.spec, nrow=2)
-
-
-
-ggsave("figures/T1.spec.degra.combo.plot.pdf", height=10, width=11)
-
-
-```
-
-
-
-
-
-SUVA GAM
-Time point 1
-```{r}
-
-suva.gam1=gam(SUVA ~ factor(Treatment) +s(plant.mass..g, by=factor(Treatment)), data = suva.df, method="REML", select= T, subset = Time.point=="T1")
-anova(suva.gam1)
-summary(suva.gam1)
-gam.check(suva.gam1, rep=1000)
-
-
-```
-Time point 2
-
-```{r}
-
-suva.gam2=gam(SUVA ~ factor(Treatment) +s(plant.mass..g, by=factor(Treatment)), data = suva.df, method="REML", select= T, subset = Time.point=="T2")
-summary(suva.gam2)
-anova(suva.gam2)
-gam.check(suva.gam2, rep=1000)
-
-```
-Time point 3
-```{r}
-suva.gam3=gam(SUVA ~ Treatment +s(plant.mass..g, by=factor(Treatment)), data = suva.df, method="REML", select= T, subset = Time.point=="T3")
-summary(suva.gam3)
-anova(suva.gam3)
-gam.check(suva.gam3, rep=1000)
-
-
-
-```
-Time point 4
-```{r}
-
-suva.gam4=gam(SUVA ~ factor(Treatment) +s(plant.mass..g, by=factor(Treatment)), data = suva.df, method="REML", select= T, subset = Time.point=="T4")
-anova(suva.gam4)
-summary(suva.gam4)
-gam.check(suva.gam4, rep=1000)
-
-
-
-
-```
-
-
-Index correlation
-```{r}
-suva.vs.sr.plot=ggplot(DOC.df2[(DOC.df2$Treatment=="unburned"),], aes(x=plant.mass..g, y=Type, color=name, linetype=name)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("blue", "yellow", "green", "orange")) + 
- scale_fill_manual(values = c("blue", "yellow", "green", "orange")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=name), alpha=0.3) +
-  ggtitle("Time-1") +
-  xlab("SUVA")+
-   ylab(bquote("SR"))+
-  Fig.formatting.degra
-
-ggplot(DOC.df[(DOC.df$Treatment=="unburned"),], aes(x=SUVA, y=fl)) +
-  geom_point()+
-  ggtitle("Unburned: SUVA vs FI") + 
-  geom_smooth(method=lm, se=FALSE) + 
-  scale_x_continuous(name = "SUVA", limits = c(0,6))+
-  scale_y_continuous(name = "FI", limits = c(1, 2.5))+
-  Fig.formatting
-
-ggplot(DOC.df[(DOC.df$Treatment=="burned"),], aes(x=SUVA, y=fl)) +
-  geom_point()+
-  ggtitle("Unburned: SUVA vs FI") + 
-  geom_smooth(method=lm, se=FALSE) + 
-  scale_x_continuous(name = "SUVA", limits = c(0,6))+
-  scale_y_continuous(name = "FI", limits = c(1, 2.5))+
-  Fig.formatting
-                     
-                     
-suva.vs.hix.plot=ggplot(DOC.df[(DOC.df$Treatment=="unburned"),], aes(x=SUVA, y=hix, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-1") +
-  xlab("SUVA")+
-   ylab(bquote("HIX"))+
-  Fig.formatting
-suva.vs.hix.plot
-
-
-
-hix.vs.sr.plot=ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=sr, y=hix, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-1") +
-  xlab("SR")+
-   ylab(bquote("HIX"))+
-  Fig.formatting
-
-hix.vs.fl.plot=ggplot(DOC.df[(DOC.df$Time.point=="T1"),], aes(x=fl, y=hix, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-1") +
-  xlab("Fl")+
-   ylab(bquote("HIX"))+
-  xlim(1,2.5)+
-  Fig.formatting
-<<<<<<< HEAD
-=======
-
-
-ggplot(data = DOC.df2) + 
-  geom_smooth(mapping = aes(x = plant.mass..g, y = Type, linetype = name))
->>>>>>> ec586a7382aec292ba46042e721e0f8385b128a0
-
-
-ggplot(data = DOC.df2) + 
-  geom_smooth(mapping = aes(x = plant.mass..g, y = Type, linetype = name))
-
-
-<<<<<<< HEAD
-
-
-=======
->>>>>>> ec586a7382aec292ba46042e721e0f8385b128a0
-devtools::install_github("eliocamp/tagger")
-```
-
-
-Index across time
-
-```{r}
-library(dplyr)
-
-
-T1.index.plot=ggplot(DOC.df2[(DOC.df2$Time.point=="T1"),], aes(x=plant.mass..g, y=Type, color=Treatment, linetype=Treatment))+
-  facet_grid(~name, labeller= label_parsed)+
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-1") +
-  xlab("Plant mass (g)")+
-   ylab(bquote("Index Values"))+
-  Fig.formatting.degra
-
-T1.index.plot
-
-T1.index.plot=T1.index.plot+ labs(tag = "A")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-<<<<<<< HEAD
-
-T2.index.plot=ggplot(DOC.df2[(DOC.df2$Time.point=="T2"),], aes(x=plant.mass..g, y=Type, color=Treatment, linetype=Treatment))+
-  facet_grid(~name)+
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-2") +
-  xlab("Plant mass (g)")+
-   ylab(bquote("Index Values"))+
-  ylim(0,6)+
-  Fig.formatting.degra
-
-T2.index.plot=T2.index.plot+ labs(tag = "B")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-=======
-
-T2.index.plot=ggplot(DOC.df2[(DOC.df2$Time.point=="T2"),], aes(x=plant.mass..g, y=Type, color=Treatment, linetype=Treatment))+
-  facet_grid(~name)+
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-2") +
-  xlab("Plant mass (g)")+
-   ylab(bquote("Index Values"))+
-  ylim(0,6)+
-  Fig.formatting.degra
-
-T2.index.plot=T2.index.plot+ labs(tag = "B")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
->>>>>>> ec586a7382aec292ba46042e721e0f8385b128a0
-T3.index.plot=ggplot(DOC.df2[(DOC.df2$Time.point=="T3"),], aes(x=plant.mass..g, y=Type, color=Treatment, linetype=Treatment))+
-  facet_grid(~name)+
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-3") +
-  xlab("Plant mass (g)")+
-   ylab(bquote("Index Values"))+
-  Fig.formatting.degra
-<<<<<<< HEAD
-
-T3.index.plot=T3.index.plot+ labs(tag = "C")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-=======
-
-T3.index.plot=T3.index.plot+ labs(tag = "C")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
->>>>>>> ec586a7382aec292ba46042e721e0f8385b128a0
-T4.index.plot=ggplot(DOC.df2[(DOC.df2$Time.point=="T4"),], aes(x=plant.mass..g, y=Type, color=Treatment, linetype=Treatment))+
-  facet_grid(~name)+
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-4") +
-  xlab("Plant mass (g)")+
-   ylab(bquote("Index Values"))+
-  Fig.formatting.degra
-
-T4.index.plot=T4.index.plot+ labs(tag = "D")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-
-    
-index.combo.plots=plot_grid(
-  T1.index.plot, 
-  T2.index.plot,
-  T3.index.plot,
-  T4.index.plot,
-  nrow=2, ncol=2
+# model predictions
+sage.diff.mod<-plot_difference(
+  m1.sage.gam,
+  series = plant.specific.mass..g,
+  difference = list(treatment = c("burned", "unburned"))
 )
 
-index.combo.plots
-ggsave("figures/index.combo.plots.pdf", height=12, width=24)
+sage.diff.mod
 
+summary(m1.sage.gam)
+anova.gam(m3.sage.gam)
+gam.check(m1.sage.gam, rep=1000)
+draw(m3.sage.gam)
+concrvity(m3.sage.gam)
+par(mfrow = c(2, 2))
+plot(m3.sage.gam, all.terms = TRUE, page=1)
+
+
+#plot for the model output on rawdata
+sage.mod.plot<-
+  plot_smooths(
+  model = m1.sage.gam,
+  series = plant.specific.mass..g,
+  comparison = treatment
+) + 
+  geom_point(data=plant.df[(plant.df$plant.type=="sage"),], 
+             aes(x=plant.specific.mass..g, y=perc.delta, color=treatment)) +
+   scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ggtitle("Sage") +
+  coord_cartesian(ylim = c(-80,-10))+
+  ylab("Change Mass (%)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+sage.mod.plot
+
+### Willow
+m1.willow.gam=gam(perc.delta ~ treatment +s(plant.specific.mass..g, by= treatment), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
+
+hist(m1.willow.gam$residuals)
+
+m2.willow.gam=gam(perc.delta ~ treatment +s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
+
+m3.willow.gam=gam(perc.delta ~ s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
+
+willow.AIC=AIC(m1.willow.gam, m2.willow.gam, m3.willow.gam)
+willow.AIC
+# treatment with global smooth
+
+summary(m2.willow.gam)
+anova.gam(m2.willow.gam)
+gam.check(m2.willow.gam, rep=1000)
+draw(m2.willow.gam)
+concrvity(m2.willow.gam)
+par(mfrow = c(2, 2))
+plot(m2.willow.gam, all.terms = TRUE, page=1)
+
+# model predictions
+willow.diff.mod<-plot_difference(
+  m1.willow.gam,
+  series = plant.specific.mass..g,
+  difference = list(treatment = c("burned", "unburned"))
+)
+willow.diff.mod
+
+#plot for the model output on rawdata
+willow.mod.plot<-
+  plot_smooths(
+  model = m2.willow.gam,
+  series = plant.specific.mass..g,
+  comparison = treatment
+) + 
+  geom_point(data=plant.df[(plant.df$plant.type=="willow"),], 
+             aes(x=plant.specific.mass..g, y=perc.delta, color=treatment)) +
+   scale_color_manual(values = c("brown1", "mediumseagreen")) +
+     scale_fill_manual(values = c("brown1", "mediumseagreen")) +
+  ggtitle("Willow") +
+  geom_line(aes(linetype= treatment))+
+    coord_cartesian(ylim = c(-80,-10))+
+  ylab("Change Mass (%)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+willow.mod.plot
+
+##combine AIC
+AIC.decomp<-bind_rows(sage.AIC, willow.AIC)
+AIC.decomp.mod<-cbind(mod.degra.column, AIC.decomp)
+write.csv(AIC.decomp.mod, "output/AIC models/AIC.decomp.csv")
 
 
 ```
+compile raw plots and model-diff plots for final figures
+```{r DOC model plots compiled}
 
-fluorescence plots
-```{r}
-fl.T0<-ggplot(index.df[(index.df$Time.point=="T0"),], aes(x=plant.mass..g., y=Fluroscence.Index, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-0") +
-  xlab("")+
-   ylab(bquote("Fl"))+
-  ylim(1,2.5)+
-  Fig.formatting
+decomp.mod.plot<-plot_grid(
+sage.mod.plot+ theme(legend.position = "none"),
+willow.mod.plot+ theme(legend.position = "none"), extract.legend,
+  rel_widths = c(8,8,3), ncol=3, labels = "AUTO")
 
+decomp.mod.plot
 
-fl.T1<-ggplot(index.df[(index.df$Time.point=="T1"),], aes(x=plant.mass..g., y=Fluroscence.Index, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-1") +
-  xlab("")+
-   ylab(bquote(""))+
-  ylim(1,2.5)+
-  Fig.formatting
-
-
-fl.T2<-ggplot(index.df[(index.df$Time.point=="T2"),], aes(x=plant.mass..g., y=Fluroscence.Index, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-2") +
-  xlab("Plant mass (g)")+
-   ylab(bquote(""))+
-  ylim(1,2.5)+
-  Fig.formatting
-
-
-
-fl.T3<-ggplot(index.df[(index.df$Time.point=="T3"),], aes(x=plant.mass..g., y=Fluroscence.Index, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-3") +
-  xlab("")+
-   ylab(bquote(""))+
-  ylim(1,2.5)+
-  Fig.formatting
-
-
-fl.T4<-ggplot(index.df[(index.df$Time.point=="T4"),], aes(x=plant.mass..g., y=Fluroscence.Index, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-4") +
-  xlab("")+
-   ylab(bquote(""))+
-  ylim(1,2.5)+
-  Fig.formatting
-
-extract.legend5 <- get_legend(
-  # create some space to the left of the legend
-  suva.T0 + theme(legend.box.margin = margin(0, 0, 0, 10)))
-
-
-fl.plots<-plot_grid(
-  fl.T0+ theme(legend.position = "none"),
-  fl.T1+ theme(legend.position = "none"),
-  fl.T2+ theme(legend.position = "none"),
-  fl.T3+ theme(legend.position = "none"),
-  fl.T4+ theme(legend.position = "none"),
-  extract.legend5,
-  rel_widths = c(50,50,50,50,50, 20), ncol=6)
-
-fl.plots
-
-fl.plots=fl.plots+ labs(tag = "A")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
+ggsave("figures/decomp.mod.plot.pdf", height=4, width=12)
 
 ```
 
-
-humic plots
-```{r}
-
-
-hix.T0<-ggplot(index.df[(index.df$Time.point=="T0"),], aes(x=plant.mass..g., y=Humification.Index, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-0") +
-  xlab("")+
-   ylab(bquote("HIX"))+
-  coord_cartesian(ylim = c(0,5))+
-  Fig.formatting
-
-
-
-hix.T1<-ggplot(index.df[(index.df$Time.point=="T1"),], aes(x=plant.mass..g., y=Humification.Index, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-1") +
-  xlab("")+
-   ylab(bquote(""))+
-    coord_cartesian(ylim = c(0,5))+
-  Fig.formatting
-
-
-hix.T2<-ggplot(index.df[(index.df$Time.point=="T2"),], aes(x=plant.mass..g., y=Humification.Index, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-2") +
-  xlab("Plant mass (g)")+
-   ylab(bquote(""))+
-    coord_cartesian(ylim = c(0,5))+
-  Fig.formatting
-
-
-
-hix.T3<-ggplot(index.df[(index.df$Time.point=="T3"),], aes(x=plant.mass..g., y=Humification.Index, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-3") +
-  xlab("")+
-   ylab(bquote(""))+
-    coord_cartesian(ylim = c(0,5))+
-  Fig.formatting
-
-
-
-hix.T4<-ggplot(index.df[(index.df$Time.point=="T4"),], aes(x=plant.mass..g., y=Humification.Index, color=Treatment, linetype=Treatment)) +
-  geom_point(alpha=0.4) +
-  scale_color_manual(values = c("darkred", "darkgreen")) + 
-  scale_fill_manual(values = c("darkred", "darkgreen")) + 
-  geom_smooth(method=gam, formula= y~ s(x), aes(fill=Treatment), alpha=0.3) +
-  ggtitle("Time-4") +
-  xlab("")+
-   ylab(bquote(""))+
-    coord_cartesian(ylim = c(0,5))+
-  Fig.formatting
-
-
-
-
-extract.legend5 <- get_legend(
-  # create some space to the left of the legend
-  suva.T0 + theme(legend.box.margin = margin(0, 0, 0, 10)))
-
-
-hix.plots<-plot_grid(
-  hix.T0+ theme(legend.position = "none"),
-  hix.T1+ theme(legend.position = "none"),
-   hix.T2+ theme(legend.position = "none"),
-  hix.T3+ theme(legend.position = "none"),
-  hix.T4+ theme(legend.position = "none"),
-  extract.legend5,
-  rel_widths = c(50,50,50,50,50, 20), ncol=6)
-
-hix.plots
-
-hix.plots=hix.plots+ labs(tag = "B")+
-  theme(plot.tag = element_text(face = "bold"),
-        plot.tag.position = "topleft")
-
-
-
-```
-
-
-All indices plot
-```{r}
-
-
-index.combo.plots=plot_grid(fl.plots, hix.plots, sr.plots, suva.plots, nrow=4)
-
-
-ggsave("figures/index.combo.plots.pdf", height=15, width=18)
-
-
-```
-
-
-Index analysis
-
-FI index
-
-```{r}
-index.df$Treatment=as.factor(index.df$Treatment)
-
-fi.gam.T1=gam(Fluroscence.Index~Treatment + s(plant.mass..g., by=Treatment), subset = Time.point=="T1", data=index.df, methods="REML", select=T)
-summary(fi.gam.T1)
-anova(fi.gam.T1)
-
-fi.gam.T2=gam(Fluroscence.Index~Treatment + s(plant.mass..g., by=Treatment), subset = Time.point=="T2", data=index.df, methods="REML", select=T)
-summary(fi.gam.T2)
-anova(fi.gam.T2)
-
-
-fi.gam.T3=gam(Fluroscence.Index~Treatment + s(plant.mass..g., by=Treatment), subset = Time.point=="T3", data=index.df, methods="REML", select=T)
-summary(fi.gam)
-anova(fi.gam)
-
-
-fi.gam.T4=gam(Fluroscence.Index~Treatment + s(plant.mass..g., by=Treatment), subset = Time.point=="T4", data=index.df, methods="REML", select=T)
-summary(fi.gam)
-anova(fi.gam)
-
-
-gam.check(fi.gam, rep=1000)
-
-?gam.control
-<<<<<<< HEAD
-
-```
-
-HIX
-=======
-
-```
-
-HIX
-
-```{r}
-hix.gam.T1=gam(Humification.Index~Treatment + s(plant.mass..g., by=Treatment), subset=Time.point=="T1",data=index.df, methods="REML", select=T)
-summary(hix.gam)
-anova(hix.gam)
-gam.check(hix.gam, rep=1000)
->>>>>>> ec586a7382aec292ba46042e721e0f8385b128a0
-
-```{r}
-hix.gam.T1=gam(Humification.Index~Treatment + s(plant.mass..g., by=Treatment), subset=Time.point=="T1",data=index.df, methods="REML", select=T)
-summary(hix.gam)
-anova(hix.gam)
-gam.check(hix.gam, rep=1000)
-
-<<<<<<< HEAD
-
-hix.gam.T4=gam(Humification.Index~Treatment + s(plant.mass..g., by=Treatment), subset=Time.point=="T4",data=index.df, methods="REML", select=T)
-summary(hix.gam.T4)
-anova(hix.gam.T4)
-
-mean(index.df[index.df$Time.point=="T4",]$Humification.Index)
-
-
-=======
-hix.gam.T4=gam(Humification.Index~Treatment + s(plant.mass..g., by=Treatment), subset=Time.point=="T4",data=index.df, methods="REML", select=T)
-summary(hix.gam.T4)
-anova(hix.gam.T4)
-
-mean(index.df[index.df$Time.point=="T4",]$Humification.Index)
-
-
->>>>>>> ec586a7382aec292ba46042e721e0f8385b128a0
-```
-SUVA
-```{r}
-suva.df$Treatment=as.factor(suva.df$Treatment)
-suva.gam.T1=gam(SUVA~Treatment + s(plant.mass..g, by=Treatment), subset=Time.point=="T1",data=suva.df, methods="REML", select=T)
-summary(suva.gam.T1)
-anova(suva.gam.T1)
-gam.check(hix.gam, rep=1000)
-
-
-
-
-```
-
-Sr
-```{r}
-
-sr.gam.T1=gam(Spectral.Slope.Ratio~Treatment + s(plant.mass..g, by=Treatment), subset=Time.point=="T1",data=suva.df, methods="REML", select=T)
-summary(sr.gam.T1)
-
-
-
-
-
-```
 
 
 
