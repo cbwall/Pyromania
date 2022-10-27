@@ -1820,15 +1820,16 @@ ggsave("figures/fr.mod.diffs.pdf", height=4, width=12)
 
 Fluorescence analysis and plots
 ```{r Freshness analysis and plots}
+library(mgcv)
 ######## T0 model
-m1.fi.T0.gam=gam(fr ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T0", data = DOC.df, method = "REML")
+m1.fl.T0.gam=gam(fl ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T0", data = DOC.df, method = "REML")
 
-m2.fi.T0.gam=gam(fr ~  Treatment + s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
+m2.fl.T0.gam=gam(fl ~  Treatment + s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
 
-m3.fi.T0.gam=gam(fr ~  s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
+m3.fl.T0.gam=gam(fl ~  s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
 
-T0.fr.AIC<-AIC(m1.fr.T0.gam, m2.fr.T0.gam, m3.fr.T0.gam)
-T0.fr.AIC
+T0.fl.AIC<-AIC(m1.fl.T0.gam, m2.fl.T0.gam, m3.fl.T0.gam)
+T0.fl.AIC
 # best is two smoother 
 
 summary(m1.fr.T0.gam)
