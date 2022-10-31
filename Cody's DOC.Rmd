@@ -2118,8 +2118,12 @@ Compile all indices into one plot
 
 indices.alltimes= plot_grid(suva.alltimes, sr.alltimes, hix.alltimes, fr.alltimes, fl.alltimes, nrow=5, rel_widths = c(8,8,8,8,8), labels = "AUTO")
 
-indices.alltimes
 ggsave("figures/indices.alltimes.pdf", height=18, width=14)
+
+indices.diff.plot= plot_grid(suva.mod.diffs, sr.mod.diffs, hix.mod.diffs, fr.mod.diffs, fl.mod.diffs, nrow=5, rel_widths = c(8,8,8,8,8), labels = "AUTO")
+
+indices.diff.plot
+ggsave("figures/indices.diff.plot.pdf", height=18, width=14)
 
 ```
 
@@ -2289,6 +2293,7 @@ photo.mod.plot<-
   ggtitle("UV-only") +
    geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab("Change DOC (%)") +
+  coord_cartesian(ylim = c(-30,0))+
   xlab("plant material (g)") +
   Fig.formatting
 
@@ -2325,6 +2330,7 @@ microbe.mod.plot<-
   ggtitle("microbes-only") +
    geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab("Change DOC (%)") +
+  coord_cartesian(ylim = c(-30,0))+
   xlab("plant material (g)") +
   Fig.formatting
 
@@ -2363,6 +2369,7 @@ total.mod.plot<-
   ggtitle("UV and microbes") +
    geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab("Change DOC (%)") +
+  coord_cartesian(ylim = c(-30,0))+
   xlab("plant material (g)") +
   Fig.formatting
 
