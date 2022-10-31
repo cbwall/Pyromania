@@ -393,6 +393,28 @@ DOC.mod.diffs<-plot_grid(
   rel_widths = c(8,8,8,8), ncol=4)
 
 ggsave("figures/DOC.mod.diffs.pdf", height=4, width=12)
+
+
+library(flextable)
+DOC.table_T0=as_flextable(m1.DOC.T0.gam)
+DOC.table_T0=autofit(DOC.table_T0)
+
+sect_properties <- prop_section(
+  page_size = page_size(orient = "landscape",
+                        width = 8.3, height = 11.7),
+  type = "continuous")
+
+save_as_docx(DOC.table_T0, 
+  path = "Codys.tables/DOC.table.docx", pr_section = sect_properties )
+
+DOC.table_T1=as_flextable(m1.DOC.T1.gam)
+DOC.table_T2=as_flextable(m1.DOC.T2.gam)
+DOC.table_T3=as_flextable(m1.DOC.T3.gam)
+DOC.table_T4=as_flextable(m1.DOC.T4.gam)
+
+
+ggsave("Codys.tables/DOC.table.pdf", height=4, width=6)
+
 ```
 
 
