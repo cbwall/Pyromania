@@ -136,9 +136,10 @@ m2.DOC.T0.gam=gam(DOC..mg.L ~  Treatment + s(plant.mass..g), subset = Time.point
 m3.DOC.T0.gam=gam(DOC..mg.L ~  s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
 
 T0.DOC.AIC<-AIC(m1.DOC.T0.gam, m2.DOC.T0.gam, m3.DOC.T0.gam)
+T0.DOC.AIC
 # best is smoother solo
 
-summary(m3.DOC.T0.gam)
+DOC.sum_T0=summary(m3.DOC.T0.gam)
 anova.gam(m3.DOC.T0.gam)
 gam.check(m3.DOC.T0.gam, rep=1000)
 draw(m3.DOC.T0.gam)
@@ -146,7 +147,14 @@ concrvity(m3.DOC.T0.gam)
 par(mfrow = c(2, 2))
 plot(m3.DOC.T0.gam, all.terms = TRUE, page=1)
 
-# model predictions
+
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+
+
+tab_model(m1.DOC.T1.gam, m1.DOC.T2.gam,m1.DOC.T3.gam,m3.DOC.T4.gam, auto.label = T, show.ci= F, show.df = T, CSS= css_theme("cells"), show.stat = TRUE, show.se= T, dv.labels = c( "Day-10", "Day-31", "Day-59", "Day-89"))
+
 DOC.diff.T0<-plot_difference(
   m1.DOC.T0.gam,
   series = plant.mass..g,
@@ -366,7 +374,10 @@ AIC.DOC.mod<-cbind(mod.column, AIC.DOC)
 write.csv(AIC.DOC.mod, "output/AIC models/AIC.DOC.csv")
 
 
+
 ```
+
+
 
 DOC: compile raw plots and model-diff plots for final figures
 ```{r DOC model plots compiled}
@@ -394,9 +405,20 @@ DOC.mod.diffs<-plot_grid(
 
 ggsave("figures/DOC.mod.diffs.pdf", height=4, width=12)
 
+library(gtsummary)
+
+DOC.sum_T0 %>%
+  tbl_summary(
+    by = Treatment,
+    statistic = list(all_continuous() ~ "{mean} ({sd})",
+                     all_categorical() ~ "{n} / {N} ({p}%)"),
+    digits = all_continuous() ~ 2,
+    label = grade ~ "Tumor Grade",
+    missing_text = "(Missing)"
+  )
 
 library(flextable)
-DOC.table_T0=as_flextable(m1.DOC.T0.gam)
+DOC.table_T0=as_flextable(DOC.sum_T0)
 DOC.table_T0=autofit(DOC.table_T0)
 
 sect_properties <- prop_section(

@@ -1,0 +1,73 @@
+
+================================================================
+                                         Dependent variable:    
+                                     ---------------------------
+                                              DOC..mg.L         
+----------------------------------------------------------------
+Treatmentunburned                              -0.035           
+                                               (0.084)          
+                                                                
+s(plant.mass..g):Treatmentburned.1                              
+                                                                
+                                                                
+s(plant.mass..g):Treatmentburned.2                              
+                                                                
+                                                                
+s(plant.mass..g):Treatmentburned.3                              
+                                                                
+                                                                
+s(plant.mass..g):Treatmentburned.4                              
+                                                                
+                                                                
+s(plant.mass..g):Treatmentburned.5                              
+                                                                
+                                                                
+s(plant.mass..g):Treatmentburned.6                              
+                                                                
+                                                                
+s(plant.mass..g):Treatmentburned.7                              
+                                                                
+                                                                
+s(plant.mass..g):Treatmentburned.8                              
+                                                                
+                                                                
+s(plant.mass..g):Treatmentburned.9                              
+                                                                
+                                                                
+s(plant.mass..g):Treatmentunburned.1                            
+                                                                
+                                                                
+s(plant.mass..g):Treatmentunburned.2                            
+                                                                
+                                                                
+s(plant.mass..g):Treatmentunburned.3                            
+                                                                
+                                                                
+s(plant.mass..g):Treatmentunburned.4                            
+                                                                
+                                                                
+s(plant.mass..g):Treatmentunburned.5                            
+                                                                
+                                                                
+s(plant.mass..g):Treatmentunburned.6                            
+                                                                
+                                                                
+s(plant.mass..g):Treatmentunburned.7                            
+                                                                
+                                                                
+s(plant.mass..g):Treatmentunburned.8                            
+                                                                
+                                                                
+s(plant.mass..g):Treatmentunburned.9                            
+                                                                
+                                                                
+Constant                                      2.704***          
+                                               (0.059)          
+                                                                
+----------------------------------------------------------------
+Observations                                     30             
+Adjusted R2                                    -0.035           
+Log Likelihood                                 -1.359           
+UBRE                                            4.173           
+================================================================
+Note:                                *p<0.1; **p<0.05; ***p<0.01
