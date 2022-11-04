@@ -140,7 +140,7 @@ T0.DOC.AIC
 # best is smoother solo
 
 DOC.sum_T0=summary(m3.DOC.T0.gam)
-anova.gam(m3.DOC.T0.gam)
+DOC.sum_T0=anova.gam(m3.DOC.T0.gam)
 gam.check(m3.DOC.T0.gam, rep=1000)
 draw(m3.DOC.T0.gam)
 concrvity(m3.DOC.T0.gam)
@@ -153,7 +153,6 @@ library(sjmisc)
 library(sjlabelled)
 
 
-tab_model(m1.DOC.T1.gam, m1.DOC.T2.gam,m1.DOC.T3.gam,m3.DOC.T4.gam, auto.label = T, show.ci= F, show.df = T, CSS= css_theme("cells"), show.stat = TRUE, show.se= T, dv.labels = c( "Day-10", "Day-31", "Day-59", "Day-89"))
 
 DOC.diff.T0<-plot_difference(
   m1.DOC.T0.gam,
@@ -179,6 +178,7 @@ DOC.T0.mod.plot<-
   Fig.formatting
 
 DOC.T0.mod.plot
+
 ######## T1 model
 m1.DOC.T1.gam=gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = DOC.df, method = "REML")
 
@@ -191,12 +191,14 @@ T1.DOC.AIC
 # best is smooth by factor
 
 summary(m1.DOC.T1.gam)
-anova.gam(m1.DOC.T1.gam)
+T1.DOC.anova=anova(m1.DOC.T1.gam)
 gam.check(m1.DOC.T1.gam, rep=1000)
 draw(m1.DOC.T1.gam)
 concrvity(m1.DOC.T1.gam)
 par(mfrow = c(2, 2))
 plot(m1.DOC.T1.gam, all.terms = TRUE, page=1)
+
+tbl_regression()
 
 # model predictions
 DOC.diff.T1<-plot_difference(
@@ -240,7 +242,7 @@ T2.DOC.AIC
 # best is smooth by factor
 
 summary(m1.DOC.T2.gam)
-anova.gam(m1.DOC.T2.gam)
+T2.DOC.anova=anova.gam(m1.DOC.T2.gam)
 gam.check(m1.DOC.T2.gam, rep=1000)
 draw(m1.DOC.T2.gam)
 concrvity(m1.DOC.T2.gam)
@@ -289,7 +291,7 @@ T3.DOC.AIC
 # best by factor smooth
 
 summary(m1.DOC.T3.gam)
-anova.gam(m1.DOC.T3.gam)
+T3.DOC.anova=anova.gam(m1.DOC.T3.gam)
 gam.check(m1.DOC.T3.gam, rep=1000)
 draw(m1.DOC.T3.gam)
 concrvity(m1.DOC.T3.gam)
@@ -336,7 +338,7 @@ T4.DOC.AIC<-AIC(m1.DOC.T4.gam, m2.DOC.T4.gam, m3.DOC.T4.gam)
 T4.DOC.AIC
 # best is global
 summary(m3.DOC.T4.gam)
-anova.gam(m3.DOC.T4.gam)
+T4.DOC.anova=anova(m1.DOC.T4.gam)
 gam.check(m3.DOC.T4.gam, rep=1000)
 draw(m3.DOC.T4.gam)
 concrvity(m3.DOC.T4.gam)
@@ -377,7 +379,46 @@ write.csv(AIC.DOC.mod, "output/AIC models/AIC.DOC.csv")
 
 ```
 
+Generate dataframe for model outputs
+```{r}
+####Parametric output
+DOC.para.sums=as.data.frame(rbind(T1.DOC.anova$pTerms.table, T2.DOC.anova$pTerms.table, T3.DOC.anova$pTerms.table, T4.DOC.anova$pTerms.table))
+names(DOC.para.sums)[1]="df/edf"
 
+#create empty column for ref.df
+DOC.para.sums <- DOC.para.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Day 10 Model: Treatment","Day 31 Model: Treatment","Day 59 Model: Treatment","Day 89 Model: Treatment"), .before="df/edf")%>%
+  add_column(Ref.df = "-", .after="df/edf")
+  
+
+#####Smooth output
+DOC.smooth.sums=as.data.frame(rbind(T1.DOC.anova$s.table, T2.DOC.anova$s.table, T3.DOC.anova$s.table, T4.DOC.anova$s.table))
+names(DOC.smooth.sums)[1]="df/edf"
+#create empty column for ref.df
+DOC.smooth.sums <- DOC.smooth.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Day 10 Model: s(plant.mass):burned","Day 10 Model: s(plant.mass):unburned","Day 31 Model: s(plant.mass):burned","Day 31 Model: s(plant.mass):unburned","Day 59 Model: s(plant.mass):burned","Day 59 Model: s(plant.mass):unburned","Day 89 Model: s(plant.mass):burned","Day 89 Model: s(plant.mass):unburned"), .before="df/edf")
+
+#merge the dataframes
+DOC.mod.allsums=rbind(DOC.para.sums,DOC.smooth.sums)
+rownames(DOC.mod.allsums)<-c(1:12)
+
+#create new ID column
+DOC.mod.allsums <- DOC.mod.allsums %>%
+  # Creating an empty column:
+  add_column(Identity= c("DOC"), .before="Model")
+
+#convert dataframe into a table for export
+pdf("Codys.tables/DOC.mod.allsums.pdf", width = 9.5, height = 4)       # Export PDF
+grid.table(DOC.mod.allsums)
+dev.off()
+
+
+write.csv(DOC.mod.allsums, "Codys.tables/DOCmod.allsums.csv")
+
+
+```
 
 DOC: compile raw plots and model-diff plots for final figures
 ```{r DOC model plots compiled}
@@ -810,7 +851,7 @@ T1.suva.AIC
 # best is two smoother
 
 summary(m1.suva.T1.gam)
-anova.gam(m1.suva.T1.gam)
+T1.suva.anova=anova(m1.suva.T1.gam)
 gam.check(m1.suva.T1.gam, rep=1000)
 draw(m1.suva.T1.gam)
 concrvity(m1.suva.T1.gam)
@@ -860,7 +901,7 @@ T2.suva.AIC
 # best is smooth by factor
 
 summary(m1.suva.T2.gam)
-anova.gam(m1.suva.T2.gam)
+T2.suva.anova=anova(m1.suva.T2.gam)
 gam.check(m1.suva.T2.gam, rep=1000)
 draw(m1.suva.T2.gam)
 concrvity(m1.suva.T2.gam)
@@ -911,7 +952,7 @@ T3.suva.AIC
 # best by factor smooth
 
 summary(m1.suva.T3.gam)
-anova.gam(m1.suva.T3.gam)
+T3.suva.anova=anova(m1.suva.T3.gam)
 gam.check(m1.suva.T3.gam, rep=1000)
 draw(m1.suva.T3.gam)
 concrvity(m1.suva.T3.gam)
@@ -959,7 +1000,7 @@ T4.suva.AIC
 
 # best is global
 summary(m1.suva.T4.gam)
-anova.gam(m1.suva.T4.gam)
+T4.suva.anova=anova(m1.suva.T4.gam)
 gam.check(m1.suva.T4.gam, rep=1000)
 draw(m1.suva.T4.gam)
 concrvity(m1.suva.T4.gam)
@@ -998,6 +1039,42 @@ suva.T4.mod.plot
 AIC.SUVA<-bind_rows(T0.suva.AIC, T1.suva.AIC, T2.suva.AIC, T3.suva.AIC, T4.suva.AIC)
 AIC.SUVA.mod<-cbind(mod.column, AIC.SUVA)
 write.csv(AIC.SUVA.mod, "output/AIC models/AIC.SUVA.csv")
+
+
+```
+
+Generate dataframe for model outputs
+```{r}
+####Parametric output
+suva.para.sums=as.data.frame(rbind(T1.suva.anova$pTerms.table, T2.suva.anova$pTerms.table, T3.suva.anova$pTerms.table, T4.suva.anova$pTerms.table))
+names(suva.para.sums)[1]="df/edf"
+suva.para.sums
+#create empty column for ref.df
+suva.para.sums <- suva.para.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Day 10 Model: Treatment","Day 31 Model: Treatment","Day 59 Model: Treatment","Day 89 Model: Treatment"), .before="df/edf")%>%
+  add_column(Ref.df = "-", .after="df/edf")
+  
+
+#####Smooth output
+suva.smooth.sums=as.data.frame(rbind(T1.suva.anova$s.table, T2.suva.anova$s.table, T3.suva.anova$s.table, T4.suva.anova$s.table))
+names(suva.smooth.sums)[1]="df/edf"
+#create empty column for ref.df
+suva.smooth.sums <- suva.smooth.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Day 10 Model: s(plant.mass):burned","Day 10 Model: s(plant.mass):unburned","Day 31 Model: s(plant.mass):burned","Day 31 Model: s(plant.mass):unburned","Day 59 Model: s(plant.mass):burned","Day 59 Model: s(plant.mass):unburned","Day 89 Model: s(plant.mass):burned","Day 89 Model: s(plant.mass):unburned"), .before="df/edf")
+
+#merge the dataframes
+suva.mod.allsums=rbind(suva.para.sums,suva.smooth.sums)
+rownames(suva.mod.allsums)<-c(1:12)
+
+#create new ID column
+suva.mod.allsums <- suva.mod.allsums %>%
+  # Creating an empty column:
+  add_column(Identity= c("SUVA"), .before="Model")
+
+
+write.csv(suva.mod.allsums, "Codys.tables/suva.mod.allsums.csv")
 
 
 ```
@@ -1090,7 +1167,7 @@ T1.sr.AIC
 # best is two smoother
 
 summary(m1.sr.T1.gam)
-anova.gam(m1.sr.T1.gam)
+T1.sr.anova=anova(m1.sr.T1.gam)
 gam.check(m1.sr.T1.gam, rep=1000)
 draw(m1.sr.T1.gam)
 concrvity(m1.sr.T1.gam)
@@ -1142,7 +1219,7 @@ T2.sr.AIC
 # best is global smooth 
 
 summary(m3.sr.T2.gam)
-anova.gam(m3.sr.T2.gam)
+T2.sr.anova=anova(m1.sr.T2.gam)
 gam.check(m3.sr.T2.gam, rep=1000)
 draw(m3.sr.T2.gam)
 concrvity(m3.sr.T2.gam)
@@ -1195,7 +1272,7 @@ T3.sr.AIC
 # best by factor smooth
 
 summary(m1.sr.T3.gam)
-anova.gam(m1.sr.T3.gam)
+T3.sr.anova=anova(m1.sr.T3.gam)
 gam.check(m1.sr.T3.gam, rep=1000)
 draw(m1.sr.T3.gam)
 concrvity(m1.sr.T3.gam)
@@ -1246,7 +1323,7 @@ T4.sr.AIC
 
 # best is global
 summary(m1.sr.T4.gam)
-anova.gam(m1.sr.T4.gam)
+T4.sr.anova=anova(m1.sr.T4.gam)
 gam.check(m1.sr.T4.gam, rep=1000)
 draw(m1.sr.T4.gam)
 concrvity(m1.sr.T4.gam)
@@ -1290,6 +1367,41 @@ write.csv(AIC.sr.mod, "output/AIC models/AIC.sr.csv")
 write.csv(AIC.SUVA, "output/AIC.SUVA.csv")
 
 ```
+
+Generate dataframe for model outputs
+```{r}
+####Parametric output
+sr.para.sums=as.data.frame(rbind(T1.sr.anova$pTerms.table, T2.sr.anova$pTerms.table, T3.sr.anova$pTerms.table, T4.sr.anova$pTerms.table))
+names(sr.para.sums)[1]="df/edf"
+#create empty column for ref.df
+sr.para.sums <- sr.para.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Day 10 Model: Treatment","Day 31 Model: Treatment","Day 59 Model: Treatment","Day 89 Model: Treatment"), .before="df/edf")%>%
+  add_column(Ref.df = "-", .after="df/edf")
+  
+
+#####Smooth output
+sr.smooth.sums=as.data.frame(rbind(T1.sr.anova$s.table, T2.sr.anova$s.table, T3.sr.anova$s.table, T4.sr.anova$s.table))
+names(sr.smooth.sums)[1]="df/edf"
+#create empty column for ref.df
+sr.smooth.sums <- sr.smooth.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Day 10 Model: s(plant.mass):burned","Day 10 Model: s(plant.mass):unburned","Day 31 Model: s(plant.mass):burned","Day 31 Model: s(plant.mass):unburned","Day 59 Model: s(plant.mass):burned","Day 59 Model: s(plant.mass):unburned","Day 89 Model: s(plant.mass):burned","Day 89 Model: s(plant.mass):unburned"), .before="df/edf")
+sr.smooth.sums
+#merge the dataframes
+sr.mod.allsums=rbind(sr.para.sums,sr.smooth.sums)
+rownames(sr.mod.allsums)<-c(1:12)
+
+#create new ID column
+sr.mod.allsums <- sr.mod.allsums %>%
+  # Creating an empty column:
+  add_column(Identity= c("Sr"), .before="Model")
+
+write.csv(sr.mod.allsums, "Codys.tables/sr.mod.allsums.csv")
+
+
+```
+
 
 Sr: compile raw plots and model-diff plots for final figures
 ```{r sr model plots compiled}
@@ -1372,7 +1484,7 @@ T1.hix.AIC
 # best is two smoother
 
 summary(m3.hix.T1.gam)
-anova.gam(m3.hix.T1.gam)
+T1.hix.anova=anova(m1.hix.T1.gam)
 gam.check(m3.sr.T1.gam, rep=1000)
 draw(m3.hix.T1.gam)
 concrvity(m3.hix.T1.gam)
@@ -1425,7 +1537,7 @@ T2.hix.AIC
 # best is global smooth 
 
 summary(m2.hix.T2.gam)
-anova.gam(m2.hix.T2.gam)
+T2.hix.anova=anova(m1.hix.T2.gam)
 gam.check(m2.hix.T2.gam, rep=1000)
 draw(m2.hix.T2.gam)
 concrvity(m2.hix.T2.gam)
@@ -1477,7 +1589,7 @@ T3.hix.AIC
 # best by factor smooth
 
 summary(m1.hix.T3.gam)
-anova.gam(m1.hix.T3.gam)
+T3.hix.anova=anova(m1.hix.T3.gam)
 gam.check(m1.hix.T3.gam, rep=1000)
 draw(m1.hix.T3.gam)
 concrvity(m1.hix.T3.gam)
@@ -1525,7 +1637,7 @@ T4.hix.AIC
 
 # best is global
 summary(m1.hix.T4.gam)
-anova.gam(m1.hix.T4.gam)
+T4.hix.anova=anova(m1.hix.T4.gam)
 gam.check(m1.hix.T4.gam, rep=1000)
 draw(m1.hix.T4.gam)
 concrvity(m1.hix.T4.gam)
@@ -1567,6 +1679,43 @@ write.csv(AIC.hix.mod, "output/AIC models/AIC.hix.csv")
 
 
 ```
+
+Generate dataframe for model outputs
+```{r}
+####Parametric output
+hix.para.sums=as.data.frame(rbind(T1.hix.anova$pTerms.table, T2.hix.anova$pTerms.table, T3.hix.anova$pTerms.table, T4.hix.anova$pTerms.table))
+names(hix.para.sums)[1]="df/edf"
+#create empty column for ref.df
+hix.para.sums <- hix.para.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Day 10 Model: Treatment","Day 31 Model: Treatment","Day 59 Model: Treatment","Day 89 Model: Treatment"), .before="df/edf")%>%
+  add_column(Ref.df = "-", .after="df/edf")
+  
+
+#####Smooth output
+hix.smooth.sums=as.data.frame(rbind(T1.hix.anova$s.table, T2.hix.anova$s.table, T3.hix.anova$s.table, T4.hix.anova$s.table))
+names(hix.smooth.sums)[1]="df/edf"
+#create empty column for ref.df
+hix.smooth.sums <- hix.smooth.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Day 10 Model: s(plant.mass):burned","Day 10 Model: s(plant.mass):unburned","Day 31 Model: s(plant.mass):burned","Day 31 Model: s(plant.mass):unburned","Day 59 Model: s(plant.mass):burned","Day 59 Model: s(plant.mass):unburned","Day 89 Model: s(plant.mass):burned","Day 89 Model: s(plant.mass):unburned"), .before="df/edf")
+
+#merge the dataframes
+hix.mod.allsums=rbind(hix.para.sums,hix.smooth.sums)
+rownames(hix.mod.allsums)<-c(1:12)
+
+#create new ID column
+hix.mod.allsums <- hix.mod.allsums %>%
+  # Creating an empty column:
+  add_column(Identity= c("HIX"), .before="Model")
+
+write.csv(hix.mod.allsums, "Codys.tables/hix.mod.allsums.csv")
+
+
+```
+
+
+
 
 HIX: compile raw plots and model-diff plots for final figures
 ```{r sr model plots compiled}
@@ -1652,7 +1801,7 @@ T1.fr.AIC
 # best is two smoother
 
 summary(m1.fr.T1.gam)
-anova.gam(m1.fr.T1.gam)
+T1.fr.anova=anova(m1.fr.T1.gam)
 gam.check(m1.fr.T1.gam, rep=1000)
 draw(m1.fr.T1.gam)
 concrvity(m1.fr.T1.gam)
@@ -1705,7 +1854,7 @@ T2.fr.AIC
 # best is global smooth 
 
 summary(m1.fr.T2.gam)
-anova.gam(m1.fr.T2.gam)
+T2.fr.anova=anova(m1.fr.T2.gam)
 gam.check(m1.fr.T2.gam, rep=1000)
 draw(m1.fr.T2.gam)
 concrvity(m1.fr.T2.gam)
@@ -1758,7 +1907,7 @@ T3.fr.AIC
 # best by factor smooth
 
 summary(m2.fr.T3.gam)
-anova.gam(m2.fr.T3.gam)
+T3.fr.anova=anova(m1.fr.T3.gam)
 gam.check(m2.fr.T3.gam, rep=1000)
 draw(m2.fr.T3.gam)
 concrvity(m2.fr.T3.gam)
@@ -1809,7 +1958,7 @@ T4.fr.AIC
 
 # best is global
 summary(m2.fr.T4.gam)
-anova.gam(m2.fr.T4.gam)
+T4.fr.anova=anova(m1.fr.T4.gam)
 gam.check(m2.fr.T4.gam, rep=1000)
 draw(m2.fr.T4.gam)
 concrvity(m2.fr.T4.gam)
@@ -1849,6 +1998,41 @@ fr.T4.mod.plot<-
 AIC.fr<-bind_rows(T0.fr.AIC, T1.fr.AIC, T2.fr.AIC, T3.fr.AIC, T4.fr.AIC)
 AIC.fr.mod<-cbind(mod.column, AIC.fr)
 write.csv(AIC.fr.mod, "output/AIC models/AIC.fr.csv")
+
+
+```
+
+
+Generate dataframe for model outputs
+```{r}
+####Parametric output
+fr.para.sums=as.data.frame(rbind(T1.fr.anova$pTerms.table, T2.fr.anova$pTerms.table, T3.fr.anova$pTerms.table, T4.fr.anova$pTerms.table))
+names(fr.para.sums)[1]="df/edf"
+#create empty column for ref.df
+fr.para.sums <- fr.para.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Day 10 Model: Treatment","Day 31 Model: Treatment","Day 59 Model: Treatment","Day 89 Model: Treatment"), .before="df/edf")%>%
+  add_column(Ref.df = "-", .after="df/edf")
+  
+
+#####Smooth output
+fr.smooth.sums=as.data.frame(rbind(T1.fr.anova$s.table, T2.fr.anova$s.table, T3.fr.anova$s.table, T4.fr.anova$s.table))
+names(fr.smooth.sums)[1]="df/edf"
+#create empty column for ref.df
+fr.smooth.sums <- fr.smooth.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Day 10 Model: s(plant.mass):burned","Day 10 Model: s(plant.mass):unburned","Day 31 Model: s(plant.mass):burned","Day 31 Model: s(plant.mass):unburned","Day 59 Model: s(plant.mass):burned","Day 59 Model: s(plant.mass):unburned","Day 89 Model: s(plant.mass):burned","Day 89 Model: s(plant.mass):unburned"), .before="df/edf")
+
+#merge the dataframes
+fr.mod.allsums=rbind(fr.para.sums,fr.smooth.sums)
+rownames(fr.mod.allsums)<-c(1:12)
+
+#create new ID column
+fr.mod.allsums <- fr.mod.allsums %>%
+  # Creating an empty column:
+  add_column(Identity= c("FR"), .before="Model")
+
+write.csv(fr.mod.allsums, "Codys.tables/fr.mod.allsums.csv")
 
 
 ```
@@ -1939,7 +2123,7 @@ T1.fl.AIC
 # best is two smoother
 
 summary(m1.fl.T1.gam)
-anova.gam(m1.fl.T1.gam)
+T1.fl.anova=anova(m1.fl.T1.gam)
 gam.check(m1.fl.T1.gam, rep=1000)
 draw(m1.fl.T1.gam)
 concrvity(m1.fl.T1.gam)
@@ -1992,7 +2176,7 @@ T2.fl.AIC
 # best is global smooth 
 
 summary(m1.fl.T2.gam)
-anova.gam(m1.fl.T2.gam)
+T2.fl.anova=anova(m1.fl.T2.gam)
 gam.check(m1.fl.T2.gam, rep=1000)
 draw(m1.fl.T2.gam)
 concrvity(m1.fl.T2.gam)
@@ -2043,7 +2227,7 @@ T3.fl.AIC
 # best by factor smooth
 
 summary(m3.fl.T3.gam)
-anova.gam(m3.fl.T3.gam)
+T3.fl.anova=anova(m1.fl.T3.gam)
 gam.check(m3.fl.T3.gam, rep=1000)
 draw(m3.fl.T3.gam)
 concrvity(m3.fl.T3.gam)
@@ -2090,7 +2274,7 @@ T4.fl.AIC
 
 # best is global
 summary(m3.fl.T4.gam)
-anova.gam(m3.fl.T4.gam)
+T4.fl.anova=anova(m1.fl.T4.gam)
 gam.check(m3.fl.T4.gam, rep=1000)
 draw(m3.fl.T4.gam)
 concrvity(m3.fl.T4.gam)
@@ -2132,6 +2316,43 @@ write.csv(AIC.fl.mod, "output/AIC models/AIC.fl.csv")
 
 ```
 
+
+
+Generate dataframe for model outputs
+```{r}
+####Parametric output
+fl.para.sums=as.data.frame(rbind(T1.fl.anova$pTerms.table, T2.fl.anova$pTerms.table, T3.fl.anova$pTerms.table, T4.fl.anova$pTerms.table))
+names(fl.para.sums)[1]="df/edf"
+
+#create empty column for ref.df
+fl.para.sums <- fl.para.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Day 10 Model: Treatment","Day 31 Model: Treatment","Day 59 Model: Treatment","Day 89 Model: Treatment"), .before="df/edf")%>%
+  add_column(Ref.df = "-", .after="df/edf")
+  
+
+#####Smooth output
+fl.smooth.sums=as.data.frame(rbind(T1.fl.anova$s.table, T2.fl.anova$s.table, T3.fl.anova$s.table, T4.fl.anova$s.table))
+names(fl.smooth.sums)[1]="df/edf"
+#create empty column for ref.df
+fl.smooth.sums <- fl.smooth.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Day 10 Model: s(plant.mass):burned","Day 10 Model: s(plant.mass):unburned","Day 31 Model: s(plant.mass):burned","Day 31 Model: s(plant.mass):unburned","Day 59 Model: s(plant.mass):burned","Day 59 Model: s(plant.mass):unburned","Day 89 Model: s(plant.mass):burned","Day 89 Model: s(plant.mass):unburned"), .before="df/edf")
+
+#merge the dataframes
+fl.mod.allsums=rbind(fl.para.sums,fl.smooth.sums)
+rownames(fl.mod.allsums)<-c(1:12)
+
+#create new ID column
+fl.mod.allsums <- fl.mod.allsums %>%
+  # Creating an empty column:
+  add_column(Identity= c("FI"), .before="Model")
+
+write.csv(fl.mod.allsums, "Codys.tables/fl.mod.allsums.csv")
+
+
+```
+
 Fluorescence: compile raw plots and model-diff plots for final figures
 ```{r sr model plots compiled}
 
@@ -2168,6 +2389,20 @@ indices.diff.plot= plot_grid(suva.mod.diffs, sr.mod.diffs, hix.mod.diffs, fr.mod
 
 indices.diff.plot
 ggsave("figures/indices.diff.plot.pdf", height=18, width=14)
+
+```
+
+Generate dataframe for all index model outputs
+```{r}
+library(gridExtra)
+#merge all the dataframes
+index.mod.allsums=rbind(suva.mod.allsums,sr.mod.allsums,hix.mod.allsums,fr.mod.allsums,fl.mod.allsums)
+
+#convert dataframe into a table for export
+pdf("Codys.tables/index.mod.allsums.pdf", width = 9.5, height = 17)       # Export PDF
+grid.table(index.mod.allsums)
+dev.off()
+
 
 ```
 
@@ -2317,7 +2552,7 @@ photo.AIC
 # global smooth
 
 summary(m3.photo.perc)
-anova.gam(m3.photo.perc)
+photo.anova=anova(m1.photo.perc)
 gam.check(m3.photo.perc, rep=1000)
 draw(m3.photo.perc)
 concrvity(m3.photo.perc)
@@ -2355,7 +2590,7 @@ microbe.AIC
 # global smooth
 
 summary(m3.microbe.perc)
-anova.gam(m3.microbe.perc)
+microbe.anova=anova(m1.microbe.perc)
 gam.check(m3.microbe.perc, rep=1000)
 draw(m3.microbe.perc)
 concrvity(m3.microbe.perc)
@@ -2394,7 +2629,7 @@ total.AIC
 # global smooth
 
 summary(m3.total.perc)
-anova.gam(m3.total.perc)
+total.anova=anova(m1.total.perc)
 gam.check(m3.total.perc, rep=1000)
 draw(m3.total.perc)
 concrvity(m3.total.perc)
@@ -2428,6 +2663,44 @@ mod.degra.column<- data.frame(mod.degra.rep)
 AIC.degra<-bind_rows(photo.AIC, microbe.AIC, total.AIC)
 AIC.degra.mod<-cbind(mod.degra.column, AIC.degra)
 write.csv(AIC.degra.mod, "output/AIC models/AIC.degra.csv")
+
+```
+
+
+
+Generate dataframe for model outputs
+```{r}
+####Parametric output
+degra.para.sums=as.data.frame(rbind(photo.anova$pTerms.table, microbe.anova$pTerms.table, total.anova$pTerms.table))
+names(degra.para.sums)[1]="df/edf"
+
+#create empty column for ref.df
+degra.para.sums <- degra.para.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("UV-only Model: Treatment","Microbes-only Model: Treatment","UV and microbes Model: Treatment"), .before="df/edf")%>%
+  add_column(Ref.df = "-", .after="df/edf")
+  
+
+#####Smooth output
+degra.smooth.sums=as.data.frame(rbind(photo.anova$s.table, microbe.anova$s.table, total.anova$s.table))
+names(degra.smooth.sums)[1]="df/edf"
+
+#create empty column for ref.df
+degra.smooth.sums <- degra.smooth.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("UV-only Model: s(plant.mass):burned","UV-only Model: s(plant.mass):unburned","Microbes-only Model: s(plant.mass):burned","Microbes-only Model: s(plant.mass):unburned","UV and microbes Model: s(plant.mass):burned","UV and microbes Model: s(plant.mass):unburned"), .before="df/edf")
+
+#merge the dataframes
+degra.mod.allsums=rbind(degra.para.sums,degra.smooth.sums)
+rownames(degra.mod.allsums)<-c(1:9)
+
+#convert dataframe into a table for export
+pdf("Codys.tables/degra.mod.allsums.pdf", width = 9, height = 3)       # Export PDF
+grid.table(degra.mod.allsums)
+dev.off()
+
+
+
 
 ```
 
