@@ -1,0 +1,10 @@
+"","Model","df/edf","Ref.df","F","p-value"
+"1","UV-only Model: Treatment",1,"-",1.87657406684678,0.181609988531085
+"2","Microbes-only Model: Treatment",1,"-",1.1073409935585,0.303746749186821
+"3","UV and microbes Model: Treatment",1,"-",0.248612759304266,0.622866635917996
+"4","UV-only Model: s(plant.mass):burned",5.70209231338271e-05,"9",6.76168677139157e-07,0.902008556531296
+"5","UV-only Model: s(plant.mass):unburned",2.02928788868412e-05,"9",4.12826009119294e-07,0.82433598544595
+"6","Microbes-only Model: s(plant.mass):burned",2.53485421548821,"9",3.81007389174263,2.77743030963062e-05
+"7","Microbes-only Model: s(plant.mass):unburned",2.79133199956512,"9",2.86416318418386,0.000240324724205876
+"8","UV and microbes Model: s(plant.mass):burned",2.61238797940761,"9",4.32974195297474,1.22273467990652e-05
+"9","UV and microbes Model: s(plant.mass):unburned",2.7630477095404,"9",3.36459850528629,8.26675345143579e-05

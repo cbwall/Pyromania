@@ -2693,6 +2693,8 @@ degra.smooth.sums <- degra.smooth.sums %>%
 #merge the dataframes
 degra.mod.allsums=rbind(degra.para.sums,degra.smooth.sums)
 rownames(degra.mod.allsums)<-c(1:9)
+degra.mod.allsums
+write.csv(degra.mod.allsums, "Codys.tables/degra.mod.allsums.csv")
 
 #convert dataframe into a table for export
 pdf("Codys.tables/degra.mod.allsums.pdf", width = 9, height = 3)       # Export PDF
@@ -2700,7 +2702,7 @@ grid.table(degra.mod.allsums)
 dev.off()
 
 
-
+T1.DOC.anova
 
 ```
 
@@ -2758,6 +2760,8 @@ m3.sage.gam=gam(perc.delta ~ s(plant.specific.mass..g), data=plant.df, method="R
 sage.AIC=AIC(m1.sage.gam, m2.sage.gam, m3.sage.gam)
 sage.AIC
 
+sage.anova=anova(m1.sage.gam)
+
 qqPlot(plant.df$perc.delta)
 # global smooth
 
@@ -2811,7 +2815,7 @@ willow.AIC
 # treatment with global smooth
 
 summary(m2.willow.gam)
-anova.gam(m2.willow.gam)
+willow.anova=anova(m1.willow.gam)
 gam.check(m2.willow.gam, rep=1000)
 draw(m2.willow.gam)
 concrvity(m2.willow.gam)
@@ -2853,6 +2857,46 @@ write.csv(AIC.decomp.mod, "output/AIC models/AIC.decomp.csv")
 
 
 ```
+
+Generate dataframe for model outputs
+```{r}
+####Parametric output
+decomp.para.sums=as.data.frame(rbind(sage.anova$pTerms.table, willow.anova$pTerms.table))
+names(decomp.para.sums)[1]="df/edf"
+
+#create empty column for ref.df
+decomp.para.sums <- decomp.para.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Sage Model: Treatment","Willow Model: Treatment"), .before="df/edf")%>%
+  add_column(Ref.df = "-", .after="df/edf")
+  
+
+#####Smooth output
+decomp.smooth.sums=as.data.frame(rbind(sage.anova$s.table, willow.anova$s.table))
+names(decomp.smooth.sums)[1]="df/edf"
+
+#create empty column for ref.df
+decomp.smooth.sums <- decomp.smooth.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Sage Model: s(plant.mass):burned","Sage Model: s(plant.mass):unburned","Willow Model: s(plant.mass):burned","Willow Model: s(plant.mass):unburned"), .before="df/edf")
+
+#merge the dataframes
+decomp.mod.allsums=rbind(decomp.para.sums,decomp.smooth.sums)
+rownames(decomp.mod.allsums)<-c(1:6)
+write.csv(decomp.mod.allsums, "Codys.tables/decomp.mod.allsums.csv")
+
+
+#convert dataframe into a table for export
+pdf("Codys.tables/decomp.mod.allsums.pdf", width = 9, height = 3)       # Export PDF
+grid.table(decomp.mod.allsums)
+dev.off()
+
+
+T1.DOC.anova
+
+```
+
+
 compile raw plots and model-diff plots for final figures
 ```{r DOC model plots compiled}
 
