@@ -2430,7 +2430,9 @@ photo.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Time.point,
                     100*(UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$TN..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Start.TN)/((UVBIO.df[UVBIO.df$Filt.UV=="Filtered.UV",]$Start.TN)),
                      suva.df[suva.df$Time.point=="T1",]$SUVA,
                      suva.df[suva.df$Time.point=="T1",]$Spectral.Slope.Ratio,
-                    index.df[index.df$Time.point=="T1",]$Humification.Index)
+                    index.df[index.df$Time.point=="T1",]$Humification.Index,
+                    index.df[index.df$Time.point=="T1",]$Freshness.Index,
+                    index.df[index.df$Time.point=="T1",]$Fluroscence.Index)
 
 photo.df$effect="UV-only"
 names(photo.df)[1]="Time.point"
@@ -2446,11 +2448,16 @@ names(photo.df)[10]="percent.change.TN"
 names(photo.df)[11]="SUVA"
 names(photo.df)[12]="Spectral.slope"
 names(photo.df)[13]="HIX"
+names(photo.df)[14]="Fr"
+names(photo.df)[15]="FI"
+
 photo.df$mass.remaining.DOC=100-abs(photo.df[photo.df$effect=="UV-only",]$percent.change.DOC)
 photo.df$mass.remaining.TN=100-abs(photo.df[photo.df$effect=="UV-only",]$percent.change.TN)
 
 photo.df=photo.df%>%
     mutate_if(is.character,as.factor)
+
+
 
 #Microbe decomp
 microbe.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Time.point,
@@ -2465,7 +2472,9 @@ microbe.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Time.point,
                     100*(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$TN..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Start.TN)/((UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.NoUV",]$Start.TN)),
                      suva.df[suva.df$Time.point=="T1",]$SUVA,
                     suva.df[suva.df$Time.point=="T1",]$Spectral.Slope.Ratio,
-                    index.df[index.df$Time.point=="T1",]$Humification.Index)
+                    index.df[index.df$Time.point=="T1",]$Humification.Index,
+                    index.df[index.df$Time.point=="T1",]$Freshness.Index,
+                    index.df[index.df$Time.point=="T1",]$Fluroscence.Index)
 
 microbe.df$effect="microbes-only"
 names(microbe.df)[1]="Time.point"
@@ -2481,6 +2490,8 @@ names(microbe.df)[10]="percent.change.TN"
 names(microbe.df)[11]="SUVA"
 names(microbe.df)[12]="Spectral.slope"
 names(microbe.df)[13]="HIX"
+names(microbe.df)[14]="Fr"
+names(microbe.df)[15]="FI"
 microbe.df$mass.remaining.DOC=100-abs(microbe.df[microbe.df$effect=="microbes-only",]$percent.change.DOC)
 microbe.df$mass.remaining.TN=100-abs(microbe.df[microbe.df$effect=="microbes-only",]$percent.change.TN)
 
@@ -2501,7 +2512,9 @@ total.df=data.frame(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Time.point,
                      100*(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$TN..mg.L-UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Start.TN)/(abs(UVBIO.df[UVBIO.df$Filt.UV=="Unfiltered.UV",]$Start.TN)),
                      suva.df[suva.df$Time.point=="T1",]$SUVA,
                     suva.df[suva.df$Time.point=="T1",]$Spectral.Slope.Ratio,
-                     index.df[index.df$Time.point=="T1",]$Humification.Index)
+                     index.df[index.df$Time.point=="T1",]$Humification.Index,
+                    index.df[index.df$Time.point=="T1",]$Freshness.Index,
+                    index.df[index.df$Time.point=="T1",]$Fluroscence.Index)
                      
 total.df$effect="UV and microbes"
 names(total.df)[1]="Time.point"
@@ -2517,6 +2530,8 @@ names(total.df)[10]="percent.change.TN"
 names(total.df)[11]="SUVA"
 names(total.df)[12]="Spectral.slope"
 names(total.df)[13]="HIX"
+names(total.df)[14]="Fr"
+names(total.df)[15]="FI"
 total.df$mass.remaining.DOC=100-abs(total.df[total.df$effect=="UV and microbes",]$percent.change.DOC)
 total.df$mass.remaining.TN=100-abs(total.df[total.df$effect=="UV and microbes",]$percent.change.TN)
 
@@ -2613,6 +2628,7 @@ microbe.mod.plot<-
   xlab("plant material (g)") +
   Fig.formatting
 
+
 microbe.mod.plot
 
 ###Just total decomp
@@ -2666,8 +2682,6 @@ write.csv(AIC.degra.mod, "output/AIC models/AIC.degra.csv")
 
 ```
 
-
-
 Generate dataframe for model outputs
 ```{r}
 ####Parametric output
@@ -2720,6 +2734,248 @@ degra.mod.plot
 ggsave("figures/degra.mod.plot.pdf", height=4, width=12)
 
 ```
+
+
+% change DOC across SUVA (relate composition with decomposition)
+```{r}
+###Decomposition across SUVA for photo
+m1.suva.photo=gam(percent.change.DOC ~ Treatment +s(SUVA, by= Treatment), data=photo.df, method="REML", select= T, subset= Time.point=="T1")
+
+m2.suva.photo=gam(percent.change.DOC ~ Treatment +s(SUVA), data=photo.df, method="REML", select= T, subset= Time.point=="T1")
+
+m3.suva.photo=gam(percent.change.DOC ~ s(SUVA), data=photo.df, method="REML", select= T, subset= Time.point=="T1")
+
+AIC(m1.suva.photo, m2.suva.photo, m3.suva.photo)
+microbe.AIC
+# global smooth
+
+photo.suva.plot=plot_smooths(
+  model = m3.suva.photo,
+  series = SUVA
+) + 
+  geom_point(data=photo.df[(photo.df$Time.point=="T1"),], 
+             aes(x=SUVA, y=percent.change.DOC, color=Treatment)) +
+   scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ggtitle("UV-only") +
+   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab("Change DOC (%)") +
+  xlab("SUVA") +
+  Fig.formatting
+ 
+
+###Decomposition across SUVA for microbes
+m1.suva.microbes=gam(percent.change.DOC ~ Treatment +s(SUVA, by= Treatment), data=microbe.df, method="REML", select= T, subset= Time.point=="T1")
+
+m2.suva.microbes=gam(percent.change.DOC ~ Treatment +s(SUVA), data=microbe.df, method="REML", select= T, subset= Time.point=="T1")
+
+m3.suva.microbes=gam(percent.change.DOC ~ s(SUVA), data=microbe.df, method="REML", select= T, subset= Time.point=="T1")
+
+AIC(m1.suva.perc, m2.suva.perc, m3.suva.perc)
+microbe.AIC
+# global smooth
+
+microbe.suva.plot=plot_smooths(
+  model = m3.suva.perc,
+  series = SUVA
+) + 
+  geom_point(data=microbe.df[(microbe.df$Time.point=="T1"),], 
+             aes(x=SUVA, y=percent.change.DOC, color=Treatment)) +
+   scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ggtitle("microbes-only") +
+   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab("Change DOC (%)") +
+  xlab("SUVA") +
+  Fig.formatting
+  
+  ###Decomposition across SUVA for microbes
+m1.suva.total=gam(percent.change.DOC ~ Treatment +s(SUVA, by= Treatment), data=total.df, method="REML", select= T, subset= Time.point=="T1")
+
+m2.suva.total=gam(percent.change.DOC ~ Treatment +s(SUVA), data=total.df, method="REML", select= T, subset= Time.point=="T1")
+
+m3.suva.total=gam(percent.change.DOC ~ s(SUVA), data=total.df, method="REML", select= T, subset= Time.point=="T1")
+
+AIC(m1.suva.total, m2.suva.total, m3.suva.total)
+microbe.AIC
+# global smooth
+
+total.suva.plot=plot_smooths(
+  model = m3.suva.total,
+  series = SUVA
+) + 
+  geom_point(data=total.df[(total.df$Time.point=="T1"),], 
+             aes(x=SUVA, y=percent.change.DOC, color=Treatment)) +
+   scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  scale_fill_manual(values = c("brown1", "mediumseagreen")) +
+  
+  ggtitle("UV and microbes") +
+   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab("Change DOC (%)") +
+  xlab("SUVA") +
+  Fig.formatting
+ 
+
+
+```
+
+
+
+% change DOC across HIX (relate composition with decomposition)
+```{r}
+###Decomposition across SUVA for photo
+m1.hix.photo=gam(percent.change.DOC ~ Treatment +s(HIX, by= Treatment), data=photo.df, method="REML", select= T, subset= Time.point=="T1")
+
+m2.hix.photo=gam(percent.change.DOC ~ Treatment +s(HIX), data=photo.df, method="REML", select= T, subset= Time.point=="T1")
+
+m3.hix.photo=gam(percent.change.DOC ~ s(HIX), data=photo.df, method="REML", select= T, subset= Time.point=="T1")
+
+AIC(m1.hix.photo, m2.hix.photo, m3.hix.photo)
+microbe.AIC
+# global smooth
+  plot_smooths(
+  model = m2.hix.photo,
+  series = HIX,
+  comparison = Treatment
+) + 
+  geom_point(data=photo.df[(photo.df$Time.point=="T1"),], 
+             aes(x=HIX, y=percent.change.DOC, color=Treatment)) +
+   scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ggtitle("UV-only") +
+   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab("Change DOC (%)") +
+  xlab("HIX") +
+  Fig.formatting
+ 
+
+###Decomposition across HIX for microbes
+m1.hix.microbes=gam(percent.change.DOC ~ Treatment +s(HIX, by= Treatment), data=microbe.df, method="REML", select= T, subset= Time.point=="T1")
+
+m2.hix.microbes=gam(percent.change.DOC ~ Treatment +s(HIX), data=microbe.df, method="REML", select= T, subset= Time.point=="T1")
+
+m3.hix.microbes=gam(percent.change.DOC ~ s(HIX), data=microbe.df, method="REML", select= T, subset= Time.point=="T1")
+
+AIC(m1.hix.microbes, m2.hix.microbes, m3.hix.microbes)
+microbe.AIC
+# global smooth
+  plot_smooths(
+  model = m3.hix.microbes,
+  series = HIX
+) + 
+  geom_point(data=microbe.df[(microbe.df$Time.point=="T1"),], 
+             aes(x=HIX, y=percent.change.DOC, color=Treatment)) +
+   scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ggtitle("microbes-only") +
+   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab("Change DOC (%)") +
+  xlab("HIX") +
+  Fig.formatting
+  
+  ###Decomposition across HIX for microbes
+m1.hix.total=gam(percent.change.DOC ~ Treatment +s(HIX, by= Treatment), data=total.df, method="REML", select= T, subset= Time.point=="T1")
+
+m2.hix.total=gam(percent.change.DOC ~ Treatment +s(HIX), data=total.df, method="REML", select= T, subset= Time.point=="T1")
+
+m3.hix.total=gam(percent.change.DOC ~ s(HIX), data=total.df, method="REML", select= T, subset= Time.point=="T1")
+
+AIC(m1.hix.total, m2.hix.total, m3.hix.total)
+microbe.AIC
+# global smooth
+  plot_smooths(
+  model = m3.hix.total,
+  series = HIX
+) + 
+  geom_point(data=total.df[(total.df$Time.point=="T1"),], 
+             aes(x=HIX, y=percent.change.DOC, color=Treatment)) +
+   scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ggtitle("UV and microbes") +
+   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab("Change DOC (%)") +
+  xlab("HIX") +
+  Fig.formatting
+ 
+ 
+
+```
+
+
+% change DOC across Sr (relate composition with decomposition)
+```{r}
+###Decomposition across Sr for photo
+m1.sr.photo=gam(percent.change.DOC ~ Treatment +s(Spectral.slope, by= Treatment), data=photo.df, method="REML", select= T, subset= Time.point=="T1")
+
+m2.sr.photo=gam(percent.change.DOC ~ Treatment +s(Spectral.slope), data=photo.df, method="REML", select= T, subset= Time.point=="T1")
+
+m3.sr.photo=gam(percent.change.DOC ~ s(Spectral.slope), data=photo.df, method="REML", select= T, subset= Time.point=="T1")
+
+AIC(m1.sr.photo, m2.sr.photo, m3.sr.photo)
+microbe.AIC
+# global smooth
+  plot_smooths(
+  model = m3.sr.photo,
+  series = Spectral.slope
+) + 
+  geom_point(data=photo.df[(photo.df$Time.point=="T1"),], 
+             aes(x=Spectral.slope, y=percent.change.DOC, color=Treatment)) +
+   scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ggtitle("UV-only") +
+   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab("Change DOC (%)") +
+  xlab("Sr") +
+  Fig.formatting
+ 
+
+###Decomposition across Sr for microbes
+m1.sr.microbes=gam(percent.change.DOC ~ Treatment +s(Spectral.slope, by= Treatment), data=microbe.df, method="REML", select= T, subset= Time.point=="T1")
+
+m2.sr.microbes=gam(percent.change.DOC ~ Treatment +s(Spectral.slope), data=microbe.df, method="REML", select= T, subset= Time.point=="T1")
+
+m3.sr.microbes=gam(percent.change.DOC ~ s(Spectral.slope), data=microbe.df, method="REML", select= T, subset= Time.point=="T1")
+
+AIC(m1.sr.microbes, m2.sr.microbes, m3.sr.microbes)
+microbe.AIC
+# global smooth
+  plot_smooths(
+  model = m3.sr.microbes,
+  series= Spectral.slope
+) + 
+  geom_point(data=microbe.df[(microbe.df$Time.point=="T1"),], 
+             aes(x=Spectral.slope, y=percent.change.DOC, color=Treatment)) +
+   scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ggtitle("microbes-only") +
+   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab("Change DOC (%)") +
+  xlab("Sr") +
+  Fig.formatting
+  
+  ###Decomposition across Sr for microbes
+m1.sr.total=gam(percent.change.DOC ~ Treatment +s(Spectral.slope, by= Treatment), data=total.df, method="REML", select= T, subset= Time.point=="T1")
+
+m2.sr.total=gam(percent.change.DOC ~ Treatment +s(Spectral.slope), data=total.df, method="REML", select= T, subset= Time.point=="T1")
+
+m3.sr.total=gam(percent.change.DOC ~ s(Spectral.slope), data=total.df, method="REML", select= T, subset= Time.point=="T1")
+
+AIC(m1.sr.total, m2.sr.total, m3.sr.total)
+microbe.AIC
+# global smooth
+  plot_smooths(
+  model = m3.sr.total,
+  series = Spectral.slope
+) + 
+  geom_point(data=total.df[(total.df$Time.point=="T1"),], 
+             aes(x=Spectral.slope, y=percent.change.DOC, color=Treatment)) +
+   scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ggtitle("UV and microbes") +
+   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab("Change DOC (%)") +
+  xlab("Sr") +
+  Fig.formatting
+ 
+ 
+
+```
+
+
+
+
 
 
 Sage and Willow Decomposition Analysis
