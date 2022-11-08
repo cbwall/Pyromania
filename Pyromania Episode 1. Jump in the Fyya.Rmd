@@ -1,0 +1,3583 @@
+---
+title: "Pyromania"
+author: "C Wall, C Spiegel, J Shurin"
+date: "10/27/2022"
+output:
+  html_document:
+    code_folding: hide
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+---
+
+## Project overview
+The goal of the Pyromania project is to test how terrestrial subsides (plant biomass loading) and burning influence aquatic productivity, trophic transfer, and water quality/chemistry. We used a manipulative experiment to assess a range of plant material quantities (0-400g/tank) and fire treatment (burned vs unburned material) and the non-linearity of these effects on aquatic systems through 4 time-point samplings. We used 400L aquatic mesocosms and ran the experiment for ~90d in 2021-2022.  
+
+<center>  
+  
+![**Figure 1. Pyromania experimental setup**](output/tanks.jpg){width=50%}
+  
+</center>  
+  
+  
+**DATA SETS**  
+This data set is among 3 to be generated for the project and focuses on:  
+
+(1) **dissolved organic carbon** (DOC) and  
+(2) **total dissolved nitrogen (TDN)** concentrations  
+(3) **net ecosystem productivity and respiration** (NEP, NER) using whole mesocosm dissolved oxygen (O2) measurements  
+(4) **burning effects on donor plant material** using elemental analysis  
+(5) **greenhouse gas emissions** (methane (CH4), carbon dioxide (CO2)) from mesocosms    
+(6) **trophic transfer** using 15N-labeled sage plants to trace N from the plants into plankton.    
+
+```{r setup chunk, setup, include = FALSE, cache=FALSE, message=FALSE, warning=FALSE}
+if (!require('knitr')) install.packages('knitr'); library('knitr')
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, fig.align='center')
+
+
+######### load in packages and set global settings
+
+
+# load packages
+if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
+
+# use pacman to load all the packages you are missing!
+pacman::p_load('knitr', 'lme4', 'lmerTest', 'tidyverse', 'magrittr', 'effects', 'plyr', 'dplyr', 'plotrix', 'car',"gridExtra", "cowplot", "tools", "mgcv", "gratia", "MASS", "stats", "tidymv", "sjstats", "coin", "emmeans")
+
+Fig.formatting<-(theme_classic()) +
+  theme(text=element_text(size=10),
+        axis.line=element_blank(),
+        legend.text.align = 0,
+        legend.text=element_text(size=10),
+        #legend.title = element_blank(),
+        panel.border = element_rect(fill=NA, colour = "black", size=1),
+        aspect.ratio=1, 
+        axis.ticks.length=unit(0.25, "cm"),
+        axis.text.y=element_text(
+          margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=10), 
+        axis.text.x=element_text(
+          margin=unit(c(0.5, 0.5, 0.5, 0.5), "cm"), colour="black", size=8)) +
+  theme(legend.key.size = unit(0.4, "cm")) +
+  theme(aspect.ratio=1.3) +
+  theme(panel.spacing=unit(c(0, 0, 0, 0), "cm"))
+
+
+```
+  
+**General notes on GAM analyses**  
+We fit the *generalized additive models (GAMs)* via restricted maximum likelihood (REML) to give stable results with the smoothing parameter `(sp)` to determine the non-linear relationship between response variables and plant-biomass loading (x-axis). We use automatic smoothing with `k` value generated automatically from the models, which will set the line 'wiggliness'. Too low and the relationship becomes linear; too high, and the wiggliness goes haywire.  
+  
+When using the non-linear smoothing, this is the `s(x)`. When the variable is inside the smooth function, this accounts for the nonlinear shape. We do not use *additive* non-linear smoothing, which is when two smoothers together, as `s(x1) + s(x2)`, instead we use factor-smooth interaction (*detailed below*). In addition, we use Treatment (and occasionally plankton size fractions, or *Type*) as predictors outside of the smooth terms `s(x1)`; this allows for linearity. Continuous variables are rarely linear in GAMs, however, setting categorical variables as linear predictors is more common.
+
+Factor-smooth interactions are written as `s(x1 by = fac)`. This sets different smoothers for different variables of "fac". Usually, the different smoothers are combined with a varying intercept in case the different categories are different in means and slopes, this would be by adding the `fac + s(x1 by = fac)`, where the `+fac` allows for a different slope. Similarly, in the absence of `by = fac`, the smoother is considered a global smoother `s(x1)`, fitting a single line to all the data. If a global smoother is combined with a factor term, then this is akin to varying the intercept but keeping the same slope: `fac + s(x1)`.  
+  
+The `EDF - effective degrees of freedom` equate with wiggliness, where edf =1 is a straight line, and higher edfs as more wiggly. GAM smoother significance is described as not being able to draw a horizontal line through the data. Finally, it is also advised to check model concurvity, which is the collinearity with models from 0-1.
+
+### DOC  
+import and do a loop to clean up all files and make stacked data in single df
+```{r DOC import, results='hide'}
+detach("package:dplyr", unload = TRUE)
+library(dplyr)
+
+## import treatment IDs
+IDs<-read.csv("data/treatment.IDs.csv")
+
+##### grab files in a list
+Total.DOC.files <- list.files(path="data/DOC.TN", pattern = "csv$", full.names = T)
+
+##### what are the file names, sans extensions using package 'tools'
+file.names<-file_path_sans_ext(list.files(path="data/DOC.TN", pattern = "csv$", full.names = F))
+############ formatting all data in for loop
+  for(i in 1:length(Total.DOC.files))
+    {
+  data<-read.csv(Total.DOC.files[i], sep=",")
+  data<-data[,c(1,3,4)] # removed columns we don't need
+  data$File<-Total.DOC.files[i]
+  colnames(data)<-c("Tank", "DOC..mg.L", "TN..mg.L", "File")
+  data$Tank<- IDs$Tank
+  data$Tank<-as.numeric(as.character(data$Tank)) # make the column of samples all numeric
+  data <- data[!is.na(as.numeric(as.character(data$Tank))),] # remove all rows that aren't numeric/tanks
+  data$Treatment<-IDs$Treatment
+  data$plant.mass..g<-IDs$plant.mass..g
+  make.names(assign(paste(file.names[i], sep=""), data)) # make the file name the name of new df for loop df
+  }
+########## this is the end of the loop
+
+#see all dfs you've made, the above will be df matching their file names
+# ls() 
+
+#Combine files from loop to single df
+DOC.df<-rbind(DOC_T0, DOC_T1, DOC_T2, DOC_T3, DOC_T4)
+
+DOC.df$File <- sapply(strsplit(DOC.df$File, "/"), `[`, 3) # extract sample names
+
+# alternative way to code the above
+#give the 10th-24th character of the file name, removing the rest
+#DOC.df$File<-substr(DOC.df$File, 13, 27) 
+
+#alternatively
+# remove the 9 letters ('^.) at start 
+# remove the 4 letters (.$') at end
+#DOC.df$File<-gsub('^.........|....$', '', DOC.df$File) 
+
+# if equals DOC_T0_11052021 then, T0, if not then T1
+DOC.df$Time.point<- as.factor(ifelse(DOC.df$File=="DOC_T0.csv", "T0",
+         ifelse (DOC.df$File=="DOC_T1.csv", "T1",
+           ifelse (DOC.df$File=="DOC_T2.csv", "T2", 
+                   ifelse(DOC.df$File=="DOC_T3.csv", "T3", "T4")))))
+
+#rearrange
+DOC.df<- DOC.df %>% 
+  select(File, Time.point, Treatment, Tank, plant.mass..g, DOC..mg.L, TN..mg.L) 
+
+DOC.df$Treatment<-as.factor(DOC.df$Treatment)
+```
+
+```{r DOC analysis and individual plots, results='hide', fig.show='hide'}
+
+######## T0 model
+m1.DOC.T0<-gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T0", data = DOC.df, method = "REML")
+
+m2.DOC.T0<-gam(DOC..mg.L ~  Treatment + s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
+
+m3.DOC.T0<-gam(DOC..mg.L ~  s(plant.mass..g), subset = Time.point=="T0", data = DOC.df, method = "REML")
+
+T0.DOC.AIC<-AIC(m1.DOC.T0, m2.DOC.T0, m3.DOC.T0)
+# best is smoother solo
+
+summary(m3.DOC.T0)
+anova.gam(m3.DOC.T0)
+gam.check(m3.DOC.T0, rep=1000)
+draw(m3.DOC.T0)
+concrvity(m3.DOC.T0)
+par(mfrow = c(2, 2))
+plot(m3.DOC.T0, all.terms = TRUE, page=1)
+
+# model predictions
+DOC.diff.T0<-plot_difference(
+  m1.DOC.T0,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+DOC.T0.mod.plot<-
+  plot_smooths(
+  model = m3.DOC.T0,
+  series = plant.mass..g,
+) + 
+  geom_point(data=DOC.df[(DOC.df$Time.point=="T0"),], 
+             aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 5)) +
+  ggtitle("Day-0") +
+  ylab("DOC (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+######## T1 model
+m1.DOC.T1<-gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = DOC.df, method = "REML")
+
+m2.DOC.T1<-gam(DOC..mg.L ~  Treatment + s(plant.mass..g), subset = Time.point=="T1", data = DOC.df, method = "REML")
+
+m3.DOC.T1<-gam(DOC..mg.L ~  s(plant.mass..g), subset = Time.point=="T1", data = DOC.df, method = "REML")
+
+T1.DOC.AIC<-AIC(m1.DOC.T1, m2.DOC.T1, m3.DOC.T1)
+# best is smooth by factor
+
+summary(m1.DOC.T1)
+anova.gam(m1.DOC.T1)
+gam.check(m1.DOC.T1, rep=1000)
+draw(m1.DOC.T1)
+concrvity(m1.DOC.T1)
+par(mfrow = c(2, 2))
+plot(m1.DOC.T1, all.terms = TRUE, page=1)
+
+# model predictions
+DOC.diff.T1<-plot_difference(
+  m1.DOC.T1,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+DOC.T1.mod.plot<-
+  plot_smooths(
+  model = m1.DOC.T1,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=DOC.df[(DOC.df$Time.point=="T1"),], 
+             aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Day-10") +
+  ylab("DOC (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+# effect of treatment, smoothing significant across both treatments
+# DOC higher in  unburned, relative to burned
+
+
+########## T2
+m1.DOC.T2<-gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T2", data = DOC.df, method = "REML")
+
+m2.DOC.T2<-gam(DOC..mg.L ~  Treatment + s(plant.mass..g), subset = Time.point=="T2", data = DOC.df, method = "REML")
+
+m3.DOC.T2<-gam(DOC..mg.L ~  s(plant.mass..g), subset = Time.point=="T2", data = DOC.df, method = "REML")
+
+T2.DOC.AIC<-AIC(m1.DOC.T2, m2.DOC.T2, m3.DOC.T2)
+
+# best is smooth by factor
+
+summary(m1.DOC.T2)
+anova.gam(m1.DOC.T2)
+gam.check(m1.DOC.T2, rep=1000)
+draw(m1.DOC.T2)
+concrvity(m1.DOC.T2)
+par(mfrow = c(2, 2))
+plot(m1.DOC.T2, all.terms = TRUE, page=1)
+
+# model predictions
+DOC.diff.T2<-plot_difference(
+  m1.DOC.T2,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+DOC.T2.mod.plot<-
+  plot_smooths(
+  model = m1.DOC.T2,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=DOC.df[(DOC.df$Time.point=="T2"),], 
+             aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Day-31") +
+  ylab("DOC (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+# NO effect of treatment, smoothing significant across both treatments
+# DOC equivalent in burned and unburned 
+# DOC more variable/wonky across gradient in burned
+
+
+########## T3
+m1.DOC.T3<-gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T3", data = DOC.df, method = "REML")
+
+m2.DOC.T3<-gam(DOC..mg.L ~  Treatment + s(plant.mass..g), subset = Time.point=="T3", data = DOC.df, method = "REML")
+
+m3.DOC.T3<-gam(DOC..mg.L ~  s(plant.mass..g), subset = Time.point=="T3", data = DOC.df, method = "REML")
+
+T3.DOC.AIC<-AIC(m1.DOC.T3, m2.DOC.T3, m3.DOC.T3)
+# best by factor smooth
+
+summary(m1.DOC.T3)
+anova.gam(m1.DOC.T3)
+gam.check(m1.DOC.T3, rep=1000)
+draw(m1.DOC.T3)
+concrvity(m1.DOC.T3)
+par(mfrow = c(2, 2))
+plot(m1.DOC.T3, all.terms = TRUE, page=1)
+
+# model predictions
+DOC.diff.T3<-plot_difference(
+  m1.DOC.T3,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+DOC.T3.mod.plot<-
+  plot_smooths(
+  model = m1.DOC.T3,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=DOC.df[(DOC.df$Time.point=="T3"),], 
+             aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Day-59") +
+  ylab("DOC (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+# effect of treatment, smoothing significant across both treatments
+# DOC higher in  burned vs. unburned
+
+
+########## T4
+m1.DOC.T4<-gam(DOC..mg.L ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T4", data = DOC.df, method = "REML")
+
+m2.DOC.T4<-gam(DOC..mg.L ~  Treatment + s(plant.mass..g), subset = Time.point=="T4", data = DOC.df, method = "REML")
+
+m3.DOC.T4<-gam(DOC..mg.L ~  s(plant.mass..g), subset = Time.point=="T4", data = DOC.df, method = "REML")
+
+T4.DOC.AIC<-AIC(m1.DOC.T4, m2.DOC.T4, m3.DOC.T4)
+
+# best is global
+summary(m3.DOC.T4)
+anova.gam(m3.DOC.T4)
+gam.check(m3.DOC.T4, rep=1000)
+draw(m3.DOC.T4)
+concrvity(m3.DOC.T4)
+par(mfrow = c(2, 2))
+plot(m3.DOC.T4, all.terms = TRUE, page=1)
+
+# model predictions
+DOC.diff.T4<-plot_difference(
+  m1.DOC.T4,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+DOC.T4.mod.plot<-
+  plot_smooths(
+  model = m3.DOC.T4,
+  series = plant.mass..g
+) + 
+  geom_point(data=DOC.df[(DOC.df$Time.point=="T4"),], 
+             aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(0, 60)) +
+  ggtitle("Day-89") +
+  ylab("DOC (mg/L)") +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+DOC.T4.mod.plot 
+
+# no effect of treatment, smoothing significant across both treatments
+# DOC equivalent in  burned and unburned
+
+
+mod.rep<-rep(c("~Treatment + s(plant.mass..g, by= Treatment)", 
+              "~Treatment + s(plant.mass..g)", 
+              "~s(plant.mass..g)"), times=5)
+
+mod.column<- data.frame(mod.rep)
+
+AIC.DOC<-bind_rows(T0.DOC.AIC, T1.DOC.AIC, T2.DOC.AIC, T3.DOC.AIC, T4.DOC.AIC)
+AIC.DOC.mod<-cbind(mod.column, AIC.DOC)
+
+write.csv(AIC.DOC.mod, "output/AIC models/AIC.DOC.csv")
+```
+  
+#### DOC tables
+**Table: Results for DOC Time-0**
+```{r TO DOC}
+anova.gam(m3.DOC.T0)
+```
+  
+**Table: Results for DOC Time-1**
+```{r T1 DOC}
+anova.gam(m1.DOC.T2)
+```
+
+**Table: Results for DOC Time-2**
+```{r T2 DOC}
+anova.gam(m1.DOC.T2)
+```
+
+**Table: Results for DOC Time-3**
+```{r T3 DOC}
+anova.gam(m1.DOC.T3)
+```
+
+**Table: Results for DOC Time-4**
+```{r T4 DOC}
+anova.gam(m3.DOC.T4)
+```
+
+#### DOC figures
+Compile raw plots and model-diff plots for final figures.  
+```{r DOC all figures}
+# Time 0 if we want it
+# DOC.T0.mod.plot
+
+###### compile the plots with effect plots
+
+extract.legend <- get_legend(
+  # create some space to the left of the legend
+  DOC.T1.mod.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+
+DOC.alltimes<-plot_grid(
+  DOC.T1.mod.plot+ theme(legend.position = "none"),
+  DOC.T2.mod.plot+ theme(legend.position = "none"),
+  DOC.T3.mod.plot+ theme(legend.position = "none"),
+  DOC.T4.mod.plot+ theme(legend.position = "none"), extract.legend,
+  rel_widths = c(8,8,8,8,3), ncol=5)
+ggsave("figures/DOC.alltimes.mod.pdf", height=4, width=12)
+
+DOC.alltimes
+```
+  
+Model differences between the two factor-smoothers
+```{r DOC mod diffs}
+DOC.mod.diffs<-plot_grid(
+  DOC.diff.T1+ theme(legend.position = "none")+ ggtitle("DOC - Day-10"),
+  DOC.diff.T2+ theme(legend.position = "none")+ ggtitle("Day-31"),
+  DOC.diff.T3+ theme(legend.position = "none")+ ggtitle("Day-59"),
+  DOC.diff.T4+ theme(legend.position = "none")+ ggtitle("Day-89"),
+  rel_widths = c(8,8,8,8), ncol=4)
+ggsave("figures/DOC.mod.diffs.pdf", height=4, width=12)
+
+DOC.mod.diffs
+```
+
+
+### Total N
+Total N analysis and plots, running models and making model-diff plots
+```{r TN analysis and individual plots, results='hide', fig.show='hide'}
+TN.df<-DOC.df
+
+######## T0 model
+m1.TN.T0<-gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
+              subset = Time.point=="T0", data = TN.df, method = "REML")
+
+m2.TN.T0<-gam(TN..mg.L ~ Treatment + s(plant.mass..g), 
+              subset = Time.point=="T0", data = TN.df, method = "REML")
+
+m3.TN.T0<-gam(TN..mg.L ~ s(plant.mass..g), 
+              subset = Time.point=="T0", data = TN.df, method = "REML")
+
+T0.TN.AIC<-AIC(m1.TN.T0, m2.TN.T0, m3.TN.T0)
+# best smooth by factor
+
+summary(m1.TN.T0)
+anova.gam(m1.TN.T0)
+gam.check(m1.TN.T0, rep=1000)
+draw(m1.TN.T0)
+concrvity(m1.TN.T0)
+par(mfrow = c(2, 2))
+plot(m1.TN.T0, all.terms = TRUE, page=1)
+
+# model predictions
+TN.diff.T0<-plot_difference(
+  m1.TN.T0,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+## plot for the model output on rawdata
+TN.T0.mod.plot<-
+  plot_smooths(
+  model = m1.TN.T0,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=TN.df[(TN.df$Time.point=="T0"),], 
+             aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +  
+  coord_cartesian(ylim=c(0, 2)) +
+  ggtitle("Day-0") +
+  ylab("TN (mg/L)")  +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+# no treatment effect, compare to simplified model (p=0.901)
+
+######## T1 model
+m1.TN.T1<-gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
+              subset = Time.point=="T1", data = TN.df, method = "REML")
+
+m2.TN.T1<-gam(TN..mg.L ~ Treatment + s(plant.mass..g), 
+              subset = Time.point=="T1", data = TN.df, method = "REML")
+
+m3.TN.T1<-gam(TN..mg.L ~ s(plant.mass..g), 
+              subset = Time.point=="T1", data = TN.df, method = "REML")
+
+T1.TN.AIC<-AIC(m1.TN.T1, m2.TN.T1, m3.TN.T1)
+#best global only
+
+summary(m3.TN.T1)
+anova.gam(m3.TN.T1)
+gam.check(m3.TN.T1, rep=1000)
+draw(m3.TN.T1)
+concrvity(m3.TN.T1)
+par(mfrow = c(2, 2))
+plot(m3.TN.T1, all.terms = TRUE, page=1)
+
+# model predictions
+TN.diff.T1<-plot_difference(
+  m1.TN.T1,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+## plot for the model output on rawdata
+TN.T1.mod.plot<-
+  plot_smooths(
+  model = m3.TN.T1,
+  series = plant.mass..g
+) + 
+  geom_point(data=TN.df[(TN.df$Time.point=="T1"),], 
+             aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +  
+  coord_cartesian(ylim=c(0, 2)) +
+  ggtitle("Day-10") +
+  ylab("TN (mg/L)")  +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+# TN smoother significant for unburned but not burned (p=0.007)
+
+
+######## T2 model
+m1.TN.T2<-gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
+              subset = Time.point=="T2", data = TN.df, method = "REML")
+
+m2.TN.T2<-gam(TN..mg.L ~ Treatment + s(plant.mass..g), 
+              subset = Time.point=="T2", data = TN.df, method = "REML")
+
+m3.TN.T2<-gam(TN..mg.L ~ s(plant.mass..g), 
+              subset = Time.point=="T2", data = TN.df, method = "REML")
+
+T2.TN.AIC<-AIC(m1.TN.T2, m2.TN.T2, m3.TN.T2)
+#best global with treatment term
+
+summary(m2.TN.T2)
+anova.gam(m2.TN.T2)
+gam.check(m2.TN.T2, rep=1000)
+draw(m2.TN.T2)
+concrvity(m2.TN.T2)
+par(mfrow = c(2, 2))
+plot(m2.TN.T2, all.terms = TRUE, page=1)
+
+# model predictions
+TN.diff.T2<-plot_difference(
+  m1.TN.T2,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+## plot for the model output on rawdata
+TN.T2.mod.plot<-
+  plot_smooths(
+  model = m2.TN.T2,
+  series = plant.mass..g,
+  comparison=Treatment
+) + 
+  geom_point(data=TN.df[(TN.df$Time.point=="T2"),], 
+             aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
+  geom_line(aes(fill=Treatment, linetype=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +  
+  coord_cartesian(ylim=c(0, 2)) +
+  ggtitle("Day-31") +
+  ylab("TN (mg/L)")  +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+# Near treatment effect p=0.053, higher TN in unburned
+# smoother signif: 0.042
+
+
+######## T3 model
+m1.TN.T3<-gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
+              subset = Time.point=="T3", data = TN.df, method = "REML")
+
+m2.TN.T3<-gam(TN..mg.L ~ Treatment + s(plant.mass..g), 
+              subset = Time.point=="T3", data = TN.df, method = "REML")
+
+m3.TN.T3<-gam(TN..mg.L ~ s(plant.mass..g), 
+              subset = Time.point=="T3", data = TN.df, method = "REML")
+
+T3.TN.AIC<-AIC(m1.TN.T3, m2.TN.T3, m3.TN.T3)
+#best with smooth by factor term
+
+summary(m1.TN.T3)
+anova.gam(m1.TN.T3)
+gam.check(m1.TN.T3, rep=1000)
+draw(m1.TN.T3)
+concrvity(m1.TN.T3)
+par(mfrow = c(2, 2))
+plot(m1.TN.T3, all.terms = TRUE, page=1)
+
+# model predictions
+TN.diff.T3<-plot_difference(
+  m1.TN.T3,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+## plot for the model output on rawdata
+TN.T3.mod.plot<-
+  plot_smooths(
+  model = m1.TN.T3,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=TN.df[(TN.df$Time.point=="T3"),], 
+             aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +  
+  coord_cartesian(ylim=c(0, 2)) +
+  ggtitle("Day-59") +
+  ylab("TN (mg/L)")  +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+# Near treatment effect p=0.075, trend for higher TN in burned
+# smoother signif: at <0.001 for both
+
+
+######## T4 model
+m1.TN.T4<-gam(TN..mg.L ~ Treatment + s(plant.mass..g, by=Treatment), 
+              subset = Time.point=="T4", data = TN.df, method = "REML")
+
+m2.TN.T4<-gam(TN..mg.L ~ Treatment + s(plant.mass..g), 
+              subset = Time.point=="T4", data = TN.df, method = "REML")
+
+m3.TN.T4<-gam(TN..mg.L ~ s(plant.mass..g), 
+              subset = Time.point=="T4", data = TN.df, method = "REML")
+
+T4.TN.AIC<-AIC(m1.TN.T4, m2.TN.T4, m3.TN.T4)
+#best  with smooth by factor term
+
+summary(m1.TN.T4)
+anova.gam(m1.TN.T4)
+gam.check(m1.TN.T4, rep=1000)
+draw(m1.TN.T4)
+concrvity(m1.TN.T4)
+par(mfrow = c(2, 2))
+plot(m1.TN.T4, all.terms = TRUE, page=1)
+
+# model predictions
+TN.diff.T4<-plot_difference(
+  m1.TN.T4,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+## plot for the model output on rawdata
+TN.T4.mod.plot<-
+  plot_smooths(
+  model = m1.TN.T4,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=TN.df[(TN.df$Time.point=="T4"),], 
+             aes(x=plant.mass..g, y=TN..mg.L, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +  
+  coord_cartesian(ylim=c(0, 2)) +
+  ggtitle("Day-89") +
+  ylab("TN (mg/L)")  +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+# effect of treatment (higher TN in the burned) (p=0.020)
+# significant smoother effect for burned treatment only (p=0.032)
+
+AIC.TN<-bind_rows(T0.TN.AIC, T1.TN.AIC, T2.TN.AIC, T3.TN.AIC, T4.TN.AIC)
+AIC.TN.mod<-cbind(mod.column, AIC.TN)
+write.csv(AIC.TN.mod, "output/AIC models/AIC.TN.mod.csv")
+
+
+```
+
+#### TDN tables  
+**Results for TDN Time-0**
+```{r TO TDN}
+anova.gam(m1.TN.T0)
+```
+  
+**Table: Results for TDN Time-1**
+```{r T1 TDN}
+anova.gam(m3.TN.T1)
+```
+
+**Table: Results for TDN Time-2**
+```{r T2 TDN}
+anova.gam(m2.TN.T2)
+```
+
+**Table: Results for TDN Time-3**
+```{r T3 TDN}
+anova.gam(m1.TN.T3)
+```
+
+**Table: Results for TDN Time-4**
+```{r T4 TDN}
+anova.gam(m1.TN.T4)
+```
+
+#### Nitrogen figures  
+Compile raw plots and model-diff plots for final figures. 
+```{r TN plots compiled}
+###### compile the plots with effect plots
+
+TN.mod.alltimes<-plot_grid(
+  TN.T0.mod.plot+ theme(legend.position = "none"), 
+  TN.T1.mod.plot+ theme(legend.position = "none"),
+  TN.T2.mod.plot+ theme(legend.position = "none"),
+  TN.T3.mod.plot+ theme(legend.position = "none"),
+  TN.T4.mod.plot+ theme(legend.position = "none"), extract.legend,
+  rel_widths = c(8,8,8,8,8,3), ncol=6)
+ggsave("figures/TN.mods.plots.pdf", height=4, width=13)
+
+TN.mod.alltimes
+```
+  
+Model differences between the two factor-smoothers
+```{r TN modd diff plots compiled}
+TN.mod.diffs<-plot_grid(
+  TN.diff.T0+ theme(legend.position = "none")+ ggtitle("Day-0"),
+  TN.diff.T1+ theme(legend.position = "none")+ ggtitle("Day-10"),
+  TN.diff.T2+ theme(legend.position = "none")+ ggtitle("Day-31"),
+  TN.diff.T3+ theme(legend.position = "none")+ ggtitle("Day-59"),
+  TN.diff.T4+ theme(legend.position = "none")+ ggtitle("Day-89"),
+  rel_widths = c(8,8,8,8,8,3), ncol=6)
+ggsave("figures/TN.mod.diffs.pdf", height=4, width=13)
+
+TN.mod.diffs
+```
+
+
+### YSI  
+Import YSI data and produce plots of changes in O2% and net ecosystem productivity (NEP) and net ecosystem respiration (NER)  
+```{r YSI organized}
+#load YSI data
+YSI<-read.csv("data/Pyro_YSI.csv")
+
+# fix date
+YSI$Date<-as.character(YSI$Date)
+YSI$Date<-as.POSIXct(YSI$Date, format="%m/%d/%Y")
+YSI$Date<-as.Date(YSI$Date, format="%m/%d/%Y")
+
+
+####### Time 1 change in O2 ################
+
+#separate time points
+YSI.T1<- YSI[(YSI$Time.point=="T1"),]
+
+#calculate NEP for T1
+T1.Prod<-YSI.T1[(YSI.T1$Date == "2021-11-15"),] # dawn and dusk for 12h period
+T1.Dawn1<-T1.Prod[(T1.Prod$Dawn..Dusk == "dawn"),] # dawn-1 measurements
+T1.Dusk<-T1.Prod[(T1.Prod$Dawn..Dusk == "dusk"),] # dusk measurements
+
+T1.Dawn2<-YSI.T1[(YSI.T1$Date == "2021-11-16"),] # dawn-2 measurements, following AM
+
+# make new dataframe
+T1.O2<-(T1.Dawn1[,c(2,4:6)]) 
+T1.O2$dawn1<-T1.Dawn1$DO.percent
+T1.O2$dusk1<-T1.Dusk$DO.percent
+T1.O2$dawn2<-T1.Dawn2$DO.percent
+
+# NER = dusk - dawn (PM to AM, O2 change of day 1)
+# NEP = dusk - dawn (PM to AM, O2 change of day 2)
+
+T1.O2<- mutate(T1.O2, 
+                NEP=dusk1 - dawn1,
+                NER=dawn2 - dusk1) 
+
+#sort
+T1.O2<-T1.O2 %>% 
+  arrange(Treatment, plant.mass..g) 
+
+
+################ ################ ################
+####### Time 2 change in O2 ################
+
+#separate time points
+YSI.T2<- YSI[(YSI$Time.point=="T2"),]
+
+#calculate NEP for T2
+T2.Prod<-YSI.T2[(YSI.T2$Date == "2021-12-06"),] # dawn and dusk for 12h period
+T2.Dawn1<-T2.Prod[(T2.Prod$Dawn..Dusk == "dawn"),] # dawn-1 measurements
+T2.Dusk<-T2.Prod[(T2.Prod$Dawn..Dusk == "dusk"),] # dusk measurements
+
+T2.Dawn2<-YSI.T2[(YSI.T2$Date == "2021-12-07"),] # dawn-2 measurements, following AM
+
+# make new dataframe
+T2.O2<-(T2.Dawn1[,c(2,4:6)]) 
+T2.O2$dawn1<-T2.Dawn1$DO.percent
+T2.O2$dusk1<-T2.Dusk$DO.percent
+T2.O2$dawn2<-T2.Dawn2$DO.percent
+
+T2.O2<- mutate(T2.O2, 
+                NEP=dusk1 - dawn1,
+                NER=dawn2 - dusk1) 
+
+#sort
+T2.O2<-T2.O2 %>% 
+  arrange(Treatment, plant.mass..g) 
+
+
+################ ################ ################
+####### Time 3 change in O2 ################
+
+#separate time points
+YSI.T3<- YSI[(YSI$Time.point=="T3"),]
+
+#calculate NEP for T3
+T3.Prod<-YSI.T3[(YSI.T3$Date == "2022-01-03"),] # dawn and dusk for 12h period
+T3.Dawn1<-T3.Prod[(T3.Prod$Dawn..Dusk == "dawn"),] # dawn-1 measurements
+T3.Dusk<-T3.Prod[(T3.Prod$Dawn..Dusk == "dusk"),] # dusk measurements
+
+T3.Dawn2<-YSI.T3[(YSI.T3$Date == "2022-01-04"),] # dawn-2 measurements, following AM
+
+# make new dataframe
+T3.O2<-(T3.Dawn1[,c(2,4:6)]) 
+T3.O2$dawn1<-T3.Dawn1$DO.percent
+T3.O2$dusk1<-T3.Dusk$DO.percent
+T3.O2$dawn2<-T3.Dawn2$DO.percent
+
+T3.O2<- mutate(T3.O2, 
+                NEP=dusk1 - dawn1,
+                NER=dawn2 - dusk1) 
+
+#sort
+T3.O2<-T3.O2 %>% 
+  arrange(Treatment, plant.mass..g) 
+
+################ ################ ################
+####### Time 3 change in O2 ################
+
+#separate time points
+YSI.T4<- YSI[(YSI$Time.point=="T4"),]
+
+#calculate NEP for T4
+T4.Prod<-YSI.T4[(YSI.T4$Date == "2022-02-02"),] # dawn and dusk for 12h period
+T4.Dawn1<-T4.Prod[(T4.Prod$Dawn..Dusk == "dawn"),] # dawn-1 measurements
+T4.Dusk<-T4.Prod[(T4.Prod$Dawn..Dusk == "dusk"),] # dusk measurements
+
+T4.Dawn2<-YSI.T4[(YSI.T4$Date == "2022-02-03"),] # dawn-2 measurements, following AM
+
+# make new dataframe
+T4.O2<-(T4.Dawn1[,c(2,4:6)]) 
+T4.O2$dawn1<-T4.Dawn1$DO.percent
+T4.O2$dusk1<-T4.Dusk$DO.percent
+T4.O2$dawn2<-T4.Dawn2$DO.percent
+
+T4.O2<- mutate(T4.O2, 
+                NEP=dusk1 - dawn1,
+                NER=dawn2 - dusk1) 
+
+#sort
+T4.O2<-T4.O2 %>% 
+  arrange(Treatment, plant.mass..g) 
+
+################ ################ ################
+# combine T1  T2  T3 T4 timepoints
+################ ################ ################
+O2.tanks<-rbind(T1.O2,T2.O2, T3.O2, T4.O2)
+
+cols<-c("Time.point", "Treatment", "Tank") # columns to make factors
+O2.tanks[cols] <- lapply(O2.tanks[cols], factor) # make all these factors
+O2.tanks$plant.mass..g<-as.numeric(O2.tanks$plant.mass..g)
+```
+  
+####DO and O2%  
+TIME POINT 1: Change in O2% from dissolved oxygen  
+```{r Time1 O2, results='hide', fig.show='hide'}
+#########################################################
+<<<<<<< HEAD
+##################################################################
+# total oxygen % plot for the 3 time points (dawn-dusk-dawn)
+
+m1.dawn1.T1<-gam(dawn1 ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = O2.tanks, method = "REML")
+
+m2.dawn1.T1<-gam(dawn1 ~ Treatment + s(plant.mass..g), subset = Time.point=="T1", data = O2.tanks, method = "REML")
+
+m3.dawn1.T1<-gam(dawn1 ~ s(plant.mass..g), subset = Time.point=="T1", data = O2.tanks, method = "REML")
+
+T1.dawn1.AIC<-AIC(m1.dawn1.T1, m2.dawn1.T1, m3.dawn1.T1)
+# global with treatment best
+=======
+############################################################################
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+
+
+# total oxygen % plot for the 3 time points (dawn-dusk-dawn)
+
+<<<<<<< HEAD
+###########  
+#plot for the model output on rawdata
+dawn1.T1.mod.plot<-
+  plot_smooths(
+  model = m2.dawn1.T1,
+  series = plant.mass..g,
+  comparison=Treatment
+) + 
+  geom_point(data=T1.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  geom_line(aes(fill=Treatment, linetype=Treatment)) +
+=======
+T1.AM1<-ggplot(T1.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T1.dawn1")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+<<<<<<< HEAD
+###########  
+#plot for the model output on rawdata
+dusk1.T1.mod.plot<-
+  plot_smooths(
+  model = m2.dusk1.T1,
+  series = plant.mass..g,
+  comparison= Treatment
+) + 
+  geom_point(data=T1.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  geom_line(aes(fill=Treatment, linetype=Treatment)) +
+=======
+T1.PM1<-ggplot(T1.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T1.dusk1")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T1.AM2<-ggplot(T1.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T1.dawn2")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+extract.legend <- get_legend(
+  # create some space to the left of the legend
+  T1.AM1 + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+O2.T1<-plot_grid(
+  T1.AM1+ theme(legend.position = "none"), 
+  T1.PM1+ theme(legend.position = "none"), 
+  T1.AM2+ theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,8,3), ncol=4)
+
+#ggsave("figures/O2.T1.pdf", height=5, width=9)
+
+#################################
+############################################
+# net ecosystem production and respiration
+
+#Time 1 NEP
+NEP.T1<-ggplot(T1.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  coord_cartesian(ylim=c(-20, 50)) +
+  xlab("plant material (g)")+
+  Fig.formatting
+
+<<<<<<< HEAD
+###########  
+#plot for the model output on rawdata
+dawn2.T1.mod.plot<-
+  plot_smooths(
+  model = m2.dawn2.T1,
+  series = plant.mass..g,
+  comparison=Treatment
+) + 
+  geom_point(data=T1.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  geom_line(aes(fill=Treatment, linetype=Treatment)) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  
+  ggtitle("T1.dawn2")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+=======
+#Time 1 NER
+NER.T1<-ggplot(T1.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  coord_cartesian(ylim=c(-40, 10)) +
+  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+  xlab("plant material (g)") +
+  Fig.formatting
+
+
+O2.change.T1<-plot_grid(
+  NEP.T1+ theme(legend.position = "none") + ggtitle("Time 1"), 
+  NER.T1+ theme(legend.position = "none") + ggtitle(""),
+  extract.legend, 
+  rel_widths = c(8,8,3), ncol=3)
+
+#ggsave("figures/O2.change.T1.pdf", height=5, width=8)
+```
+
+Table: Results for Time-1 DO%
+```{r O2 T1 plot}
+O2.T1
+```
+
+
+TIME POINT 2: Change in O2% from dissolved oxygen
+```{r Time2 O2, results='hide', fig.show='hide'}
+############################################################
+##############################################################################
+
+
+# total oxygen % plot for the 3 time points (dawn-dusk-dawn)
+
+T2.AM1<-ggplot(T2.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T2.dawn1")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T2.PM1<-ggplot(T2.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T2.dusk1")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T2.AM2<-ggplot(T2.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T2.dawn2")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+O2.T2<-plot_grid(
+  T2.AM1+ theme(legend.position = "none"), 
+  T2.PM1+ theme(legend.position = "none"),
+  T2.AM2+ theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,8,3), ncol=4)
+
+#ggsave("figures/O2.T2.pdf", height=5, width=9)
+
+
+############################################################
+##############################################################################################
+# net ecosystem production and respiration
+
+#Time 2 NEP
+NEP.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  coord_cartesian(ylim=c(-20, 50)) +
+  ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+#Time 2 NER
+NER.T2<-ggplot(T2.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment),alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  coord_cartesian(ylim=c(-40, 10)) +
+  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+O2.change.T2<-plot_grid(
+  NEP.T2+ theme(legend.position = "none") + ggtitle("Time 2"),
+  NER.T2+ theme(legend.position = "none") + ggtitle(""),
+  extract.legend, 
+  rel_widths = c(8,8,3), ncol=3)
+
+#ggsave("figures/O2.change.T2.pdf", height=5, width=8)
+
+
+```
+
+Table: Results for Time-2 DO%
+```{r O2 T2 plot}
+O2.T2
+```
+
+TIME POINT 3: Change in O2% from dissolved oxygen
+```{r Time3 O2, results='hide', fig.show='hide'}
+############################################################
+##############################################################################
+
+# total oxygen % plot for the 3 time points (dawn-dusk-dawn)
+
+T3.AM1<-ggplot(T3.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T3.dawn1")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T3.PM1<-ggplot(T3.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T3.dusk1")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T3.AM2<-ggplot(T3.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T3.dawn2")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+O2.T3<-plot_grid(
+  T3.AM1+ theme(legend.position = "none"), 
+  T3.PM1+ theme(legend.position = "none"),
+  T3.AM2+ theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,8,3), ncol=4)
+
+#ggsave("figures/O2.T3.pdf", height=5, width=9)
+
+
+############################################################
+##############################################################################################
+# net ecosystem production and respiration
+
+#Time 3 NEP
+NEP.T3<-ggplot(T3.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  coord_cartesian(ylim=c(-20, 50)) +
+  ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+#Time 3 NER
+NER.T3<-ggplot(T3.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment),alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  coord_cartesian(ylim=c(-40, 10)) +
+  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+O2.change.T3<-plot_grid(
+  NEP.T3+ theme(legend.position = "none") + ggtitle("Time 3"),
+  NER.T3+ theme(legend.position = "none") + ggtitle(""),
+  extract.legend, 
+  rel_widths = c(8,8,3), ncol=3)
+
+#ggsave("figures/O2.change.T3.pdf", height=5, width=8)
+
+
+```
+
+Table: Results for Time-3 DO%
+```{r O2 T3 plot, results='hide', fig.show='hide'}
+O2.T3
+```
+
+TIME POINT 4: Change in O2% from dissolved oxygen
+```{r Time4 O2, results='hide', fig.show='hide'}
+############################################################
+##############################################################################
+
+# total oxygen % plot for the 3 time points (dawn-dusk-dawn)
+
+T4.AM1<-ggplot(T4.O2, aes(x=plant.mass..g, y=dawn1, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T4.dawn1")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T4.PM1<-ggplot(T4.O2, aes(x=plant.mass..g, y=dusk1, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T4.dusk1")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+T4.AM2<-ggplot(T4.O2, aes(x=plant.mass..g, y=dawn2, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ggtitle("T4.dawn2")+
+  coord_cartesian(ylim=c(-30, 150)) +
+  ylab(expression(paste("O"[2],"%"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+O2.T4<-plot_grid(
+  T4.AM1+ theme(legend.position = "none"), 
+  T4.PM1+ theme(legend.position = "none"),
+  T4.AM2+ theme(legend.position = "none"),
+  extract.legend, 
+  rel_widths = c(8,8,8,3), ncol=4)
+
+<<<<<<< HEAD
+Table: Results for Time-4 DO%
+```{r O2 T4 plot}
+O2.T4
+```
+
+Combine and export all the O2 data with plot-difference and model AIC tables 
+```{r O2 plots and models, results='hide'}
+#### model differences
+O2.mod.diffs<-plot_grid(
+  dawn1.diff.T1+ theme(legend.position = "none")+ ggtitle("T1-Dawn1"),
+  dusk1.diff.T1+ theme(legend.position = "none")+ ggtitle("Dusk1"),
+  dawn2.diff.T1+ theme(legend.position = "none")+ ggtitle("Dawn2"),
+  
+  dawn1.diff.T2+ theme(legend.position = "none")+ ggtitle("T2-Dawn1"),
+  dusk1.diff.T2+ theme(legend.position = "none")+ ggtitle("Dusk1"),
+  dawn2.diff.T2+ theme(legend.position = "none")+ ggtitle("Dawn2"),
+  
+  dawn1.diff.T3+ theme(legend.position = "none")+ ggtitle("T3-Dawn1"),
+  dusk1.diff.T3+ theme(legend.position = "none")+ ggtitle("Dusk1"),
+  dawn2.diff.T3+ theme(legend.position = "none")+ ggtitle("Dawn2"),
+  
+  dawn1.diff.T4+ theme(legend.position = "none")+ ggtitle("T4-Dawn1"),
+  dusk1.diff.T4+ theme(legend.position = "none")+ ggtitle("Dusk1"),
+  dawn2.diff.T4+ theme(legend.position = "none")+ ggtitle("Dawn2"),
+  rel_widths = c(8,8,8), ncol=3, nrow=4)
+
+ggsave("figures/O2.mod.diffs.pdf", height=10, width=7)
+=======
+#ggsave("figures/O2.T4.pdf", height=5, width=9)
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+
+
+############################################################
+##############################################################################################
+# net ecosystem production and respiration
+
+#Time 4 NEP
+NEP.T4<-ggplot(T4.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment), alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  coord_cartesian(ylim=c(-20, 50)) +
+  ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+#Time 4 NER
+NER.T4<-ggplot(T4.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) + 
+  geom_point() +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_smooth(method=loess, aes(fill=Treatment),alpha=0.1) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  coord_cartesian(ylim=c(-40, 10)) +
+  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  xlab("plant material (g)") +
+  Fig.formatting
+
+O2.change.T4<-plot_grid(
+  NEP.T4+ theme(legend.position = "none") + ggtitle("Time 4"),
+  NER.T4+ theme(legend.position = "none") + ggtitle(""),
+  extract.legend, 
+  rel_widths = c(8,8,3), ncol=3)
+
+#ggsave("figures/O2.change.T4.pdf", height=5, width=8)
+```
+
+#### NEP and NER
+Generate dataframes for NEP and NER change in O2.  Productivity models and plots
+```{r NEP models and individual plots, results='hide', fig.show='hide'}
+####### Time 1
+
+m1.NEP.T1<-gam(NEP ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = O2.tanks, method = "REML")
+
+m2.NEP.T1<-gam(NEP ~ Treatment + s(plant.mass..g), subset = Time.point=="T1", data = O2.tanks, method = "REML")
+
+m3.NEP.T1<-gam(NEP ~ s(plant.mass..g), subset = Time.point=="T1", data = O2.tanks, method = "REML")
+
+T1.NEP.AIC<-AIC(m1.NEP.T1, m2.NEP.T1, m3.NEP.T1)
+# model with plot smooth by factor not different from reduced model, go with smooth by factor
+
+summary(m1.NEP.T1)
+anova.gam(m1.NEP.T1)
+gam.check(m1.NEP.T1, rep=1000)
+draw(m1.NEP.T1)
+concrvity(m1.NEP.T1)
+par(mfrow = c(2, 2))
+plot(m1.NEP.T1, all.terms = TRUE, page=1)
+
+
+#### see this https://cran.r-project.org/web/packages/tidymv/vignettes/plot-smooths.html
+# The difference smooth is difference between the smooths of two conditions (two levels in a factor). 
+# Portions of the difference smooth confidence interval that do not include 0 are shaded in red.
+
+# model predictions
+NEP.diff.T1<-plot_difference(
+  m1.NEP.T1,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+NEP.T1.mod.plot<-
+  plot_smooths(
+  model = m1.NEP.T1,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=T1.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(-20, 50)) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  theme(legend.position = "right") +
+  Fig.formatting
+
+# no treatment effect (p=0.110), smoothers significant (p<0.006)
+
+####### Time 2
+
+m1.NEP.T2<-gam(NEP ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T2", data = O2.tanks, method = "REML")
+
+m2.NEP.T2<-gam(NEP ~ Treatment + s(plant.mass..g), subset = Time.point=="T2", data = O2.tanks, method = "REML")
+
+m3.NEP.T2<-gam(NEP ~ s(plant.mass..g), subset = Time.point=="T2", data = O2.tanks, method = "REML")
+
+T2.NEP.AIC<-AIC(m1.NEP.T2, m2.NEP.T2, m3.NEP.T2)
+# model with plot smooth by factor not different from reduced model, go with smooth by factor
+
+
+summary(m1.NEP.T2)
+anova.gam(m1.NEP.T2)
+gam.check(m1.NEP.T2, rep=1000)
+draw(m1.NEP.T2)
+concrvity(m1.NEP.T2)
+par(mfrow = c(2, 2))
+plot(m1.NEP.T2, all.terms = TRUE, page=1)
+
+## plot for the model output on rawdata
+# model predictions
+NEP.diff.T2<-plot_difference(
+  m1.NEP.T2,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+NEP.T2.mod.plot<-
+  plot_smooths(
+  model = m1.NEP.T2,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=T2.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(-20, 50)) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  theme(legend.position = "right") +
+  Fig.formatting
+
+# treatment effect (p=0.007)
+# smoother significant for burned (p=0.002) but not unburned (p=0.326)
+
+
+####### Time 3
+
+
+m1.NEP.T3<-gam(NEP ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T3", data = O2.tanks, method = "REML")
+
+m2.NEP.T3<-gam(NEP ~ Treatment + s(plant.mass..g), subset = Time.point=="T3", data = O2.tanks, method = "REML")
+
+m3.NEP.T3<-gam(NEP ~ s(plant.mass..g), subset = Time.point=="T3", data = O2.tanks, method = "REML")
+
+T3.NEP.AIC<-AIC(m1.NEP.T3, m2.NEP.T3, m3.NEP.T3)
+# model with plot smooth by factor not different from reduced model, go with smooth by factor
+
+
+summary(m1.NEP.T3)
+anova.gam(m1.NEP.T3)
+gam.check(m1.NEP.T3, rep=1000)
+draw(m1.NEP.T3)
+concrvity(m1.NEP.T3)
+par(mfrow = c(2, 2))
+plot(m1.NEP.T3, all.terms = TRUE, page=1)
+
+# model predictions
+NEP.diff.T3<-plot_difference(
+  m1.NEP.T3,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+#plot for the model output on rawdata
+NEP.T3.mod.plot<-
+  plot_smooths(
+  model = m1.NEP.T3,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=T3.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(-20, 50)) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  theme(legend.position = "right") +
+  Fig.formatting
+
+# treatment effect (p=0.009)
+# smoother significant for burned (p<0.001) but not unburned (p=0.053)
+
+
+####### Time 4
+
+m1.NEP.T4<-gam(NEP ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T4", data = O2.tanks, method = "REML")
+
+m2.NEP.T4<-gam(NEP ~ Treatment + s(plant.mass..g), subset = Time.point=="T4", data = O2.tanks, method = "REML")
+
+m3.NEP.T4<-gam(NEP ~ s(plant.mass..g), subset = Time.point=="T4", data = O2.tanks, method = "REML")
+
+T4.NEP.AIC<-AIC(m1.NEP.T4, m2.NEP.T4, m3.NEP.T4)
+# model with plot smooth by factor not different from reduced model, go with smooth by factor
+
+
+summary(m1.NEP.T4)
+anova.gam(m1.NEP.T4)
+gam.check(m1.NEP.T4, rep=1000)
+draw(m1.NEP.T4)
+concrvity(m1.NEP.T4)
+par(mfrow = c(2, 2))
+plot(m1.NEP.T4, all.terms = TRUE, page=1)
+
+# model predictions
+NEP.diff.T4<-plot_difference(
+  m1.NEP.T4,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+#plot for the model output on rawdata
+NEP.T4.mod.plot<-
+  plot_smooths(
+  model = m1.NEP.T4,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=T4.O2, aes(x=plant.mass..g, y=NEP, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(-20, 50)) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Production (", Delta, "O"[2],"%)"))) +
+  theme(legend.position = "right") +
+  Fig.formatting
+
+# no treatment effect (p=0.118)
+# smoother significant for burned (p=0.020) but not unburned (p=0.327)
+
+mod.rep3<-rep(c("~Treatment + s(plant.mass..g, by= Treatment)", 
+              "~Treatment + s(plant.mass..g)", 
+              "~s(plant.mass..g)"), times=4)
+
+mod.NERNEP.df<- data.frame(mod.rep3)
+
+AIC.NEP<-bind_rows(T1.NEP.AIC, T2.NEP.AIC, T3.NEP.AIC, T4.NEP.AIC)
+AIC.NEP.mod<-cbind(mod.NERNEP.df, AIC.NEP)
+write.csv(AIC.NEP.mod, "output/AIC models/AIC.NEP.mod.csv")
+
+```
+
+**Table: Results for Time-1 NEP**
+```{r NEP T1 table}
+anova.gam(m1.NEP.T1)
+```
+
+**Table: Results for Time-2 NEP**
+```{r NEP T2 table}
+anova.gam(m1.NEP.T2)
+```
+
+**Table: Results for Time-3 NEP**
+```{r NEP T3 table}
+anova.gam(m1.NEP.T3)
+```
+
+**Table: Results for Time-4 NEP**
+```{r NEP T4 table}
+anova.gam(m1.NEP.T4)
+```
+
+  
+Respiration models and individual plots
+```{r NER models and individual plots, results='hide', fig.show='hide'}
+####### Time 1
+m1.NER.T1<-gam(NER ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T1", data = O2.tanks, method = "REML")
+
+m2.NER.T1<-gam(NER ~ Treatment + s(plant.mass..g), subset = Time.point=="T1", data = O2.tanks, method = "REML")
+
+m3.NER.T1<-gam(NER ~ s(plant.mass..g), subset = Time.point=="T1", data = O2.tanks, method = "REML")
+
+T1.NER.AIC<-AIC(m1.NER.T1, m2.NER.T1, m3.NER.T1)
+# model with global best
+
+
+summary(m3.NER.T1)
+anova.gam(m3.NER.T1)
+gam.check(m3.NER.T1, rep=1000)
+draw(m3.NER.T1)
+concrvity(m3.NER.T1)
+par(mfrow = c(2, 2))
+plot(m3.NER.T1, all.terms = TRUE, page=1)
+
+# model predictions
+NER.diff.T1<-plot_difference(
+  m1.NER.T1,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+NER.T1.mod.plot<-
+  plot_smooths(
+  model = m3.NER.T1,
+  series = plant.mass..g,
+) + 
+  geom_point(data=T1.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(-40, 10)) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  theme(legend.position = "right") +
+  Fig.formatting
+
+# no treatment effect (p=0.229), smoothers significant (p<0.001)
+
+####### Time 2
+
+m1.NER.T2<-gam(NER ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T2", data = O2.tanks, method = "REML")
+
+m2.NER.T2<-gam(NER ~ Treatment + s(plant.mass..g), subset = Time.point=="T2", data = O2.tanks, method = "REML")
+
+m3.NER.T2<-gam(NER ~ s(plant.mass..g), subset = Time.point=="T2", data = O2.tanks, method = "REML")
+
+T2.NER.AIC<-AIC(m1.NER.T2, m2.NER.T2, m3.NER.T2)
+# model with global + treatment best
+
+summary(m2.NER.T2)
+anova.gam(m2.NER.T2)
+gam.check(m2.NER.T2, rep=1000)
+draw(m2.NER.T2)
+concrvity(m2.NER.T2)
+par(mfrow = c(2, 2))
+plot(m2.NER.T2, all.terms = TRUE, page=1)
+
+# model predictions
+NER.diff.T2<-plot_difference(
+  m1.NER.T2,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+NER.T2.mod.plot<-
+  plot_smooths(
+  model = m2.NER.T2,
+  series = plant.mass..g, 
+  comparison= Treatment,
+) + 
+  geom_point(data=T2.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  geom_line(aes(fill=Treatment, linetype=Treatment)) +
+  coord_cartesian(ylim=c(-40, 10)) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  theme(legend.position = "right") +
+  Fig.formatting
+
+# slight treatment effect (p=0.085)
+# smoother significant for both burned and unburned (p<0.008)
+
+
+####### Time 3
+m1.NER.T3<-gam(NER ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T3", data = O2.tanks, method = "REML")
+
+m2.NER.T3<-gam(NER ~ Treatment + s(plant.mass..g), subset = Time.point=="T3", data = O2.tanks, method = "REML")
+
+m3.NER.T3<-gam(NER ~ s(plant.mass..g), subset = Time.point=="T3", data = O2.tanks, method = "REML")
+
+T3.NER.AIC<-AIC(m1.NER.T3, m2.NER.T3, m3.NER.T3)
+# model smmoth by factor best
+
+
+summary(m1.NER.T3)
+anova.gam(m1.NER.T3)
+gam.check(m1.NER.T3, rep=1000)
+draw(m1.NER.T3)
+concrvity(m1.NER.T3)
+par(mfrow = c(2, 2))
+plot(m1.NER.T3, all.terms = TRUE, page=1)
+
+# model predictions
+NER.diff.T3<-plot_difference(
+  m1.NER.T3,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+NER.T3.mod.plot<-
+  plot_smooths(
+  model = m1.NER.T3,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=T3.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(-40, 10)) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  theme(legend.position = "right") +
+  Fig.formatting
+
+# treatment effect (p=0.027)
+# smoother significant for burned and unnburned (p<0.001)
+
+
+####### Time 4
+
+m1.NER.T4<-gam(NER ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T4", data = O2.tanks, method = "REML")
+
+m2.NER.T4<-gam(NER ~ Treatment + s(plant.mass..g), subset = Time.point=="T4", data = O2.tanks, method = "REML")
+
+m3.NER.T4<-gam(NER ~ s(plant.mass..g), subset = Time.point=="T4", data = O2.tanks, method = "REML")
+
+T4.NER.AIC<-AIC(m1.NER.T4, m2.NER.T4, m3.NER.T4)
+# model with global + treatment best
+
+
+summary(m1.NER.T4)
+anova.gam(m1.NER.T4)
+gam.check(m1.NER.T4, rep=1000)
+draw(m1.NER.T4)
+concrvity(m1.NER.T4)
+par(mfrow = c(2, 2))
+plot(m1.NER.T4, all.terms = TRUE, page=1)
+
+# model predictions
+NER.diff.T4<-plot_difference(
+  m1.NER.T4,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+NER.T4.mod.plot<-
+  plot_smooths(
+  model = m1.NER.T4,
+  series = plant.mass..g,
+  comparison = Treatment
+) + 
+  geom_point(data=T4.O2, aes(x=plant.mass..g, y=NER, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) + 
+  coord_cartesian(ylim=c(-40, 10)) +
+  geom_hline(yintercept=0, linetype="longdash", color = "gray") +
+  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  theme(legend.position = "right") +
+  Fig.formatting
+
+# no treatment effect (p=0.078)
+# smoother significant for burned (p=0.004) but not unburned (p=0.965)
+
+
+NER.mod.plot<-plot_grid(
+  NER.T1.mod.plot+ theme(legend.position = "none")+ ggtitle("Day-10"),
+  NER.T2.mod.plot+ theme(legend.position = "none")+ ggtitle("Day-31"),
+  NER.T3.mod.plot+ theme(legend.position = "none")+ ggtitle("Day-59"),
+  NER.T4.mod.plot+ theme(legend.position = "none")+ ggtitle("Day-89"), extract.legend,
+  rel_widths = c(8,8,8,8,3), ncol=5)
+
+#ggsave("figures/NER.mod.plot.long.pdf", height=6, width=12)
+
+#### model differences
+NER.mod.diffs<-plot_grid(
+  NER.diff.T1+ theme(legend.position = "none")+ ggtitle("NER-Day-10"),
+  NER.diff.T2+ theme(legend.position = "none")+ ggtitle("Day-31"),
+  NER.diff.T3+ theme(legend.position = "none")+ ggtitle("Day-59"),
+  NER.diff.T4+ theme(legend.position = "none")+ ggtitle("Day-89"),
+  rel_widths = c(8,8,8,8), ncol=4)
+
+#ggsave("figures/NER.mod.diffs.pdf", height=3, width=10)
+
+<<<<<<< HEAD
+AIC.NER<-bind_rows(T1.NER.AIC, T2.NER.AIC, T3.NER.AIC, T4.NER.AIC)
+AIC.NER.mod<-cbind(mod.NERNEP.df, AIC.NER)
+=======
+AIC.NER<-bind_rows(T1.NER.AIC, T2.NER.AIC, T3.NER.AIC)
+AIC.NER.mod<-cbind(mod.column3, AIC.NER)
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+
+write.csv(AIC.NER.mod, "output/AIC models/AIC.NER.mod.csv")
+```
+
+  
+**Table: Results for Time-1 NER**
+```{r}
+anova.gam(m3.NER.T1)
+```
+  
+**Table: Results for Time-2 NER**
+```{r}
+anova.gam(m2.NER.T2)
+```
+  
+**Table: Results for Time-3 NER**
+```{r}
+anova.gam(m1.NER.T3)
+```
+  
+**Table: Results for Time-4 NER**
+```{r}
+anova.gam(m1.NER.T4)
+```
+
+  
+Compiled NEP-NER plots with model fits
+```{r NEP NER model plots}
+NEP.NER.alltimes.long<-plot_grid(
+  NEP.T1.mod.plot+ theme(legend.position = "none"),
+  NEP.T2.mod.plot+ theme(legend.position = "none"),
+  NEP.T3.mod.plot+ theme(legend.position = "none"),
+  NEP.T4.mod.plot+ theme(legend.position = "none"), extract.legend,
+  NER.T1.mod.plot+ theme(legend.position = "none"),
+  NER.T2.mod.plot+ theme(legend.position = "none"),
+  NER.T3.mod.plot+ theme(legend.position = "none"),
+  NER.T4.mod.plot+ theme(legend.position = "none"), extract.legend,
+  rel_widths = c(8,8,8,8,3, 8,8,8,8,3), ncol=5)
+ggsave("figures/NEP.NER.alltimes.long.pdf", height=7, width=12)
+
+NEP.NER.alltimes.long
+```
+
+Model differences between the two factor-smoothers
+```{r NEP NER model diff plots}
+NEP.NER.mod.diffs<-plot_grid(
+  NEP.diff.T1+ theme(legend.position = "none"),
+  NEP.diff.T2+ theme(legend.position = "none"),
+  NEP.diff.T3+ theme(legend.position = "none"),
+  NEP.diff.T4+ theme(legend.position = "none"),
+  NER.diff.T1+ theme(legend.position = "none"),
+  NER.diff.T2+ theme(legend.position = "none"),
+  NER.diff.T3+ theme(legend.position = "none"),
+  NER.diff.T4+ theme(legend.position = "none"),
+  rel_widths = c(8,8,8,8,8,8,8,8), ncol=4)
+ggsave("figures/NEP.NER.mod.diffs.pdf", height=7, width=12)
+
+NEP.NER.mod.diffs
+```
+  
+
+
+### Isotopes  
+Isotopes and C:N for starting materials used in the experiment and plankton fractions sampled at time 1 and time 2.
+
+```{r read in isotope data}
+
+#########  Time 1 and Time 2
+topes<-read.csv("data/Isotopes/Pyro_isotopes.csv")
+topes$C.N <-(topes$Total.C..ug/12)/(topes$Total.N..ug/14) # C mol : N mol
+
+cols<-c("Time.point", "Treatment", "Type", "Tank") # columns to make factors
+topes[cols] <- lapply(topes[cols], factor) # make all these factors
+
+##### make data frames
+# treatment data df
+topes.trt<-topes[(topes$Treatment=="burned" | topes$Treatment=="unburned"),]
+topes.trt<-droplevels(topes.trt)
+
+# control and start plant materials df
+topes.controls<-topes[!(topes$Treatment=="burned" | topes$Treatment=="unburned"),]
+```
+
+Total C vs total N  for plankton at Time1 and Time2. The model here is a linear regression
+```{r isotopes CN}
+############# C vs N plot
+
+#plot for the model output on rawdata
+CvN.mod1.T1<-lm(Total.N..ug~Total.C..ug*Treatment, data=topes.trt[(topes.trt$Time.point=="T1"),])
+
+CvN.mod2.T1<-lm(Total.N..ug~Total.C..ug + Treatment, data=topes.trt[(topes.trt$Time.point=="T1"),])
+
+anova(CvN.mod1.T1,CvN.mod2.T1) # no diff, go with simple model 'CvN.mod2.T1'
+Anova(CvN.mod2.T1, type=2)
+
+CvN.T1.mod.plot<-
+  ggplot(data=topes.trt[(topes.trt$Time.point=="T1"),], 
+             aes(x=Total.C..ug, y=Total.N..ug, 
+                 color=Treatment, # for the points
+                 fill=Treatment, # for the SE
+                 linetype=Treatment)) + #for the regression lines
+  geom_point(aes(shape=Type))+
+  geom_smooth(method = "lm", alpha =0.2, size=0.5)+ 
+  scale_color_manual(values = c("brown1", "mediumseagreen"))+
+  ggtitle("Time-1") + 
+  scale_shape_manual(name="Plankton", values = c(17, 16), 
+                     labels = c(expression(paste("> 63"~mu,"m")), 
+                                expression(paste("< 63"~mu,"m")))) +
+  ylim(c(0,600)) +
+  xlim(c(0,3200)) +
+  ylab("Total N (ug)") +
+  xlab("Total C (ug)") +
+  Fig.formatting 
+
+
+#############################
+### Time 2 C vs. N
+#plot for the model output on rawdata
+CvN.mod1.T2<-lm(Total.N..ug~Total.C..ug*Treatment, data=topes.trt[(topes.trt$Time.point=="T2"),])
+
+CvN.mod2.T2<-lm(Total.N..ug~Total.C..ug + Treatment, data=topes.trt[(topes.trt$Time.point=="T2"),])
+
+anova(CvN.mod1.T2,CvN.mod2.T2) # no diff, go with simple model 'CvN.mod2.T2'
+Anova(CvN.mod2.T2, type=2)
+
+CvN.T2.mod.plot<-
+  ggplot(data=topes.trt[(topes.trt$Time.point=="T2"),], 
+             aes(x=Total.C..ug, y=Total.N..ug, 
+                 color=Treatment, # for the points
+                 fill=Treatment, # for the SE
+                 linetype=Treatment)) + #for the regression lines
+  geom_point(aes(shape=Type))+
+  geom_smooth(method = "lm", alpha =0.2, size=0.5)+
+  scale_color_manual(values = c("brown1", "mediumseagreen"))+
+  ggtitle("Time-2") + 
+  scale_shape_manual(name="Plankton", values = c(17, 16), 
+                     labels = c(expression(paste("> 63"~mu,"m")), 
+                                expression(paste("< 63"~mu,"m")))) +
+  ylim(c(0,250)) +
+  xlim(c(0,1250)) +
+  ylab("Total N (ug)") +
+  xlab("Total C (ug)") +
+  Fig.formatting 
+
+```
+
+C:N vs. plant material models and plot, fit with GAMs
+```{r CN models, results='hide', fig.show='hide'}
+############# all plankton T1
+<<<<<<< HEAD
+m1.T1.CN <- gam(C.N ~ Treatment + Type +
+            s(plant.mass..g, by=Treatment),
+        subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+m2.T1.CN <- gam(C.N ~ Treatment + Type +
+            s(plant.mass..g), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+m3.T1.CN <- gam(C.N ~
+=======
+m1a.T1.CN <- gam(C.N ~ Treatment*Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+m1b.T1.CN <- gam(C.N ~ Treatment + Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+m1c.T1.CN <- gam(C.N ~ Treatment + Type +
+            s(plant.mass..g), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+m1d.T1.CN <- gam(C.N ~
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+            s(plant.mass..g), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+
+<<<<<<< HEAD
+AIC.CN.T1<-AIC(m1.T1.CN, m2.T1.CN, m3.T1.CN)
+## additive model best fit, but no treatment or type effect
+
+summary(m1.T1.CN)
+anova.gam(m1.T1.CN)
+gam.check(m1.T1.CN, rep=1000)
+draw(m1.T1.CN)
+concrvity(m1.T1.CN)
+par(mfrow = c(1, 2))
+plot(m1.T1.CN, all.terms = TRUE, page=1)
+
+# model for smoothing
+msmooth.T1.CN<- gam(C.N ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+# model predictions
+CN.diff.T1<-plot_difference(
+  m1.T1.CN,
+=======
+AIC.CN.T1<-AIC(m1a.T1.CN, m1b.T1.CN, m1c.T1.CN, m1d.T1.CN)
+## additive model best fit, but no treatment or type effect
+
+summary(m1b.T1.CN)
+anova.gam(m1b.T1.CN)
+gam.check(m1b.T1.CN, rep=1000)
+draw(m1b.T1.CN)
+concrvity(m1b.T1.CN)
+par(mfrow = c(1, 2))
+plot(m1b.T1.CN, all.terms = TRUE, page=1)
+
+# model predictions
+CN.diff.T1<-plot_difference(
+  m1b.T1.CN,
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+
+###########  
+<<<<<<< HEAD
+=======
+# model for smoothing
+m1c.T1.CN<- gam(C.N ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+
+#plot for the model output on rawdata
+CN.T1.mod.plot<-
+  plot_smooths(
+<<<<<<< HEAD
+  model = m1.T1.CN,
+=======
+  model = m1c.T1.CN,
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=topes.trt[(topes.trt$Time.point=="T1"),], 
+             aes(x=plant.mass..g, y=C.N, color=Treatment, shape=Type)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  theme(legend.position = "right") +
+  ggtitle("Time-1") + 
+  coord_cartesian(ylim=c(0, 20)) +
+  scale_shape_manual(name="Plankton", values = c(17, 16), 
+                     labels = c(expression(paste("> 63"~mu,"m")), 
+                                expression(paste("< 63"~mu,"m")))) +
+  ylab("C:N") +
+  xlab("plant material (g)") +
+  Fig.formatting 
+
+# no effect of type or treatment
+# smoother significant for both
+
+############# all plankton T2
+<<<<<<< HEAD
+m1.T2.CN <- gam(C.N ~ Treatment + Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+m2.T2.CN <- gam(C.N ~ Treatment + Type +
+            s(plant.mass..g), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+m3.T2.CN <- gam(C.N ~
+=======
+m1a.T2.CN <- gam(C.N ~ Treatment*Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+m1b.T2.CN <- gam(C.N ~ Treatment + Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+m1c.T2.CN <- gam(C.N ~ Treatment + Type +
+            s(plant.mass..g), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+m1d.T2.CN <- gam(C.N ~
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+            s(plant.mass..g), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+
+<<<<<<< HEAD
+AIC.CN.T2<-AIC(m1.T2.CN, m2.T2.CN, m3.T2.CN)
+## additive model best fit, but no treatment or type effect
+
+summary(m1.T2.CN)
+anova.gam(m1.T2.CN)
+gam.check(m2.T2.CN, rep=1000)
+draw(m1.T2.CN)
+concrvity(m1.T2.CN)
+par(mfrow = c(1, 2))
+plot(m1.T2.CN, all.terms = TRUE, page=1)
+
+=======
+AIC.CN.T2<-AIC(m1a.T2.CN, m1b.T2.CN, m1c.T2.CN, m1d.T2.CN)
+## additive model best fit, but no treatment or type effect
+
+summary(m1b.T2.CN)
+anova.gam(m1b.T2.CN)
+gam.check(m1b.T2.CN, rep=1000)
+draw(m1b.T2.CN)
+concrvity(m1b.T2.CN)
+par(mfrow = c(1, 2))
+plot(m1b.T2.CN, all.terms = TRUE, page=1)
+
+# model predictions
+CN.diff.T2<-plot_difference(
+  m1b.T2.CN,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+
+###########  
+# model for smoothing
+m1c.T2.CN<- gam(C.N ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+# model predictions
+CN.diff.T2<-plot_difference(
+  msmooth.T2.CN,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+#plot for the model output on rawdata
+CN.T2.mod.plot<-
+  plot_smooths(
+  model = m1c.T2.CN,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=topes.trt[(topes.trt$Time.point=="T2"),], 
+             aes(x=plant.mass..g, y=C.N, color=Treatment, shape=Type)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  theme(legend.position = "right") +
+  ggtitle("Time-2") + 
+  coord_cartesian(ylim=c(0, 20)) +
+  scale_shape_manual(name="Plankton", values = c(17, 16), 
+                     labels = c(expression(paste("> 63"~mu,"m")), 
+                                expression(paste("< 63"~mu,"m")))) +
+  ylab("C:N") +
+  xlab("plant material (g)") +
+  Fig.formatting 
+
+# no effect of treatment, but type important (higher in POM)
+# smoother significant for both
+```
+
+Compile CvsN and C:N vs. plant material plots and models
+```{r  C N and ratio model plots}
+## AIC table
+mod.CN<-rep(c("Treatment + Type + s(plant.mass..g, by=Treatment)", 
+              "Treatment + Type + s(plant.mass..g)",
+              "s(plant.mass..g)"), times=2)
+
+mod.CN.df<- data.frame(mod.CN)
+AIC.CN<-bind_rows(AIC.CN.T1, AIC.CN.T2)
+
+AIC.CN.mod<-cbind(mod.CN.df, AIC.CN)
+write.csv(AIC.CN.mod, "output/AIC models/AIC.CN.mod.csv")
+
+
+### get legend
+extract.legend.C.N <- get_legend(
+  # create some space to the left of the legend
+  CN.T2.mod.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+## combine plots
+isoCNplot<- plot_grid(CvN.T1.mod.plot + theme(legend.position = "none"), 
+                    CvN.T2.mod.plot + theme(legend.position = "none"),
+                    CN.T1.mod.plot + theme(legend.position = "none"),
+                    CN.T2.mod.plot + theme(legend.position = "none"),
+                    extract.legend.C.N, rel_widths = c(8,8,8,8,3), ncol=5)
+
+ggsave("figures/isoCNplots.pdf", height=6, width=12, encod="MacRoman")
+
+isoCNplot
+```
+
+The "controls" are the tin blanks, plankton, and starting materials
+```{r control isotopes}
+########## ########## ########## 
+# run some stats to see how the control material differs from each other
+
+# make a burning treatment
+topes.controls$Burn.Trt=as.factor(word(topes.controls$Type, -1, sep="[.]"))
+
+# make a plant name
+topes.controls$Plant=as.factor(word(topes.controls$Type, 1, sep="[.]"))
+
+### test some models on controls
+# remove blanks and plankton, keeping only plants
+topes.controls.plants<-topes.controls[!(topes.controls$Plant=="blank" |
+                                          topes.controls$Plant=="plankton" ),]
+topes.controls.plants$Plant<-droplevels(topes.controls.plants$Plant)
+
+# keep only non-enriched samples (remove sage)
+topes.controls.non.enrich<-topes.controls[!(topes.controls$Plant=="blank" |
+                                          topes.controls$Plant=="sage" ),]
+topes.controls.non.enrich$Plant<-droplevels(topes.controls.non.enrich$Plant)
+
+
+######## test plant species differences
+mwu(topes.controls.plants, d15N, Plant)
+# d15N sage and willow differ (p<0.001)
+mwu(topes.controls.plants, C.N, Plant) 
+# C.N sage and willow differ (p=0.013)
+
+par(mfrow=c(1,2))
+boxplot(d15N~Plant, data=topes.controls.plants)
+boxplot(C.N~Plant, data=topes.controls.plants)
+
+
+######## test difference between willow and plankton 
+mwu(topes.controls.non.enrich, d15N, Plant)
+ # d15N plankton and willow differ (p<0.001)
+mwu(topes.controls.non.enrich, C.N, Plant) # C:N plankton and willow differ (p<0.001)
+par(mfrow=c(1,2))
+boxplot(d15N~Plant, data=topes.controls.non.enrich)
+boxplot(C.N~Plant, data=topes.controls.non.enrich)
+
+
+############# separate plant dfs
+#### Sage d15N
+topes.controls.sage<-topes.controls[(topes.controls$Plant=="sage"),]
+topes.controls.sage$Plant<-droplevels(topes.controls.sage$Plant)
+topes.controls.sage$Burn.Trt<-droplevels(topes.controls.sage$Burn.Trt)
+
+# how do different types of sage compare across burn/unburn
+# first, no difference between burned or very burned sage
+anova(lm(d15N~Burn.Trt, data=topes.controls.sage[!(topes.controls.sage$Burn.Trt=="unburned"),]))
+
+# convert to just 2 levels, no difference here either
+topes.controls.sage$Burn.Unb<-ifelse(topes.controls.sage$Burn.Trt=="burned", "burned",
+                                     ifelse(topes.controls.sage$Burn.Trt=="very burned", "burned",
+                                     "unburned"))
+
+
+mod.sage<-lm(d15N~Burn.Trt, data=topes.controls.sage) # keep at 3 levels
+anova(mod.sage) 
+# no difference in d15N for burned, unburned, very burned sage (p=0.423)
+
+#### Sage C.N
+mod.sage.CN<-lm(C.N~Burn.Trt, data=topes.controls.sage)
+anova(mod.sage.CN) 
+# Sage: difference in unburned, burned, very burned for C:N
+
+par(mfrow=c(1,2))
+boxplot(d15N~Burn.Trt, data=topes.controls.sage)
+boxplot(C.N~Burn.Trt, data=topes.controls.sage)
+
+
+
+###########################
+#### Willow d15N
+topes.controls.will<-topes.controls[(topes.controls$Plant=="willow"),]
+topes.controls.will$Plant<-droplevels(topes.controls.will$Plant)
+topes.controls.will$Burn.Trt<-droplevels(topes.controls.will$Burn.Trt)
+
+mod<-lm(C.N~Burn.Trt, data=topes.controls.will)
+anova(mod) 
+# no difference in burned/unburned willow d15N
+
+#### Willow C.N
+mod<-lm(C.N~Burn.Trt, data=topes.controls.will)
+anova(mod) 
+# Willow: no difference in unburned, burned C:N (p=0.061)
+
+par(mfrow=c(1,2))
+boxplot(d15N~Burn.Trt, data=topes.controls.will)
+boxplot(C.N~Burn.Trt, data=topes.controls.will)
+
+
+######### make summary dfs
+# summarize by plants
+d15N.plant<-aggregate(d15N~Plant, topes.controls, FUN=mean)
+d15N.plantSD<-aggregate(d15N~Plant, topes.controls, FUN=length)
+d15N.plant[3]<-d15N.plantSD[2]
+colnames(d15N.plant)<-c("Plant", "d15N", "SD")
+
+CN.plant<-aggregate(C.N~Plant, topes.controls, FUN=mean)
+CN.plantSD<-aggregate(C.N~Plant, topes.controls, FUN=sd)
+CN.plant[3]<-CN.plantSD[2]
+colnames(CN.plant)<-c("Plant", "C.N", "SD")
+
+# summary df d15N
+d15N.cont<-aggregate(d15N~Type, topes.controls, FUN=mean)
+d15N.cont.n<-aggregate(d15N~Type, topes.controls, FUN=length)
+d15N.cont.SD<-aggregate(d15N~Type, topes.controls, FUN=sd)
+d15N.cont[3]<- d15N.cont.SD[2]
+d15N.cont[4]<- d15N.cont.n[2]
+colnames(d15N.cont)<-c("Type", "d15N", "SD", "n")
+
+# summary df control C:N
+CN.cont<-aggregate(C.N~Type, topes.controls, FUN=mean)
+CN.cont.n<-aggregate(C.N~Type, topes.controls, FUN=length)
+CN.cont.SD<-aggregate(C.N~Type, topes.controls, FUN=sd)
+CN.cont[3]<- CN.cont.SD[2]
+CN.cont[4]<- CN.cont.n[2]
+colnames(CN.cont)<-c("Type", "C.N", "SD", "n")
+```
+
+make boxplots of control sample d15N and C:N
+```{r control d15N and C:N boxplot}
+########## control plots
+# set levels
+topes.controls$Type<-factor(topes.controls$Type, 
+                         levels=c("blank", "plankton.stock", 
+                                  "willow.unburned", "willow.burned",
+                                  "sage.unburned", "sage.burned", 
+                                  "sage.veryburned", "sage.stem.burned"))
+
+#### controls d15N boxplot
+iso.plot.control.d15N<-ggplot(data=topes.controls,  aes(x=Type, y=d15N, fill=Type)) +
+  geom_boxplot() +
+  geom_point(pch = 21, position = position_jitterdodge(), alpha=0.6)+
+  ylab(expression(paste(delta^{15}, N, " (\u2030, air)"))) +
+  scale_fill_manual(values = c("azure2", "cornflowerblue",
+                                "darkgoldenrod1", "darkgoldenrod",
+                                "darkseagreen3", "darkolivegreen3",
+                                "darkolivegreen4", "darkgreen")) +
+  xlab("control types") +  Fig.formatting +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+
+
+###### control C:N
+topes.controls.CN<-topes.controls %>% drop_na(C.N) # drop the NAs for C.N, makes plotting problematic
+
+iso.plot.control.CN<-ggplot(data=topes.controls.CN,  aes(x=Type, y=C.N, fill=Type)) +
+  geom_boxplot() +
+  geom_point(pch = 21, position = position_jitterdodge(), alpha=0.6)+
+  ylab("C:N") +
+  scale_fill_manual(values = c("cornflowerblue",
+                                "darkgoldenrod1", "darkgoldenrod",
+                                "darkseagreen3", "darkolivegreen3",
+                                "darkolivegreen4", "darkgreen")) +
+  xlab("control types") +  Fig.formatting +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+
+####### combine plots
+# legend
+extract.legend.cont <- get_legend(
+  # create some space to the left of the legend
+  iso.plot.control.d15N + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+
+## combine 
+control.iso.alltime<- 
+  plot_grid(iso.plot.control.d15N + theme(legend.position = "none"),
+            iso.plot.control.CN + theme(legend.position = "none"),
+            extract.legend.cont, rel_widths = c(8,8,3), ncol=3)
+
+ggsave("figures/iso.controls.pdf", encod="MacRoman", height=5, width=10)
+```
+
+Use a mixing model to calculate % sage for plankton
+```{r percent sage, results='hide'}
+# mixing model
+head(topes.trt)
+topes.trt<-droplevels(topes.trt)
+
+
+### values for controls
+d15N.cont # summary mean d15N by all controls
+d15N.plant # summary by plants, # sage 296, #  willow 13
+
+# summary mean atom percent enrichment
+F.cont<-aggregate(at.P..15N  ~ Type, topes.controls, mean)
+F.plant<-aggregate(at.P..15N~Plant, topes.controls, FUN=mean)
+# sage ~0.475
+# willow 0.371
+
+# 2 source mixing model (Post 2002), used d15N values here
+
+# alpha = percent Sage from food web 1
+# %Sage = (d15N sample - d15N base 2 [i.e., no-label food])/ (d15N sage food 1 - source 2)
+#  d15N values of base 2 = 11 permil for algae/plankton stock/willow
+#  d15N value of base 1 = 298 permil for sage
+
+# framed differently from Robinson 2001, TREE
+# xtracer = frction of tracer
+# Xtracer = (d15N-sample - d15N background) / (d15N-tracer - d15N-background)
+
+topes.trt$percent.sage<-(topes.trt$d15N-12)/(296-12)*100
+
+# unicode text for micrometer = \u03BC, use this in legend
+```
+
+model for % sage
+```{r percent sage models, results ='hide', fig.show='hide'}
+############# all plankton T1
+<<<<<<< HEAD
+m1.T1.sage <- gam(percent.sage ~ Treatment + Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+m2.T1.sage <- gam(percent.sage ~ Treatment + Type +
+            s(plant.mass..g), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+m3.T1.sage <- gam(percent.sage ~
+=======
+m1a.T1.sage <- gam(percent.sage ~ Treatment*Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+m1b.T1.sage <- gam(percent.sage ~ Treatment + Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+m1c.T1.sage <- gam(percent.sage ~ Treatment + Type +
+            s(plant.mass..g), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+m1d.T1.sage <- gam(percent.sage ~
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+                     s(plant.mass..g), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+
+<<<<<<< HEAD
+AIC.sage.T1<-AIC(m1.T1.sage, m2.T1.sage, m3.T1.sage)
+## additive model best fit
+
+summary(m1.T1.sage)
+anova.gam(m1.T1.sage)
+gam.check(m1.T1.sage, rep=1000)
+draw(m1.T1.sage)
+concrvity(m1.T1.sage)
+par(mfrow = c(1, 2))
+plot(m1.T1.sage, all.terms = TRUE, page=1)
+
+# model predictions
+per.Sage.diff.T1<-plot_difference(
+  m1.T1.sage,
+=======
+AIC.sage.T1<-AIC(m1a.T1.sage, m1b.T1.sage, m1c.T1.sage, m1d.T1.sage)
+## additive model best fit
+
+summary(m1b.T1.sage)
+anova.gam(m1c.T1.sage)
+gam.check(m1b.T1.sage, rep=1000)
+draw(m1b.T1.sage)
+concrvity(m1b.T1.sage)
+par(mfrow = c(1, 2))
+plot(m1b.T1.sage, all.terms = TRUE, page=1)
+
+# model predictions
+per.Sage.diff.T1<-plot_difference(
+  m1b.T1.sage,
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+# model for smoothing
+m1d.T1.sage<- gam(percent.sage ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+#plot for the model output on rawdata
+per.Sage.T1.mod.plot<-
+  plot_smooths(
+  model = m1c.T1.sage,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=topes.trt[(topes.trt$Time.point=="T1"),], 
+             aes(x=plant.mass..g, y=percent.sage, color=Treatment, shape=Type)) +
+  scale_shape_manual(name="Plankton", values = c(17, 16), 
+                     labels = c(expression(paste("> 63"~mu,"m")), 
+                                expression(paste("< 63"~mu,"m")))) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ylab("% Sage")+
+  xlab("plant material (g)") +
+  ggtitle("Time-1") +
+  coord_cartesian(ylim=c(0, 100)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
+
+# overall an effect of burning with both smoothers being significant by treatment
+# no effect of type, POM and plankton with similar d15N values
+
+
+############# all plankton T2
+<<<<<<< HEAD
+m1.T2.sage <- gam(percent.sage ~ Treatment + Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+m2.T2.sage <- gam(percent.sage ~ Treatment + Type +
+            s(plant.mass..g), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+m3.T2.sage <- gam(percent.sage ~
+=======
+m1a.T2.sage <- gam(percent.sage ~ Treatment*Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+m1b.T2.sage <- gam(percent.sage ~ Treatment + Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+m1c.T2.sage <- gam(percent.sage ~ Treatment + Type +
+            s(plant.mass..g), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+m1d.T2.sage <- gam(percent.sage ~
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+                     s(plant.mass..g), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+
+<<<<<<< HEAD
+AIC.sage.T2<-AIC(m1.T2.sage, m2.T2.sage, m3.T2.sage)
+# m2.T2.sage preferred
+# compare across
+
+summary(m1.T2.sage)
+anova.gam(m1.T2.sage)
+gam.check(m1.T2.sage, rep=1000)
+draw(m1.T2.sage)
+concrvity(m1.T2.sage)
+par(mfrow = c(1, 2))
+plot(m1.T2.sage, all.terms = TRUE, page=1)
+
+# model predictions
+per.Sage.diff.T2<-plot_difference(
+  m1.T2.sage,
+=======
+AIC.sage.T2<-AIC(m1a.T2.sage, m1b.T2.sage, m1c.T2.sage, m1d.T2.sage)
+# m1b.T2.sage preferred
+# compare across
+
+summary(m1b.T2.sage)
+anova.gam(m1b.T2.sage)
+gam.check(m1b.T2.sage, rep=1000)
+draw(m1b.T2.sage)
+concrvity(m1b.T2.sage)
+par(mfrow = c(1, 2))
+plot(m1b.T2.sage, all.terms = TRUE, page=1)
+
+# model predictions
+per.Sage.diff.T2<-plot_difference(
+  m1b.T2.sage,
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+# model for smoothing
+m1d.T2.sage<- gam(percent.sage ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+#plot for the model output on rawdata
+per.Sage.T2.mod.plot<-
+  plot_smooths(
+  model = m1c.T2.sage,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=topes.trt[(topes.trt$Time.point=="T2"),], 
+             aes(x=plant.mass..g, y=percent.sage, color=Treatment, shape=Type)) +
+  scale_shape_manual(name="Plankton", values = c(17, 16), 
+                     labels = c(expression(paste("> 63"~mu,"m")), 
+                                expression(paste("< 63"~mu,"m")))) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ylab("% Sage")+
+  xlab("plant material (g)") +
+  ggtitle("Time-2") +
+  coord_cartesian(ylim=c(0, 100)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
+
+# effect of treatment (p<0.001) but not Type (p=0.321)
+# smoother significant for both terms
+
+```
+
+model plots for percent sage mixing model
+```{r percent sage model plots}
+## AIC table
+mod.sag.top<-rep(c( "Treatment + Type + s(plant.mass..g, by=Treatment)", 
+              "Treatment + Type + s(plant.mass..g)",
+              "s(plant.mass..g)"), times=2)
+
+mod.sag.df<- data.frame(mod.sag.top)
+AIC.sag.topes<-bind_rows(AIC.sage.T1, AIC.sage.T2)
+
+AIC.sag.mod<-cbind(mod.sag.df, AIC.sag.topes)
+write.csv(AIC.sag.mod, "output/AIC models/AIC.sag.mod.csv")
+
+
+# legend
+extract.legend.mix <- get_legend(
+  # create some space to the left of the legend
+  per.Sage.T2.mod.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+
+## combine 
+sage.mix.model<- plot_grid(per.Sage.T1.mod.plot + theme(legend.position = "none"), 
+                    per.Sage.T2.mod.plot + theme(legend.position = "none"),
+                    extract.legend.mix, rel_widths = c(8,8,3), ncol=3)
+
+ggsave("figures/Isotope.mixmodel.pdf", encod="MacRoman", height=5, width=10)
+
+sage.mix.model
+```
+
+make d15N plots as well -- these follow the % sage, but are informative with the control plots to see the d15N of plankton and the 2 end members.
+```{r d15N model plots}
+#### d15N isotope plots for treatments
+
+############# all plankton T1
+<<<<<<< HEAD
+m1.T1.d15N <- gam(d15N ~ Treatment + Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+m2.T1.d15N <- gam(d15N ~ Treatment + Type +
+            s(plant.mass..g), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+m3.T1.d15N <- gam(d15N ~
+            s(plant.mass..g), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+AIC.d15N.T1<-AIC(m1.T1.d15N, m2.T1.d15N, m3.T1.d15N)
+## additive model best fit
+
+summary(m1.T1.d15N)
+anova.gam(m1.T1.d15N)
+gam.check(m1.T1.d15N, rep=1000)
+draw(m1.T1.d15N)
+concrvity(m1.T1.d15N)
+par(mfrow = c(1, 2))
+plot(m1.T1.d15N, all.terms = TRUE, page=1)
+
+# model predictions
+d15N.diff.T1<-plot_difference(
+  m1.T1.d15N,
+=======
+m1a.T1.d15N<- gam(d15N ~ Treatment*Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+m1b.T1.d15N <- gam(d15N ~ Treatment + Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+m1c.T1.d15N <- gam(d15N ~ Treatment + Type +
+            s(plant.mass..g), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+m1d.T1.d15N <- gam(d15N ~
+            s(plant.mass..g), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+AIC.d15N.T1<-AIC(m1a.T1.d15N, m1b.T1.d15N, m1c.T1.d15N, m1d.T1.d15N)
+## additive model best fit
+
+summary(m1b.T1.d15N)
+anova.gam(m1b.T1.d15N)
+gam.check(m1b.T1.d15N, rep=1000)
+draw(m1b.T1.d15N)
+concrvity(m1b.T1.d15N)
+par(mfrow = c(1, 2))
+plot(m1b.T1.d15N, all.terms = TRUE, page=1)
+
+# model predictions
+d15N.diff.T1<-plot_difference(
+  m1b.T1.d15N,
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+# model for smoothing
+m1d.T1.d15N<- gam(d15N ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+
+#plot for the model output on rawdata
+d15N.T1.mod.plot<-
+  plot_smooths(
+  model = m1d.T1.d15N,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=topes.trt[(topes.trt$Time.point=="T1"),], 
+             aes(x=plant.mass..g, y=d15N, color=Treatment, shape=Type)) +
+  scale_shape_manual(name="Plankton", values = c(17, 16), 
+                     labels = c(expression(paste("> 63"~mu,"m")), 
+                                expression(paste("< 63"~mu,"m")))) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ylab(expression(paste(delta^{15}, N, " (\u2030, air)"))) +
+  xlab("plant material (g)") +
+  ggtitle("Time-1") +
+  coord_cartesian(ylim=c(0, 250)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
+
+# overall an effect of burning with both smoothers being significant by treatment
+# no effect of type, POM and plankton with similar d15N values
+
+
+############# all plankton T2
+<<<<<<< HEAD
+m1.T2.d15N <- gam(d15N ~ Treatment + Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+m2.T2.d15N <- gam(d15N ~ Treatment + Type +
+            s(plant.mass..g), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+m3.T2.d15N <- gam(d15N ~
+=======
+m1a.T2.d15N<- gam(d15N ~ Treatment*Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+m1b.T2.d15N <- gam(d15N ~ Treatment + Type +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+m1c.T2.d15N <- gam(d15N ~ Treatment + Type +
+            s(plant.mass..g), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+m1d.T2.d15N <- gam(d15N ~
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+            s(plant.mass..g), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+
+<<<<<<< HEAD
+AIC.d15N.T2<-AIC(m1.T2.d15N, m2.T2.d15N, m3.T2.d15N)
+## additive model best fit
+
+summary(m1.T2.d15N)
+anova.gam(m1.T2.d15N)
+gam.check(m1.T2.d15N, rep=1000)
+draw(m1.T2.d15N)
+concrvity(m1.T2.d15N)
+par(mfrow = c(1, 2))
+plot(m1.T2.d15N, all.terms = TRUE, page=1)
+
+# model predictions
+d15N.diff.T2<-plot_difference(
+  m1.T2.d15N,
+=======
+AIC.d15N.T2<-AIC(m1a.T2.d15N, m1b.T2.d15N, m1c.T2.d15N, m1d.T2.d15N)
+## additive model best fit
+
+summary(m1b.T2.d15N)
+anova.gam(m1b.T2.d15N)
+gam.check(m1b.T2.d15N, rep=1000)
+draw(m1b.T2.d15N)
+concrvity(m1b.T2.d15N)
+par(mfrow = c(1, 2))
+plot(m1b.T2.d15N, all.terms = TRUE, page=1)
+
+# model predictions
+d15N.diff.T2<-plot_difference(
+  m1b.T2.d15N,
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+# model for smoothing
+m1d.T2.d15N<- gam(d15N ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+
+#plot for the model output on rawdata
+d15N.T2.mod.plot<-
+  plot_smooths(
+  model = m1d.T2.d15N,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=topes.trt[(topes.trt$Time.point=="T2"),], 
+             aes(x=plant.mass..g, y=d15N, color=Treatment, shape=Type)) +
+  scale_shape_manual(name="Plankton", values = c(17, 16), 
+                     labels = c(expression(paste("> 63"~mu,"m")), 
+                                expression(paste("< 63"~mu,"m")))) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ylab(expression(paste(delta^{15}, N, " (\u2030, air)"))) +
+  xlab("plant material (g)") +
+  ggtitle("Time-2") +
+  coord_cartesian(ylim=c(0, 250)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
+
+d15N.model<- plot_grid(d15N.T1.mod.plot + theme(legend.position = "none"), 
+                    d15N.T2.mod.plot + theme(legend.position = "none"),
+                    extract.legend.mix, rel_widths = c(8,8,3), ncol=3)
+
+ggsave("figures/d15N.model.pdf", encod="MacRoman", height=5, width=10)
+
+################
+
+mod.d15N<-rep(c("Treatment + Type + s(plant.mass..g, by=Treatment)", 
+              "Treatment + Type + s(plant.mass..g)",
+              "s(plant.mass..g)"), times=2)
+
+mod.column2<- data.frame(mod.CN)
+AIC.d15N<-bind_rows(AIC.d15N.T1, AIC.d15N.T2)
+
+AIC.d15N.mod<-cbind(mod.d15N, AIC.d15N)
+write.csv(AIC.d15N.mod, "output/AIC models/AIC.d15N.mod.csv")
+
+```
+
+
+
+### Plant material
+Plant material for the starting material (sage or willow, stems or sticks). This is useful in determining how fire impacted the nutrients in the plant material.  
+
+First, run some stats to see what is happening and where differences lie.
+```{r plant elemental}
+plant.nut<-read.csv("data/Pyro_plant material_elemental.csv")
+
+fac<-c("Sample.Name", "type", "plant", "treatment", "rep") # make factors
+plant.nut[fac]<-lapply(plant.nut[fac],factor)
+
+sage.nut<-plant.nut[(plant.nut$plant=="sage"),]
+will.nut<-plant.nut[(plant.nut$plant=="willow"),]
+
+### Sage ### 
+######### %N
+plant.N.sag<-lm(N~treatment*type, data=sage.nut)
+Anova(plant.N.sag, type=3) # 2 way interaction and main effects
+
+posthoc<-emmeans(plant.N.sag, ~treatment| type)
+multcomp::cld(posthoc, Letters=letters)
+
+########## %P 
+plant.P.sag<-lm(P~treatment*type, data=sage.nut)
+Anova(plant.P.sag, type=3) # just type
+
+
+########## %K
+plant.K.sag<-lm(K~treatment*type, data=sage.nut)
+Anova(plant.K.sag, type=3) # type and treatment
+
+posthoc<-emmeans(plant.K.sag, ~treatment)
+multcomp::cld(posthoc, Letters=letters)
+
+
+########## %S
+plant.S.sag<-lm(S~treatment*type, data=sage.nut)
+Anova(plant.S.sag, type=3) # type effect
+
+
+############## Zn ppm
+plant.ZN.sag<-lm(ZN~treatment*type, data=sage.nut)
+Anova(plant.ZN.sag, type=3) #no effect
+
+posthoc<-emmeans(plant.ZN.sag, ~treatment| type)
+multcomp::cld(posthoc, Letters=letters)
+
+###############################################
+###############################################
+### Willow ### 
+######### %N
+plant.N.wil<-lm(N~treatment*type, data=will.nut)
+Anova(plant.N.wil, type=3) #  main effects
+
+posthoc<-emmeans(plant.N.wil, ~treatment)
+multcomp::cld(posthoc, Letters=letters)
+
+
+########## %P 
+plant.P.wil<-lm(P~treatment*type, data=will.nut)
+Anova(plant.P.wil, type=3) # type and treatment
+
+posthoc<-emmeans(plant.P.wil, ~treatment)
+multcomp::cld(posthoc, Letters=letters)
+
+
+########## %K
+plant.K.wil<-lm(K~treatment*type, data=will.nut)
+Anova(plant.K.wil, type=3) # type and treatment
+
+posthoc<-emmeans(plant.K.wil, ~treatment)
+multcomp::cld(posthoc, Letters=letters)
+
+
+########## %S
+plant.S.wil<-lm(S~treatment*type, data=will.nut)
+Anova(plant.S.wil, type=3) # main and interactions
+
+posthoc<-emmeans(plant.S.wil, ~treatment| type)
+multcomp::cld(posthoc, Letters=letters)
+
+############## Zn ppm
+plant.ZN.wil<-lm(ZN~treatment*type, data=will.nut)
+Anova(plant.ZN.wil, type=3) #no effect
+
+posthoc<-emmeans(plant.ZN.wil, ~treatment| type)
+multcomp::cld(posthoc, Letters=letters)
+```
+
+Make a figure of the elemental analysis data.
+```{r plant elemental figures}
+
+plant.nut$int.fac<-factor(interaction(plant.nut$plant, plant.nut$type),
+                         levels=c("sage.leaf", "sage.stem", "willow.leaf", "willow.stem"))
+####### figures
+N.plot<- ggplot(plant.nut, aes(x=int.fac, y=N, fill=treatment)) +
+  geom_boxplot(alpha=0.7) +
+  scale_fill_manual(values = c("brown1", "mediumseagreen")) +
+  geom_dotplot(binaxis='y', stackdir='center', alpha=0.5, dotsize=0.5,
+                 position=position_dodge(0.75))+
+  xlab("Plant:Tissue")+
+  ylab("%N")+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+P.plot<- ggplot(plant.nut, aes(x=int.fac, y=P, fill=treatment)) +
+  geom_boxplot(alpha=0.7) +
+  scale_fill_manual(values = c("brown1", "mediumseagreen")) +
+  geom_dotplot(binaxis='y', stackdir='center', alpha=0.5, dotsize=0.5,
+                 position=position_dodge(0.75))+
+  xlab("Plant:Tissue")+
+  ylab("%P")+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+K.plot<- ggplot(plant.nut, aes(x=int.fac, y=K, fill=treatment)) +
+  geom_boxplot(alpha=0.7) +
+  scale_fill_manual(values = c("brown1", "mediumseagreen")) +
+  geom_dotplot(binaxis='y', stackdir='center', alpha=0.5, dotsize=0.5,
+                 position=position_dodge(0.75))+
+  xlab("Plant:Tissue")+
+  ylab("%K")+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+
+S.plot<- ggplot(plant.nut, aes(x=int.fac, y=S, fill=treatment)) +
+  geom_boxplot(alpha=0.7) +
+  scale_fill_manual(values = c("brown1", "mediumseagreen")) +
+  geom_dotplot(binaxis='y', stackdir='center', alpha=0.5, dotsize=0.5,
+                 position=position_dodge(0.75))+
+  xlab("Plant:Tissue")+
+  ylab("%S")+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+Zn.plot<- ggplot(plant.nut, aes(x=int.fac, y=ZN, fill=treatment)) +
+  geom_boxplot(alpha=0.7) +
+  scale_fill_manual(values = c("brown1", "mediumseagreen")) +
+  geom_dotplot(binaxis='y', stackdir='center', alpha=0.5, dotsize=0.5,
+                 position=position_dodge(0.75)) +
+  xlab("Plant:Tissue")+
+  ylab("Zn ppm")+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+  
+extract.legend.nut <- get_legend(
+  # create some space to the left of the legend
+  Zn.plot + theme(legend.box.margin = margin(0, 0, 0, 10)))
+
+nutrients<-plot_grid(
+  N.plot+ theme(legend.position = "none"),
+  P.plot+ theme(legend.position = "none"),
+  K.plot+ theme(legend.position = "none"), 
+  S.plot+ theme(legend.position = "none"), 
+  Zn.plot+ theme(legend.position = "none"),
+  extract.legend.nut, 
+  rel_widths = c(8,8,8,8,8,3), ncol=6)
+
+nutrients
+ggsave("figures/leaf.nutrients.pdf", height=4, width=12)
+
+```
+  
+### H2O Phosphorus
+The phosphorous in water was only run at Time-2. Make a plot here and run the model.
+```{r water phosphorus}
+phos<-read.csv("data/Pyro_water.phosph.csv")
+
+fac2<-c("Time.Point", "Treatment", "Tank") # make factors
+phos[fac2]<-lapply(phos[fac2],factor)
+
+phos<-na.omit(phos)
+
+############# phosphorous T2: significant smoothers, not treatment overall
+m1a.T2.phos<- gam(TP.umol..l ~ Treatment +
+            s(plant.mass..g, by=Treatment), data=phos, method="REML", family="gaussian")
+
+m1b.T2.phos<- gam(TP.umol..l ~ Treatment +
+            s(plant.mass..g), data=phos, method="REML", family="gaussian")
+
+m1C.T2.phos<- gam(TP.umol..l ~
+            s(plant.mass..g), data=phos, method="REML", family="gaussian")
+
+AIC.T2.phos<-AIC(m1a.T2.phos,m1b.T2.phos, m1C.T2.phos)
+# factor smooth best
+
+summary(m1a.T2.phos)
+anova.gam(m1a.T2.phos)
+gam.check(m1a.T2.phos, rep=1000)
+draw(m1a.T2.phos)
+concrvity(m1a.T2.phos)
+par(mfrow = c(1, 2))
+plot(m1a.T2.phos, all.terms = TRUE, page=1)
+
+# model predictions
+phos.diff.T2<-plot_difference(
+  m1a.T2.phos,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+phos.T2.mod.plot<-
+  plot_smooths(
+  model = m1a.T2.phos,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=phos, 
+             aes(x=plant.mass..g, y=TP.umol..l, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ylab(expression(paste("TP", ~(mu*mol/L), sep=""))) +
+  xlab("plant material (g)") +
+  ggtitle("Time-2") +
+  coord_cartesian(ylim=c(0, 50)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
+
+
+phos.plots<-plot_grid(phos.T2.mod.plot, phos.diff.T2, ncol=2, rel_widths = c(8,5.5))
+ggsave("figures/phos.plots.pdf", height=4, width=8)
+
+
+## AIC table
+mod.phos<-rep(c("Treatment + s(plant.mass..g, by=Treatment)", 
+              "Treatment + s(plant.mass..g)", 
+              "s(plant.mass..g)"), times=1)
+
+mod.column.phos<- data.frame(mod.phos)
+
+AIC.phos.mod<-cbind(mod.column.phos, AIC.T2.phos)
+write.csv(AIC.phos.mod, "output/AIC models/AIC.phos.mod.csv")
+
+```
+
+
+### Greenhouse Gas Data
+Import data and clean up
+```{r GHG data}
+GHG<-read.csv("data/GH.gases/Pyro_ghg.csv")
+trt<-read.csv("data/treatment.IDs.csv")
+
+GHG<-merge(GHG, trt, by="Tank", all=T)
+
+GHG<-subset(GHG, Week!="AA")
+GHG<-subset(GHG, Week!="CH4")
+GHG<-subset(GHG, Gas=="CH4"|Gas=="CO2")
+GHG$Treatment<-as.factor(GHG$Treatment)
+
+# rename levels and then column
+GHG$Week<- revalue(GHG$Week, c("WK0"="T0", "WK1"="T1", "WK2"="T2", "WK3"="T3"))
+names(GHG)[names(GHG)=="Week"] <- "Time.point"
+
+
+# reorder columns and export
+GHG<- GHG %>% select(Time.point, Treatment, plant.mass..g, Tank, Gas, d13C, at.perc.13C, ppm)
+
+GHG$Plant.mass..g<-as.numeric(GHG$plant.mass..g)
+GHG$Time.point<-as.factor(GHG$Time.point)
+
+
+write.csv(GHG, "data/GH.gases/Pyro_GHG_cleaned.csv")
+#############################################
+
+```
+
+Make plots and run models for CO2
+```{r CO2 model plots}
+CO2<-subset(GHG, Gas=="CO2")
+
+############# GHG plots and modesl
+#### CO2
+#######-- T0
+
+m1a.T0.CO2<- gam(ppm ~ Treatment +
+            s(plant.mass..g, by=Treatment), subset = Time.point=="T0", data = CO2,
+            method="REML", family="gaussian")
+
+m1b.T0.CO2<- gam(ppm ~ Treatment +
+            s(plant.mass..g), subset = Time.point=="T0", data = CO2,
+            method="REML", family="gaussian")
+
+m1c.T0.CO2<- gam(ppm ~
+            s(plant.mass..g), subset = Time.point=="T0", data = CO2,
+            method="REML", family="gaussian")
+
+CO2.T0.AIC<-AIC(m1a.T0.CO2,m1b.T0.CO2, m1c.T0.CO2)
+#factor smooth best
+
+summary(m1a.T0.CO2)
+anova.gam(m1a.T0.CO2)
+gam.check(m1a.T0.CO2, rep=1000)
+draw(m1a.T0.CO2)
+concrvity(m1a.T0.CO2)
+par(mfrow = c(1, 2))
+plot(m1a.T0.CO2, all.terms = TRUE, page=1)
+
+# model predictions
+CO2.diff.T0<-plot_difference(
+  m1a.T0.CO2,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+CO2.T0.mod.plot<-
+  plot_smooths(
+  model = m1a.T0.CO2,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=CO2[(CO2$Time.point=="T0"),], 
+             aes(x=plant.mass..g, y=ppm, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ylab(expression(paste("CO2", ~(ppm), sep=""))) +
+  xlab("plant material (g)") +
+  ggtitle("Time-0") +
+  coord_cartesian(ylim=c(0, 5000)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
+
+CO2.T0.mod.plot
+
+#### CO2 
+#######-- T1
+
+m1a.T1.CO2<- gam(ppm ~ Treatment +
+            s(plant.mass..g, by=Treatment), subset = Time.point=="T1", data = CO2,
+            method="REML", family="gaussian")
+
+m1b.T1.CO2<- gam(ppm ~ Treatment +
+            s(plant.mass..g), subset = Time.point=="T1", data = CO2,
+            method="REML", family="gaussian")
+
+m1c.T1.CO2<- gam(ppm ~
+            s(plant.mass..g), subset = Time.point=="T1", data = CO2,
+            method="REML", family="gaussian")
+
+
+CO2.T1.AIC<-AIC(m1a.T1.CO2,m1b.T1.CO2, m1c.T1.CO2)
+#factor smooth best
+
+summary(m1a.T1.CO2)
+anova.gam(m1a.T1.CO2)
+gam.check(m1a.T1.CO2, rep=1000)
+draw(m1a.T1.CO2)
+concrvity(m1a.T1.CO2)
+par(mfrow = c(1, 2))
+plot(m1a.T1.CO2, all.terms = TRUE, page=1)
+
+# model predictions
+CO2.diff.T1<-plot_difference(
+  m1a.T1.CO2,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+CO2.T1.mod.plot<-
+  plot_smooths(
+  model = m1a.T1.CO2,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=CO2[(CO2$Time.point=="T1"),], 
+             aes(x=plant.mass..g, y=ppm, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ylab(expression(paste("CO2", ~(ppm), sep=""))) +
+  xlab("plant material (g)") +
+  ggtitle("Time-1") +
+  coord_cartesian(ylim=c(0, 5000)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
+
+CO2.T1.mod.plot
+
+#### CO2
+#######-- T2
+
+m1a.T2.CO2<- gam(ppm ~ Treatment +
+            s(plant.mass..g, by=Treatment), subset = Time.point=="T2", data = CO2,
+            method="REML", family="gaussian")
+
+m1b.T2.CO2<- gam(ppm ~ Treatment +
+            s(plant.mass..g), subset = Time.point=="T2", data = CO2,
+            method="REML", family="gaussian")
+
+m1c.T2.CO2<- gam(ppm ~
+            s(plant.mass..g), subset = Time.point=="T2", data = CO2,
+            method="REML", family="gaussian")
+
+CO2.T2.AIC<-AIC(m1a.T2.CO2, m1b.T2.CO2, m1c.T2.CO2)
+# smooth by factor best
+
+summary(m1a.T2.CO2)
+anova.gam(m1a.T2.CO2)
+gam.check(m1a.T2.CO2, rep=1000)
+draw(m1a.T2.CO2)
+concrvity(m1a.T2.CO2)
+par(mfrow = c(1, 2))
+plot(m1a.T2.CO2, all.terms = TRUE, page=1)
+
+# model predictions
+CO2.diff.T2<-plot_difference(
+  m1a.T2.CO2,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+CO2.T2.mod.plot<-
+  plot_smooths(
+  model = m1a.T2.CO2,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=CO2[(CO2$Time.point=="T2"),], 
+             aes(x=plant.mass..g, y=ppm, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ylab(expression(paste("CO2", ~(ppm), sep=""))) +
+  xlab("plant material (g)") +
+  ggtitle("Time-2") +
+  coord_cartesian(ylim=c(0, 5000)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
+
+CO2.T2.mod.plot
+
+
+#### CO2 
+#######-- T3
+
+m1a.T3.CO2<- gam(ppm ~ Treatment +
+            s(plant.mass..g, by=Treatment), subset = Time.point=="T3", data = CO2,
+            method="REML", family="gaussian")
+
+m1b.T3.CO2<- gam(ppm ~ Treatment +
+            s(plant.mass..g), subset = Time.point=="T3", data = CO2,
+            method="REML", family="gaussian")
+
+m1c.T3.CO2<- gam(ppm ~
+            s(plant.mass..g), subset = Time.point=="T3", data = CO2,
+            method="REML", family="gaussian")
+
+CO2.T3.AIC<-AIC(m1a.T3.CO2, m1b.T3.CO2, m1c.T3.CO2)
+# smooth by factor best
+
+summary(m1a.T3.CO2)
+anova.gam(m1a.T3.CO2)
+gam.check(m1a.T3.CO2, rep=1000)
+draw(m1a.T3.CO2)
+concrvity(m1a.T3.CO2)
+par(mfrow = c(1, 2))
+plot(m1a.T3.CO2, all.terms = TRUE, page=1)
+
+# model predictions
+CO2.diff.T3<-plot_difference(
+  m1a.T3.CO2,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+CO2.T3.mod.plot<-
+  plot_smooths(
+  model = m1a.T3.CO2,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=CO2[(CO2$Time.point=="T3"),], 
+             aes(x=plant.mass..g, y=ppm, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ylab(expression(paste("CO2", ~(ppm), sep=""))) +
+  xlab("plant material (g)") +
+  ggtitle("Time-3") +
+  coord_cartesian(ylim=c(0, 5000)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
+
+CO2.T3.mod.plot
+
+# models and raw data
+CO2.model.plots<-plot_grid(
+  CO2.T0.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-0"),
+  CO2.T1.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-10"),
+  CO2.T2.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-31"),
+  CO2.T3.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-59"),
+  extract.legend, 
+  rel_widths = c(8,8,8,8,3), ncol=5)
+
+### model differences
+CO2.plot.diff<-plot_grid(
+  CO2.diff.T0+ ggtitle("CO2-T0"),
+  CO2.diff.T1+ ggtitle("Day-10"),
+  CO2.diff.T2+ ggtitle("Day-31"),
+  CO2.diff.T3+ ggtitle("Day-59"),
+  rel_widths = c(8,8,8,8), ncol=4)
+
+## AIC table
+mod.ghg<-rep(c("Treatment +s(plant.mass..g, by=Treatment)", 
+              "Treatment + s(plant.mass..g)", 
+              "s(plant.mass..g)"), times=4)
+
+mod.ghg.df<- data.frame(mod.ghg)
+
+AIC.CO2<-bind_rows(CO2.T0.AIC, CO2.T1.AIC, CO2.T2.AIC, CO2.T3.AIC)
+AIC.CO2.mod<-cbind(mod.ghg.df, AIC.CO2)
+write.csv(AIC.CO2.mod, "output/AIC models/AIC.CO2.mod.csv")
+
+```
+
+Make plots and run models for methane.
+```{r CH4 plots}
+CH4<-subset(GHG, Gas=="CH4")
+
+
+m1a.T0.CH4<- gam(ppm ~ Treatment +
+            s(plant.mass..g, by=Treatment), subset = Time.point=="T0", data = CH4,
+            method="REML", family="gaussian")
+
+m1b.T0.CH4<- gam(ppm ~ Treatment +
+            s(plant.mass..g), subset = Time.point=="T0", data = CH4,
+            method="REML", family="gaussian")
+
+m1c.T0.CH4<- gam(ppm ~
+            s(plant.mass..g), subset = Time.point=="T0", data = CH4,
+            method="REML", family="gaussian")
+
+CH4.T0.AIC<-AIC(m1a.T0.CH4, m1b.T0.CH4, m1c.T0.CH4)
+#factor by smooth best
+
+summary(m1a.T0.CH4)
+anova.gam(m1a.T0.CH4)
+gam.check(m1a.T0.CH4, rep=1000)
+draw(m1a.T0.CH4)
+concrvity(m1a.T0.CH4)
+par(mfrow = c(1, 2))
+plot(m1a.T0.CH4, all.terms = TRUE, page=1)
+
+# model predictions
+CH4.diff.T0<-plot_difference(
+  m1a.T0.CH4,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+CH4.T0.mod.plot<-
+  plot_smooths(
+  model = m1a.T0.CH4,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=CH4[(CH4$Time.point=="T0"),], 
+             aes(x=plant.mass..g, y=ppm, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ylab(expression(paste("CH4", ~(ppm), sep=""))) +
+  xlab("plant material (g)") +
+  ggtitle("Time-0") +
+  coord_cartesian(ylim=c(1.5, 3)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
+
+CH4.T0.mod.plot
+
+#### CH4 
+#######-- T1
+
+m1a.T1.CH4<- gam(ppm ~ Treatment +
+            s(plant.mass..g, by=Treatment), subset = Time.point=="T1", data = CH4,
+            method="REML", family="gaussian")
+
+m1b.T1.CH4<- gam(ppm ~ Treatment +
+            s(plant.mass..g), subset = Time.point=="T1", data = CH4,
+            method="REML", family="gaussian")
+
+m1c.T1.CH4<- gam(ppm ~
+            s(plant.mass..g), subset = Time.point=="T1", data = CH4,
+            method="REML", family="gaussian")
+
+CH4.T1.AIC<-AIC(m1a.T1.CH4, m1b.T1.CH4, m1c.T1.CH4)
+#factor by smooth best
+
+summary(m1a.T1.CH4)
+anova.gam(m1a.T1.CH4)
+gam.check(m1a.T1.CH4, rep=1000)
+draw(m1a.T1.CH4)
+concrvity(m1a.T1.CH4)
+par(mfrow = c(1, 2))
+plot(m1a.T1.CH4, all.terms = TRUE, page=1)
+
+# model predictions
+CH4.diff.T1<-plot_difference(
+  m1a.T1.CH4,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+CH4.T1.mod.plot<-
+  plot_smooths(
+  model = m1a.T1.CH4,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=CH4[(CH4$Time.point=="T1"),], 
+             aes(x=plant.mass..g, y=ppm, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ylab(expression(paste("CH4", ~(ppm), sep=""))) +
+  xlab("plant material (g)") +
+  ggtitle("Time-1") +
+  coord_cartesian(ylim=c(1.5, 3)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
+
+CH4.T1.mod.plot
+
+#### CH4
+#######-- T2
+
+m1a.T2.CH4<- gam(ppm ~ Treatment +
+            s(plant.mass..g, by=Treatment), subset = Time.point=="T2", data = CH4,
+            method="REML", family="gaussian")
+
+m1b.T2.CH4<- gam(ppm ~ Treatment +
+            s(plant.mass..g), subset = Time.point=="T2", data = CH4,
+            method="REML", family="gaussian")
+
+m1c.T2.CH4<- gam(ppm ~
+            s(plant.mass..g), subset = Time.point=="T2", data = CH4,
+            method="REML", family="gaussian")
+
+CH4.T2.AIC<-AIC(m1a.T2.CH4, m1b.T2.CH4, m1c.T2.CH4)
+# global best
+
+summary(m1c.T2.CH4)
+anova.gam(m1c.T2.CH4)
+gam.check(m1c.T2.CH4, rep=1000)
+draw(m1c.T2.CH4)
+concrvity(m1c.T2.CH4)
+par(mfrow = c(1, 2))
+plot(m1c.T2.CH4, all.terms = TRUE, page=1)
+
+# model predictions
+CH4.diff.T2<-plot_difference(
+  m1a.T2.CH4,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+CH4.T2.mod.plot<-
+  plot_smooths(
+  model = m1c.T2.CH4,
+  series = plant.mass..g,
+)  + theme(legend.position = "none") +
+  geom_point(data=CH4[(CH4$Time.point=="T2"),], 
+             aes(x=plant.mass..g, y=ppm, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ylab(expression(paste("CH4", ~(ppm), sep=""))) +
+  xlab("plant material (g)") +
+  ggtitle("Time-2") +
+  coord_cartesian(ylim=c(1.5, 3)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
+
+CH4.T2.mod.plot
+
+
+#### CH4 
+#######-- T3
+
+m1a.T3.CH4<- gam(ppm ~ Treatment +
+            s(plant.mass..g, by=Treatment), subset = Time.point=="T3", data = CH4,
+            method="REML", family="gaussian")
+
+m1b.T3.CH4<- gam(ppm ~ Treatment +
+            s(plant.mass..g), subset = Time.point=="T3", data = CH4,
+            method="REML", family="gaussian")
+
+m1c.T3.CH4<- gam(ppm ~
+            s(plant.mass..g), subset = Time.point=="T3", data = CH4,
+            method="REML", family="gaussian")
+
+CH4.T3.AIC<-AIC(m1a.T3.CH4, m1b.T3.CH4, m1c.T3.CH4)
+# global with treatment best
+
+summary(m1b.T3.CH4)
+anova.gam(m1b.T3.CH4)
+gam.check(m1b.T3.CH4, rep=1000)
+draw(m1b.T3.CH4)
+concrvity(m1b.T3.CH4)
+par(mfrow = c(1, 2))
+plot(m1b.T3.CH4, all.terms = TRUE, page=1)
+
+# model predictions
+CH4.diff.T3<-plot_difference(
+  m1a.T3.CH4,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+###########  
+#plot for the model output on rawdata
+CH4.T3.mod.plot<-
+  plot_smooths(
+<<<<<<< HEAD
+  model = m2.T3.CH4,
+=======
+  model = m1c.T3.CH4,
+>>>>>>> 182bb4dd7c8dded3426822fc03830866a84d5021
+  series = plant.mass..g,
+  comparison=Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=CH4[(CH4$Time.point=="T3"),], 
+             aes(x=plant.mass..g, y=ppm, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  geom_line(aes(fill=Treatment, linetype=Treatment)) +
+  ylab(expression(paste("CH4", ~(ppm), sep=""))) +
+  xlab("plant material (g)") +
+  ggtitle("Time-3") +
+  coord_cartesian(ylim=c(1.5, 3)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
+
+
+CH4.model.plots<-plot_grid(
+  CH4.T0.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-0"),
+  CH4.T1.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-10"),
+  CH4.T2.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-31"),
+  CH4.T3.mod.plot+ theme(legend.position= "none") + ggtitle( "Day-59"), 
+  extract.legend, 
+  rel_widths = c(8,8,8,8,3), ncol=5)
+
+### model differences
+CH4.plot.diff<-plot_grid(
+  CH4.diff.T0+ ggtitle("CH4-Day-0"),
+  CH4.diff.T1+ ggtitle("Day-10"),
+  CH4.diff.T2+ ggtitle("Day-31"),
+  CH4.diff.T3+ ggtitle("Day-59"),
+  rel_widths = c(8,8,8,8), ncol=4)
+
+
+##### AIC table
+AIC.CH4<-bind_rows(CH4.T0.AIC, CH4.T1.AIC, CH4.T2.AIC, CH4.T3.AIC)
+
+AIC.CH4.mod<-cbind(mod.ghg.df, AIC.CH4)
+write.csv(AIC.CH4.mod, "output/AIC models/AIC.CH4.mod.csv")
+
+```
+
+Compile the greenhouse gas plots
+```{r combine GHG plots}
+
+GHG.plots<-plot_grid(CO2.model.plots, CH4.model.plots, ncol=1)
+ggsave("figures/GHG.mod.plots.pdf", height=7, width=12)
+
+
+GHG.plot.diff<-plot_grid(CO2.plot.diff, CH4.plot.diff, ncol=1)
+ggsave("figures/GHG.mod.diff.pdf", height=7, width=12)
+
+
+```
+
+
