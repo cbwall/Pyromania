@@ -1,0 +1,7 @@
+"","mod.degra.rep","df","AIC"
+"m1.sage.gam","~Treatment + s(plant.mass..g, by= Treatment)",9.04746111183446,167.37565125566
+"m2.sage.gam","~Treatment + s(plant.mass..g)",6.51827921130432,181.988962103439
+"m3.sage.gam","~s(plant.mass..g)",5.3506804310388,183.434607802098
+"m1.willow.gam","~Treatment + s(plant.mass..g, by= Treatment)",5.78128804540485,217.146508659733
+"m2.willow.gam","~Treatment + s(plant.mass..g)",7.29618573140436,214.268074306395
+"m3.willow.gam","~s(plant.mass..g)",4.39994041897963,223.050002604903
