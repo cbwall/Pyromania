@@ -3042,8 +3042,10 @@ phos.T2.mod.plot<-
   Fig.formatting +
   theme(legend.key.size = unit(1,"line"))
 
-phos.T2.mod.plot
-ggsave("figures/water.phosp.pdf", height=4, width=5)
+
+phos.plots<-plot_grid(phos.T2.mod.plot, phos.diff.T2, ncol=2, rel_widths = c(8,5.5))
+ggsave("figures/phos.plots.pdf", height=4, width=8)
+
 
 ## AIC table
 mod.phos<-rep(c("Treatment + s(plant.mass..g, by=Treatment)", 
