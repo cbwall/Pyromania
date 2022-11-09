@@ -1729,19 +1729,20 @@ mod.hix.rep<-rep(c("T0: Treatment with by-factor smooth",
               "T4: Treatment with global smooth", 
               "T4: global smooth"))
 
-mod.sr.column<- data.frame(mod.sr.rep)
-AIC.sr<-bind_rows(T0.sr.AIC, T1.sr.AIC, T2.sr.AIC, T3.sr.AIC, T4.sr.AIC)
-AIC.sr
-AIC.sr.mod<-as.data.frame(cbind(mod.sr.column, AIC.sr))
 
-names(AIC.sr.mod)[1]="Model"
-rownames(AIC.sr.mod)<-c(1:15)
+mod.hix.column<- data.frame(mod.sr.rep)
+AIC.hix<-bind_rows(T0.sr.AIC, T1.sr.AIC, T2.sr.AIC, T3.sr.AIC, T4.sr.AIC)
 
-write.csv(AIC.sr.mod, "output/AIC models/AIC.sr.csv")
+AIC.hix.mod<-as.data.frame(cbind(mod.sr.column, AIC.sr))
+
+names(AIC.hix.mod)[1]="Model"
+rownames(AIC.hix.mod)<-c(1:15)
+
+write.csv(AIC.hix.mod, "output/AIC models/AIC.hix.csv")
 
 #convert dataframe into a table for export
-pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/sr.mod.AIC.pdf", width = 5.5, height = 4.5)       # Export PDF
-grid.table(AIC.sr.mod)
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/hix.mod.AIC.pdf", width = 5.5, height = 4.5)       # Export PDF
+grid.table(AIC.hix.mod)
 dev.off()
 
 
