@@ -353,18 +353,46 @@ DOC.T4.mod.plot<-
   xlab("plant material (g)") +
   Fig.formatting
 
+# model predictions
+DOC.diff.T4<-plot_difference(
+  m1.DOC.T4.gam,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
 # no effect of treatment, smoothing significant across both treatments
 # DOC equivalent in  burned and unburned
 
-mod.rep<-rep(c("~Treatment + s(plant.mass..g, by= Treatment)", 
-              "~Treatment + s(plant.mass..g)", 
-              "~s(plant.mass..g)"), times=5)
+mod.DOC.rep<-rep(c("T0: Treatment with by-factor smooth", 
+              "T0: Treatment with global smooth", 
+              "T0: global smooth",
+              "T1: Treatment with by-factor smooth", 
+              "T1: Treatment with global smooth", 
+              "T1: global smooth",
+              "T2: Treatment with by-factor smooth", 
+              "T2: Treatment with global smooth", 
+              "T2: global smooth",
+              "T3: Treatment with by-factor smooth", 
+              "T3: Treatment with global smooth", 
+              "T3: global smooth",
+              "T4: Treatment with by-factor smooth", 
+              "T4: Treatment with global smooth", 
+              "T4: global smooth"))
 
-mod.column<- data.frame(mod.rep)
-
+mod.DOC.column<- data.frame(mod.DOC.rep)
 AIC.DOC<-bind_rows(T0.DOC.AIC, T1.DOC.AIC, T2.DOC.AIC, T3.DOC.AIC, T4.DOC.AIC)
-AIC.DOC.mod<-cbind(mod.column, AIC.DOC)
+AIC.DOC.mod<-as.data.frame(cbind(mod.DOC.column, AIC.DOC))
+
+names(AIC.DOC.mod)[1]="Model"
+rownames(AIC.DOC.mod)<-c(1:15)
+
 write.csv(AIC.DOC.mod, "output/AIC models/AIC.DOC.csv")
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/DOC.mod.AIC.pdf", width = 5.5, height = 4.5)       # Export PDF
+grid.table(AIC.DOC.mod)
+dev.off()
+
 
 
 
@@ -401,7 +429,7 @@ DOC.mod.allsums <- DOC.mod.allsums %>%
   add_column(Identity= c("DOC"), .before="Model")
 
 #convert dataframe into a table for export
-pdf("Codys.tables/DOC.mod.allsums.pdf", width = 9.5, height = 4)       # Export PDF
+pdf("output/Codys.tables/DOC.mod.allsums.pdf", width = 9.5, height = 4)       # Export PDF
 grid.table(DOC.mod.allsums)
 dev.off()
 
@@ -1255,7 +1283,7 @@ m3.sr.T3.gam=gam(sr ~  s(plant.mass..g), subset = Time.point=="T3", data = DOC.d
 
 m4.sr.T3.gam=gam(sr ~  Treatment + s(plant.mass..g, m=c(2,0)), subset = Time.point=="T3", data = DOC.df, method = "ML")
 
-T3.sr.AIC<-AIC(m1.sr.T3.gam, m2.sr.T3.gam, m3.sr.T3.gam, m4.sr.T3.gam)
+T3.sr.AIC<-AIC(m1.sr.T3.gam, m2.sr.T3.gam, m3.sr.T3.gam)
 T3.sr.AIC
 # best by factor smooth
 
@@ -1347,13 +1375,37 @@ sr.T4.mod.plot
 
 # no effect of treatment, smoothing significant across both treatments
 # DOC equivalent in  burned and unburned
+
+mod.sr.rep<-rep(c("T0: Treatment with by-factor smooth", 
+              "T0: Treatment with global smooth", 
+              "T0: global smooth",
+              "T1: Treatment with by-factor smooth", 
+              "T1: Treatment with global smooth", 
+              "T1: global smooth",
+              "T2: Treatment with by-factor smooth", 
+              "T2: Treatment with global smooth", 
+              "T2: global smooth",
+              "T3: Treatment with by-factor smooth", 
+              "T3: Treatment with global smooth", 
+              "T3: global smooth",
+              "T4: Treatment with by-factor smooth", 
+              "T4: Treatment with global smooth", 
+              "T4: global smooth"))
+
+mod.sr.column<- data.frame(mod.sr.rep)
 AIC.sr<-bind_rows(T0.sr.AIC, T1.sr.AIC, T2.sr.AIC, T3.sr.AIC, T4.sr.AIC)
-AIC.sr.mod<-cbind(mod.column, AIC.sr)
+AIC.sr
+AIC.sr.mod<-as.data.frame(cbind(mod.sr.column, AIC.sr))
+
+names(AIC.sr.mod)[1]="Model"
+rownames(AIC.sr.mod)<-c(1:15)
+
 write.csv(AIC.sr.mod, "output/AIC models/AIC.sr.csv")
 
-
-write.csv(AIC.SUVA, "output/AIC.SUVA.csv")
-
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/sr.mod.AIC.pdf", width = 5.5, height = 4.5)       # Export PDF
+grid.table(AIC.sr.mod)
+dev.off()
 ```
 
 Generate dataframe for model outputs
@@ -1661,9 +1713,36 @@ hix.T4.mod.plot<-
 
 # no effect of treatment, smoothing significant across both treatments
 # DOC equivalent in  burned and unburned
-AIC.hix<-bind_rows(T0.hix.AIC, T1.hix.AIC, T2.hix.AIC, T3.hix.AIC, T4.hix.AIC)
-AIC.hix.mod<-cbind(mod.column, AIC.hix)
-write.csv(AIC.hix.mod, "output/AIC models/AIC.hix.csv")
+mod.hix.rep<-rep(c("T0: Treatment with by-factor smooth", 
+              "T0: Treatment with global smooth", 
+              "T0: global smooth",
+              "T1: Treatment with by-factor smooth", 
+              "T1: Treatment with global smooth", 
+              "T1: global smooth",
+              "T2: Treatment with by-factor smooth", 
+              "T2: Treatment with global smooth", 
+              "T2: global smooth",
+              "T3: Treatment with by-factor smooth", 
+              "T3: Treatment with global smooth", 
+              "T3: global smooth",
+              "T4: Treatment with by-factor smooth", 
+              "T4: Treatment with global smooth", 
+              "T4: global smooth"))
+
+mod.sr.column<- data.frame(mod.sr.rep)
+AIC.sr<-bind_rows(T0.sr.AIC, T1.sr.AIC, T2.sr.AIC, T3.sr.AIC, T4.sr.AIC)
+AIC.sr
+AIC.sr.mod<-as.data.frame(cbind(mod.sr.column, AIC.sr))
+
+names(AIC.sr.mod)[1]="Model"
+rownames(AIC.sr.mod)<-c(1:15)
+
+write.csv(AIC.sr.mod, "output/AIC models/AIC.sr.csv")
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/sr.mod.AIC.pdf", width = 5.5, height = 4.5)       # Export PDF
+grid.table(AIC.sr.mod)
+dev.off()
 
 
 ```
