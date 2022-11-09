@@ -656,29 +656,29 @@ suva.df=rbind(suva.t0.df, suva.t1.df, suva.t2.df, suva.t3.df, suva.t4.df)
 Other indices
 ```{r}
 # Time 0
-index.T0.df=read.csv("/Users/Cody1/Desktop/My_pyromania/EEMS/Indexresults/T0_indices.csv")
+index.T0.df=read.csv("/Users/Cody1/Desktop/Projects/Pyromania/My_pyromania/EEMS/Indexresults/T0_indices.csv")
 index.T0.df$Time.point="T0"
 names(index.T0.df)[6]="Humification.Index"
 index.T0.df=index.T0.df[-c(7:11,13,14)]
 
 #Time 1
-index.T1.df=read.csv("/Users/Cody1/Desktop/My_pyromania/EEMS/Indexresults/T1_indices.csv")
+index.T1.df=read.csv("/Users/Cody1/Desktop/Projects/Pyromania/My_pyromania/EEMS/Indexresults/T1_indices.csv")
 index.T1.df$Time.point="T1"
 index.T1.df=index.T1.df[-c(7:11,13,14)]
 
 #Time 2
-index.T2.df=read.csv("/Users/Cody1/Desktop/My_pyromania/EEMS/Indexresults/T2_indices.csv")
+index.T2.df=read.csv("/Users/Cody1/Desktop/Projects/Pyromania/My_pyromania/EEMS/Indexresults/T2_indices.csv")
 index.T2.df$Time.point="T2"
 index.T2.df=index.T2.df[-c(7:11,13,14)]
 
 #Time 3
-index.T3.df=read.csv("/Users/Cody1/Desktop/My_pyromania/EEMS/Indexresults/T3_indices.csv")
+index.T3.df=read.csv("/Users/Cody1/Desktop/Projects/Pyromania/My_pyromania/EEMS/Indexresults/T3_indices.csv")
 index.T3.df$Time.point="T3"
 index.T3.df=index.T3.df[-c(7:11,13,14)]
 
 
 #Time 4
-index.T4.df=read.csv("/Users/Cody1/Desktop/My_pyromania/EEMS/Indexresults/T4_indicies.csv")
+index.T4.df=read.csv("/Users/Cody1/Desktop/Projects/Pyromania/My_pyromania/EEMS/Indexresults/T4_indicies.csv")
 index.T4.df$Time.point="T4"
 index.T4.df=index.T4.df[-c(7:11,13,14)]
 
@@ -997,9 +997,36 @@ suva.T4.mod.plot
 
 # no effect of treatment, smoothing significant across both treatments
 # DOC equivalent in  burned and unburned
-AIC.SUVA<-bind_rows(T0.suva.AIC, T1.suva.AIC, T2.suva.AIC, T3.suva.AIC, T4.suva.AIC)
-AIC.SUVA.mod<-cbind(mod.column, AIC.SUVA)
-write.csv(AIC.SUVA.mod, "output/AIC models/AIC.SUVA.csv")
+mod.suva.rep<-rep(c("T0: Treatment with by-factor smooth", 
+              "T0: Treatment with global smooth", 
+              "T0: global smooth",
+              "T1: Treatment with by-factor smooth", 
+              "T1: Treatment with global smooth", 
+              "T1: global smooth",
+              "T2: Treatment with by-factor smooth", 
+              "T2: Treatment with global smooth", 
+              "T2: global smooth",
+              "T3: Treatment with by-factor smooth", 
+              "T3: Treatment with global smooth", 
+              "T3: global smooth",
+              "T4: Treatment with by-factor smooth", 
+              "T4: Treatment with global smooth", 
+              "T4: global smooth"))
+
+mod.suva.column<- data.frame(mod.suva.rep)
+AIC.suva<-bind_rows(T0.suva.AIC, T1.suva.AIC, T2.suva.AIC, T3.suva.AIC, T4.suva.AIC)
+AIC.suva.mod<-as.data.frame(cbind(mod.suva.column, AIC.suva))
+
+names(AIC.suva.mod)[1]="Model"
+rownames(AIC.suva.mod)<-c(1:15)
+
+write.csv(AIC.suva.mod, "output/AIC models/AIC.suva.csv")
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/suva.mod.AIC.pdf", width = 5.5, height = 4.5)       # Export PDF
+grid.table(AIC.suva.mod)
+dev.off()
+
 
 
 ```
@@ -1953,14 +1980,6 @@ fr.T4.mod.plot<-
   Fig.formatting
 
 
-
-# no effect of treatment, smoothing significant across both treatments
-# DOC equivalent in  burned and unburned
-AIC.fr<-bind_rows(T0.fr.AIC, T1.fr.AIC, T2.fr.AIC, T3.fr.AIC, T4.fr.AIC)
-AIC.fr.mod<-cbind(mod.column, AIC.fr)
-write.csv(AIC.fr.mod, "output/AIC models/AIC.fr.csv")
-
-
 ```
 
 
@@ -1994,6 +2013,36 @@ fr.mod.allsums <- fr.mod.allsums %>%
   add_column(Identity= c("FR"), .before="Model")
 
 write.csv(fr.mod.allsums, "Codys.tables/fr.mod.allsums.csv")
+
+mod.fr.rep<-rep(c("T0: Treatment with by-factor smooth", 
+              "T0: Treatment with global smooth", 
+              "T0: global smooth",
+              "T1: Treatment with by-factor smooth", 
+              "T1: Treatment with global smooth", 
+              "T1: global smooth",
+              "T2: Treatment with by-factor smooth", 
+              "T2: Treatment with global smooth", 
+              "T2: global smooth",
+              "T3: Treatment with by-factor smooth", 
+              "T3: Treatment with global smooth", 
+              "T3: global smooth",
+              "T4: Treatment with by-factor smooth", 
+              "T4: Treatment with global smooth", 
+              "T4: global smooth"))
+
+mod.fr.column<- data.frame(mod.fr.rep)
+AIC.fr<-bind_rows(T0.fr.AIC, T1.fr.AIC, T2.fr.AIC, T3.fr.AIC, T4.fr.AIC)
+AIC.fr.mod<-as.data.frame(cbind(mod.fr.column, AIC.fr))
+
+names(AIC.fr.mod)[1]="Model"
+rownames(AIC.fr.mod)<-c(1:15)
+
+write.csv(AIC.fr.mod, "output/AIC models/AIC.fr.csv")
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/fr.mod.AIC.pdf", width = 5.5, height = 4.5)       # Export PDF
+grid.table(AIC.fr.mod)
+dev.off()
 
 
 ```
@@ -2270,9 +2319,38 @@ coord_cartesian(ylim = c(0.5,2.5))+
 
 # no effect of treatment, smoothing significant across both treatments
 # DOC equivalent in  burned and unburned
+##combine AIC
+mod.fl.rep<-rep(c("T0: Treatment with by-factor smooth", 
+              "T0: Treatment with global smooth", 
+              "T0: global smooth",
+              "T1: Treatment with by-factor smooth", 
+              "T1: Treatment with global smooth", 
+              "T1: global smooth",
+              "T2: Treatment with by-factor smooth", 
+              "T2: Treatment with global smooth", 
+              "T2: global smooth",
+              "T3: Treatment with by-factor smooth", 
+              "T3: Treatment with global smooth", 
+              "T3: global smooth",
+              "T4: Treatment with by-factor smooth", 
+              "T4: Treatment with global smooth", 
+              "T4: global smooth"))
+
+mod.fl.column<- data.frame(mod.fl.rep)
 AIC.fl<-bind_rows(T0.fl.AIC, T1.fl.AIC, T2.fl.AIC, T3.fl.AIC, T4.fl.AIC)
-AIC.fl.mod<-cbind(mod.column, AIC.fl)
+AIC.fl.mod<-as.data.frame(cbind(mod.fl.column, AIC.fl))
+AIC.fl.mod
+names(AIC.fl.mod)[1]="Model"
+rownames(AIC.fl.mod)<-c(1:15)
+
 write.csv(AIC.fl.mod, "output/AIC models/AIC.fl.csv")
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/fl.mod.AIC.pdf", width = 5.5, height = 4.5)       # Export PDF
+grid.table(AIC.fl.mod)
+dev.off()
+
+
 
 
 ```
@@ -2352,6 +2430,7 @@ indices.diff.plot
 ggsave("figures/indices.diff.plot.pdf", height=18, width=14)
 
 ```
+
 
 Generate dataframe for all index model outputs
 ```{r}
@@ -2514,7 +2593,7 @@ degra.df=degra.df%>%
 
 UVBIO models and plots
 ```{r}
-library(tidymv)
+
 
 ###Just UV
 m1.photo.perc=gam(percent.change.DOC ~ Treatment +s(plant.mass..g, by= Treatment), data=photo.df, method="REML", select= T, subset= Time.point=="T1")
@@ -2601,7 +2680,7 @@ m3.total.perc=gam(percent.change.DOC ~ s(plant.mass..g), data=total.df, method="
 
 m4.total.perc=gam(percent.change.DOC ~ s(plant.mass..g, m=c(2,0)), data=total.df, method="REML", select= T, subset= Time.point=="T1")
 
-total.AIC=AIC(m1.total.perc, m2.total.perc, m3.total.perc, m4.total.perc)
+total.AIC=AIC(m1.total.perc, m2.total.perc, m3.total.perc)
 total.AIC
 # global smooth
 
@@ -2632,14 +2711,30 @@ total.mod.plot<-
 total.mod.plot
 
 ##combine AIC
-mod.degra.rep<-rep(c("~Treatment + s(plant.mass..g, by= Treatment)", 
-              "~Treatment + s(plant.mass..g)", 
-              "~s(plant.mass..g)"), times=1)
+mod.degra.rep<-rep(c("UV-only: Treatment with by-factor smooth", 
+              "UV-only: Treatment with global smooth", 
+              "UV-only: global smooth",
+              "Microbes-only: Treatment with by-factor smooth", 
+              "Microbes-only: Treatment with global smooth", 
+              "Microbes-only: global smooth",
+              "UV and microbes: Treatment with by-factor smooth", 
+              "UV and microbes: Treatment with global smooth", 
+              "UV and microbes: global smooth"))
 
 mod.degra.column<- data.frame(mod.degra.rep)
 AIC.degra<-bind_rows(photo.AIC, microbe.AIC, total.AIC)
-AIC.degra.mod<-cbind(mod.degra.column, AIC.degra)
+AIC.degra.mod<-as.data.frame(cbind(mod.degra.column, AIC.degra))
+AIC.degra.mod
+names(AIC.degra.mod)[1]="Model"
+rownames(AIC.degra.mod)<-c(1:9)
+
 write.csv(AIC.degra.mod, "output/AIC models/AIC.degra.csv")
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.mod.AIC.pdf", width = 6, height = 3)       # Export PDF
+grid.table(AIC.degra.mod)
+dev.off()
+
 
 ```
 
@@ -2660,6 +2755,8 @@ degra.para.sums <- degra.para.sums %>%
 degra.smooth.sums=as.data.frame(rbind(photo.anova$s.table, microbe.anova$s.table, total.anova$s.table))
 names(degra.smooth.sums)[1]="df/edf"
 
+
+
 #create empty column for ref.df
 degra.smooth.sums <- degra.smooth.sums %>%
   # Creating an empty column:
@@ -2669,10 +2766,10 @@ degra.smooth.sums <- degra.smooth.sums %>%
 degra.mod.allsums=rbind(degra.para.sums,degra.smooth.sums)
 rownames(degra.mod.allsums)<-c(1:9)
 degra.mod.allsums
-write.csv(degra.mod.allsums, "Codys.tables/degra.mod.allsums.csv")
+write.csv(degra.mod.allsums, "/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.mod.allsums.csv")
 
 #convert dataframe into a table for export
-pdf("Codys.tables/degra.mod.allsums.pdf", width = 9, height = 3)       # Export PDF
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.mod.allsums.pdf", width = 9, height = 3)       # Export PDF
 grid.table(degra.mod.allsums)
 dev.off()
 
@@ -2680,6 +2777,7 @@ dev.off()
 T1.DOC.anova
 
 ```
+
 
 compile raw plots and model-diff plots for final figures
 ```{r DOC model plots compiled}
@@ -2707,7 +2805,7 @@ m2.suva.photo=gam(percent.change.DOC ~ Treatment +s(SUVA), data=photo.df, method
 m3.suva.photo=gam(percent.change.DOC ~ s(SUVA), data=photo.df, method="REML", select= T, subset= Time.point=="T1")
 
 AIC(m1.suva.photo, m2.suva.photo, m3.suva.photo)
-microbe.AIC
+
 # global smooth
 
 photo.suva.plot=plot_smooths(
@@ -2721,6 +2819,7 @@ photo.suva.plot=plot_smooths(
    geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab("Change DOC (%)") +
   xlab("SUVA") +
+    coord_cartesian(ylim = c(-30,0))+
   Fig.formatting
  
 
@@ -2732,11 +2831,11 @@ m2.suva.microbes=gam(percent.change.DOC ~ Treatment +s(SUVA), data=microbe.df, m
 m3.suva.microbes=gam(percent.change.DOC ~ s(SUVA), data=microbe.df, method="REML", select= T, subset= Time.point=="T1")
 
 AIC(m1.suva.perc, m2.suva.perc, m3.suva.perc)
-microbe.AIC
+
 # global smooth
 
 microbe.suva.plot=plot_smooths(
-  model = m3.suva.perc,
+  model = m3.suva.microbes,
   series = SUVA
 ) + 
   geom_point(data=microbe.df[(microbe.df$Time.point=="T1"),], 
@@ -2746,8 +2845,10 @@ microbe.suva.plot=plot_smooths(
    geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab("Change DOC (%)") +
   xlab("SUVA") +
+    coord_cartesian(ylim = c(-30,0))+
   Fig.formatting
   
+microbe.suva.plot
   ###Decomposition across SUVA for microbes
 m1.suva.total=gam(percent.change.DOC ~ Treatment +s(SUVA, by= Treatment), data=total.df, method="REML", select= T, subset= Time.point=="T1")
 
@@ -2756,7 +2857,7 @@ m2.suva.total=gam(percent.change.DOC ~ Treatment +s(SUVA), data=total.df, method
 m3.suva.total=gam(percent.change.DOC ~ s(SUVA), data=total.df, method="REML", select= T, subset= Time.point=="T1")
 
 AIC(m1.suva.total, m2.suva.total, m3.suva.total)
-microbe.AIC
+
 # global smooth
 
 total.suva.plot=plot_smooths(
@@ -2767,17 +2868,31 @@ total.suva.plot=plot_smooths(
              aes(x=SUVA, y=percent.change.DOC, color=Treatment)) +
    scale_color_manual(values = c("brown1", "mediumseagreen")) +
   scale_fill_manual(values = c("brown1", "mediumseagreen")) +
-  
   ggtitle("UV and microbes") +
    geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab("Change DOC (%)") +
   xlab("SUVA") +
+  coord_cartesian(ylim = c(-30,0))+
   Fig.formatting
  
-
+total.suva.plot
 
 ```
 
+compile raw plots and model-diff plots for final figures
+```{r DOC model plots compiled}
+
+degra.suva.mod.plot<-plot_grid(
+photo.suva.plot+ theme(legend.position = "none"),
+microbe.suva.plot+ theme(legend.position = "none"),
+total.suva.plot+ theme(legend.position = "none"), extract.legend,
+  rel_widths = c(8,8,8,3), ncol=4)
+
+degra.mod.plot
+
+ggsave("figures/degra.mod.plot.pdf", height=4, width=12)
+
+```
 
 
 % change DOC across HIX (relate composition with decomposition)
