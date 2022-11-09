@@ -1,16 +1,16 @@
-"","mod.rep","df","AIC"
-"m1.fr.T0.gam","~Treatment + s(plant.mass..g, by= Treatment)",5.00011448408257,-56.3147331512809
-"m2.fr.T0.gam","~Treatment + s(plant.mass..g)",4.00003524150562,-56.4828731549415
-"m3.fr.T0.gam","~s(plant.mass..g)",3.00003598982675,-58.2538041894536
-"m1.fr.T1.gam","~Treatment + s(plant.mass..g, by= Treatment)",6.19491250770387,-5.49397101593319
-"m2.fr.T1.gam","~Treatment + s(plant.mass..g)",4.000009641417,-0.681914161992026
-"m3.fr.T1.gam","~s(plant.mass..g)",3.00000935875612,2.74569495206719
-"m1.fr.T2.gam","~Treatment + s(plant.mass..g, by= Treatment)",6.75622668544793,-102.785897969719
-"m2.fr.T2.gam","~Treatment + s(plant.mass..g)",5.4601973762169,-101.456515063377
-"m3.fr.T2.gam","~s(plant.mass..g)",4.29683107596615,-96.00129215898
-"m1.fr.T3.gam","~Treatment + s(plant.mass..g, by= Treatment)",8.33796145488999,-104.514689651355
-"m2.fr.T3.gam","~Treatment + s(plant.mass..g)",6.18672776820244,-108.464783217004
-"m3.fr.T3.gam","~s(plant.mass..g)",4.61700493865358,-86.8042676467811
-"m1.fr.T4.gam","~Treatment + s(plant.mass..g, by= Treatment)",9.27831215482981,-103.544439731593
-"m2.fr.T4.gam","~Treatment + s(plant.mass..g)",7.82539236359234,-104.363948675024
-"m3.fr.T4.gam","~s(plant.mass..g)",3.47087703291734,-93.8012499069666
+"","Model","df","AIC"
+"1","T0: Treatment with by-factor smooth",5.00011448408257,-56.3147331512809
+"2","T0: Treatment with global smooth",4.00003524150562,-56.4828731549415
+"3","T0: global smooth",3.00003598982675,-58.2538041894536
+"4","T1: Treatment with by-factor smooth",6.19491250770387,-5.49397101593319
+"5","T1: Treatment with global smooth",4.000009641417,-0.681914161992026
+"6","T1: global smooth",3.00000935875612,2.74569495206719
+"7","T2: Treatment with by-factor smooth",6.75622668544793,-102.785897969719
+"8","T2: Treatment with global smooth",5.4601973762169,-101.456515063377
+"9","T2: global smooth",4.29683107596615,-96.00129215898
+"10","T3: Treatment with by-factor smooth",8.33796145488999,-104.514689651355
+"11","T3: Treatment with global smooth",6.18672776820244,-108.464783217004
+"12","T3: global smooth",4.61700493865358,-86.8042676467811
+"13","T4: Treatment with by-factor smooth",9.27831215482981,-103.544439731593
+"14","T4: Treatment with global smooth",7.82539236359234,-104.363948675024
+"15","T4: global smooth",3.47087703291734,-93.8012499069666

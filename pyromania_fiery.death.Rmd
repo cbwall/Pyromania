@@ -1826,7 +1826,7 @@ T0.fr.AIC
 
 summary(m1.fr.T0.gam)
 anova.gam(m1.fr.T0.gam)
-gam.check(m1.hix.T0.gam, rep=1000)
+gam.check(m1.fr.T0.gam, rep=1000)
 draw(m1.fr.T0.gam)
 concrvity(m1.fr.T0.gam)
 par(mfrow = c(2, 2))
@@ -1970,7 +1970,7 @@ m3.fr.T3.gam=gam(fr ~  s(plant.mass..g), subset = Time.point=="T3", data = DOC.d
 
 m4.fr.T3.gam=gam(fr ~  Treatment + s(plant.mass..g, m=c(2,0)), subset = Time.point=="T3", data = DOC.df, method = "REML")
 
-T3.fr.AIC<-AIC(m1.fr.T3.gam, m2.fr.T3.gam, m3.fr.T3.gam, m4.fr.T3.gam)
+T3.fr.AIC<-AIC(m1.fr.T3.gam, m2.fr.T3.gam, m3.fr.T3.gam)
 T3.fr.AIC
 # best by factor smooth
 
@@ -2021,7 +2021,7 @@ m3.fr.T4.gam=gam(fr ~  s(plant.mass..g), subset = Time.point=="T4", data = DOC.d
 
 m4.fr.T4.gam=gam(fr ~  Treatment + s(plant.mass..g, m=c(2,0)), subset = Time.point=="T4", data = DOC.df, method = "REML")
 
-T4.fr.AIC<-AIC(m1.fr.T4.gam, m2.fr.T4.gam, m3.fr.T4.gam, m4.fr.T4.gam)
+T4.fr.AIC<-AIC(m1.fr.T4.gam, m2.fr.T4.gam, m3.fr.T4.gam)
 T4.fr.AIC
 
 # best is global
