@@ -3263,36 +3263,9 @@ willow.mod.plot<-
 willow.mod.plot
 
 ##combine AIC
-
-mod.decomp.rep<-rep(c("T0: Treatment with by-factor smooth", 
-              "T0: Treatment with global smooth", 
-              "T0: global smooth",
-              "T1: Treatment with by-factor smooth", 
-              "T1: Treatment with global smooth", 
-              "T1: global smooth",
-              "T2: Treatment with by-factor smooth", 
-              "T2: Treatment with global smooth", 
-              "T2: global smooth",
-              "T3: Treatment with by-factor smooth", 
-              "T3: Treatment with global smooth", 
-              "T3: global smooth",
-              "T4: Treatment with by-factor smooth", 
-              "T4: Treatment with global smooth", 
-              "T4: global smooth"))
-
-mod.fr.column<- data.frame(mod.fr.rep)
-AIC.fr<-bind_rows(T0.fr.AIC, T1.fr.AIC, T2.fr.AIC, T3.fr.AIC, T4.fr.AIC)
-AIC.fr.mod<-as.data.frame(cbind(mod.fr.column, AIC.fr))
-
-names(AIC.fr.mod)[1]="Model"
-rownames(AIC.fr.mod)<-c(1:15)
-
-write.csv(AIC.fr.mod, "output/AIC models/AIC.fr.csv")
-
-#convert dataframe into a table for export
-pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/fr.mod.AIC.pdf", width = 5.5, height = 4.5)       # Export PDF
-grid.table(AIC.fr.mod)
-dev.off()
+AIC.decomp<-bind_rows(sage.AIC, willow.AIC)
+AIC.decomp.mod<-cbind(mod.degra.column, AIC.decomp)
+write.csv(AIC.decomp.mod, "output/AIC models/AIC.decomp.csv")
 
 
 ```
