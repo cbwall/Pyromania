@@ -2677,7 +2677,13 @@ sage.mix.model<- plot_grid(per.Sage.T1.mod.plot + theme(legend.position = "none"
 
 ggsave("figures/Isotope.mixmodel.pdf", encod="MacRoman", height=5, width=10)
 
-sage.mix.model
+
+# and plot difference
+sage.mix.model.diff<- plot_grid(per.Sage.diff.T1 + theme(legend.position = "none"), 
+                    per.Sage.diff.T2 + theme(legend.position = "none"),
+                    extract.legend.mix, rel_widths = c(8,8,3), ncol=3)
+
+ggsave("figures/Isotope.mix.plotdiff.pdf", encod="MacRoman", height=5, width=10)
 ```
 
 make d15N plots as well -- these follow the % sage, but are informative with the control plots to see the d15N of plankton and the 2 end members.
