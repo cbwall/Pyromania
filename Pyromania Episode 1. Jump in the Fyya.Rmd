@@ -2098,7 +2098,7 @@ CvN.mod1.T1<-lm(Total.N..ug~Total.C..ug*Treatment, data=topes.trt[(topes.trt$Tim
 CvN.mod2.T1<-lm(Total.N..ug~Total.C..ug + Treatment, data=topes.trt[(topes.trt$Time.point=="T1"),])
 
 anova(CvN.mod1.T1,CvN.mod2.T1) # no diff, go with simple model 'CvN.mod2.T1'
-Anova(CvN.mod2.T1, type=2)
+Anova(CvN.mod1.T1, type=3)
 
 CvN.T1.mod.plot<-
   ggplot(data=topes.trt[(topes.trt$Time.point=="T1"),], 
@@ -2307,7 +2307,14 @@ isoCNplot<- plot_grid(CvN.T1.mod.plot + theme(legend.position = "none"),
 
 ggsave("figures/isoCNplots.pdf", height=6, width=12, encod="MacRoman")
 
-isoCNplot
+## combine model diffs
+isoCNplot.diff<- plot_grid(CN.diff.T1 + theme(legend.position = "none"), 
+                    CN.diff.T2 + theme(legend.position = "none"),
+                    rel_widths = c(8,8), ncol=2)
+
+ggsave("figures/isoCN.moddiff.pdf", height=5, width=8, encod="MacRoman")
+
+
 ```
 
 The "controls" are the tin blanks, plankton, and starting materials
