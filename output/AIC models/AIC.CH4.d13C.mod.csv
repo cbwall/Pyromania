@@ -1,0 +1,13 @@
+"","mod.ghg.CH4.d13C","df","AIC"
+"m1.T0.CH4.d13C","Treatment +s(plant.mass..g, by=Treatment)",6.41187565982319,30.1582488807781
+"m2.T0.CH4.d13C","Treatment + s(plant.mass..g)",5.32989160534927,28.9542593567056
+"m3.T0.CH4.d13C","s(plant.mass..g)",4.3841664283997,27.1023262796789
+"m1.T1.CH4.d13C","Treatment +s(plant.mass..g, by=Treatment)",7.58787003499446,13.7408431114117
+"m2.T1.CH4.d13C","Treatment + s(plant.mass..g)",6.16877838400006,12.8289767264618
+"m3.T1.CH4.d13C","s(plant.mass..g)",5.17979948135768,11.6807375321355
+"m1.T2.CH4.d13C","Treatment +s(plant.mass..g, by=Treatment)",7.38248708513447,20.1000373946723
+"m2.T2.CH4.d13C","Treatment + s(plant.mass..g)",6.77270354050903,13.7171041274607
+"m3.T2.CH4.d13C","s(plant.mass..g)",5.78461087859157,12.7511741423043
+"m1.T3.CH4.d13C","Treatment +s(plant.mass..g, by=Treatment)",8.4400944571893,68.981227328669
+"m2.T3.CH4.d13C","Treatment + s(plant.mass..g)",6.923836582901,75.5903315834642
+"m3.T3.CH4.d13C","s(plant.mass..g)",5.97452799799533,73.7657716900332
