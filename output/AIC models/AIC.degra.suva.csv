@@ -1,0 +1,10 @@
+"","Model","df","AIC"
+"1","UV-only: Treatment with by-factor smooth",3.00018690862134,198.052073859454
+"2","UV-only: Treatment with global smooth",3.00015844335982,198.052049876486
+"3","UV-only: global smooth",2.00025796594926,197.998241664049
+"4","Microbes-only: Treatment with by-factor smooth",7.6088103533762,193.424299423866
+"5","Microbes-only: Treatment with global smooth",5.84503418880255,191.983969068063
+"6","Microbes-only: global smooth",4.86217907009122,191.397566553628
+"7","UV and microbes: Treatment with by-factor smooth",7.60816994906922,193.115982679805
+"8","UV and microbes: Treatment with global smooth",5.74192129183354,190.088162126961
+"9","UV and microbes: global smooth",4.79204593744684,188.75991473551

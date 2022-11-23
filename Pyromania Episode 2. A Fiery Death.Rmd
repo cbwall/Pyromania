@@ -2881,7 +2881,10 @@ m2.suva.photo=gam(percent.change.DOC ~ Treatment +s(SUVA), data=photo.df, method
 
 m3.suva.photo=gam(percent.change.DOC ~ s(SUVA), data=photo.df, method="REML", select= T, subset= Time.point=="T1")
 
-AIC(m1.suva.photo, m2.suva.photo, m3.suva.photo)
+photo.suva.AIC=AIC(m1.suva.photo, m2.suva.photo, m3.suva.photo)
+
+photo.suva.anova=anova(m1.suva.photo)
+photo.suva.anova
 
 # global smooth
 
@@ -2907,7 +2910,8 @@ m2.suva.microbes=gam(percent.change.DOC ~ Treatment +s(SUVA), data=microbe.df, m
 
 m3.suva.microbes=gam(percent.change.DOC ~ s(SUVA), data=microbe.df, method="REML", select= T, subset= Time.point=="T1")
 
-AIC(m1.suva.microbes, m2.suva.microbes, m3.suva.microbes)
+microbe.suva.AIC=AIC(m1.suva.microbes, m2.suva.microbes, m3.suva.microbes)
+microbe.suva.anova=anova(m1.suva.microbes)
 
 # global smooth
 
@@ -2933,7 +2937,8 @@ m2.suva.total=gam(percent.change.DOC ~ Treatment +s(SUVA), data=total.df, method
 
 m3.suva.total=gam(percent.change.DOC ~ s(SUVA), data=total.df, method="REML", select= T, subset= Time.point=="T1")
 
-AIC(m1.suva.total, m2.suva.total, m3.suva.total)
+total.suva.AIC=AIC(m1.suva.total, m2.suva.total, m3.suva.total)
+total.suva.anova=anova(m1.suva.total)
 
 # global smooth
 
@@ -2953,6 +2958,72 @@ total.suva.plot=plot_smooths(
   Fig.formatting
  
 total.suva.plot
+
+##combine AIC
+mod.degra.suva.rep<-rep(c("UV-only: Treatment with by-factor smooth", 
+              "UV-only: Treatment with global smooth", 
+              "UV-only: global smooth",
+              "Microbes-only: Treatment with by-factor smooth", 
+              "Microbes-only: Treatment with global smooth", 
+              "Microbes-only: global smooth",
+              "UV and microbes: Treatment with by-factor smooth", 
+              "UV and microbes: Treatment with global smooth", 
+              "UV and microbes: global smooth"))
+
+mod.degra.suva.column<- data.frame(mod.degra.suva.rep)
+AIC.degra.suva<-bind_rows(photo.suva.AIC, microbe.suva.AIC, total.suva.AIC)
+AIC.degra.suva.mod<-as.data.frame(cbind(mod.degra.suva.column, AIC.degra.suva))
+
+names(AIC.degra.suva.mod)[1]="Model"
+rownames(AIC.degra.suva.mod)<-c(1:9)
+
+write.csv(AIC.degra.suva.mod, "output/AIC models/AIC.degra.suva.csv")
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.suva.mod.AIC.pdf", width = 6, height = 3)       # Export PDF
+grid.table(AIC.degra.suva.mod)
+dev.off()
+
+```
+
+Generate dataframe for model outputs
+```{r}
+####Parametric output
+degra.suva.para.sums=as.data.frame(rbind(photo.suva.anova$pTerms.table, microbe.suva.anova$pTerms.table, total.suva.anova$pTerms.table))
+degra.suva.para.sums
+names(degra.suva.para.sums)[1]="df/edf"
+
+#create empty column for ref.df
+degra.suva.para.sums <- degra.suva.para.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("UV-only Model: Treatment","Microbes-only Model: Treatment","UV and microbes Model: Treatment"), .before="df/edf")%>%
+  add_column(Ref.df = "-", .after="df/edf")
+  
+
+#####Smooth output
+degra.smooth.suva.sums=as.data.frame(rbind(photo.suva.anova$s.table, microbe.suva.anova$s.table, total.suva.anova$s.table))
+names(degra.smooth.suva.sums)[1]="df/edf"
+
+
+
+#create empty column for ref.df
+degra.smooth.suva.sums <- degra.smooth.suva.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("UV-only Model: s(plant.mass):burned","UV-only Model: s(plant.mass):unburned","Microbes-only Model: s(plant.mass):burned","Microbes-only Model: s(plant.mass):unburned","UV and microbes Model: s(plant.mass):burned","UV and microbes Model: s(plant.mass):unburned"), .before="df/edf")
+
+#merge the dataframes
+degra.suva.mod.allsums=rbind(degra.suva.para.sums,degra.smooth.suva.sums)
+rownames(degra.suva.mod.allsums)<-c(1:9)
+
+write.csv(degra.suva.mod.allsums, "/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.suva.mod.allsums.csv")
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.suva.mod.allsums.pdf", width = 9, height = 3)       # Export PDF
+grid.table(degra.suva.mod.allsums)
+dev.off()
+
+
+T1.DOC.anova
 
 ```
 
@@ -2981,8 +3052,8 @@ m2.hix.photo=gam(percent.change.DOC ~ Treatment +s(HIX), data=photo.df, method="
 
 m3.hix.photo=gam(percent.change.DOC ~ s(HIX), data=photo.df, method="REML", select= T, subset= Time.point=="T1")
 
-AIC(m1.hix.photo, m2.hix.photo, m3.hix.photo)
-
+photo.hix.AIC=AIC(m1.hix.photo, m2.hix.photo, m3.hix.photo)
+photo.hix.anova=anova(m1.hix.photo)
 
 photo.hix.plot=plot_smooths(
   model = m2.hix.photo,
@@ -3008,7 +3079,9 @@ m2.hix.microbes=gam(percent.change.DOC ~ Treatment +s(HIX), data=microbe.df, met
 
 m3.hix.microbes=gam(percent.change.DOC ~ s(HIX), data=microbe.df, method="REML", select= T, subset= Time.point=="T1")
 
-AIC(m1.hix.microbes, m2.hix.microbes, m3.hix.microbes)
+microbe.hix.AIC=AIC(m1.hix.microbes, m2.hix.microbes, m3.hix.microbes)
+microbe.hix.anova=anova(m1.hix.microbes)
+
 microbe.AIC
 # global smooth
 microbe.hix.plot=plot_smooths(
@@ -3032,8 +3105,8 @@ m2.hix.total=gam(percent.change.DOC ~ Treatment +s(HIX), data=total.df, method="
 
 m3.hix.total=gam(percent.change.DOC ~ s(HIX), data=total.df, method="REML", select= T, subset= Time.point=="T1")
 
-AIC(m1.hix.total, m2.hix.total, m3.hix.total)
-microbe.AIC
+total.hix.AIC=AIC(m1.hix.total, m2.hix.total, m3.hix.total)
+total.hix.anova=anova(m1.hix.total)
 # global smooth
 total.hix.plot=plot_smooths(
   model = m3.hix.total,
@@ -3053,6 +3126,46 @@ total.hix.plot=plot_smooths(
 
 ```
 
+
+Generate dataframe for model outputs
+```{r}
+####Parametric output
+degra.hix.para.sums=as.data.frame(rbind(photo.hix.anova$pTerms.table, microbe.hix.anova$pTerms.table, total.hix.anova$pTerms.table))
+
+names(degra.hix.para.sums)[1]="df/edf"
+
+#create empty column for ref.df
+degra.hix.para.sums <- degra.hix.para.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("UV-only Model: Treatment","Microbes-only Model: Treatment","UV and microbes Model: Treatment"), .before="df/edf")%>%
+  add_column(Ref.df = "-", .after="df/edf")
+  
+
+#####Smooth output
+degra.smooth.hix.sums=as.data.frame(rbind(photo.hix.anova$s.table, microbe.hix.anova$s.table, total.hix.anova$s.table))
+names(degra.smooth.hix.sums)[1]="df/edf"
+
+
+
+#create empty column for ref.df
+degra.smooth.hix.sums <- degra.smooth.hix.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("UV-only Model: s(plant.mass):burned","UV-only Model: s(plant.mass):unburned","Microbes-only Model: s(plant.mass):burned","Microbes-only Model: s(plant.mass):unburned","UV and microbes Model: s(plant.mass):burned","UV and microbes Model: s(plant.mass):unburned"), .before="df/edf")
+
+#merge the dataframes
+degra.hix.mod.allsums=rbind(degra.hix.para.sums,degra.smooth.hix.sums)
+rownames(degra.hix.mod.allsums)<-c(1:9)
+
+write.csv(degra.hix.mod.allsums, "/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.hix.mod.allsums.csv")
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.hix.mod.allsums.pdf", width = 9, height = 3)       # Export PDF
+grid.table(degra.hix.mod.allsums)
+dev.off()
+
+
+
+```
 compile raw plots and model-diff plots for final figures
 ```{r DOC model plots compiled}
 
@@ -3077,8 +3190,8 @@ m2.sr.photo=gam(percent.change.DOC ~ Treatment +s(Spectral.slope), data=photo.df
 
 m3.sr.photo=gam(percent.change.DOC ~ s(Spectral.slope), data=photo.df, method="REML", select= T, subset= Time.point=="T1")
 
-AIC(m1.sr.photo, m2.sr.photo, m3.sr.photo)
-microbe.AIC
+photo.sr.AIC=AIC(m1.sr.photo, m2.sr.photo, m3.sr.photo)
+photo.sr.anova=anova(m1.sr.photo)
 # global smooth
 photo.sr.plot=plot_smooths(
   model = m3.sr.photo,
@@ -3102,8 +3215,8 @@ m2.sr.microbes=gam(percent.change.DOC ~ Treatment +s(Spectral.slope), data=micro
 
 m3.sr.microbes=gam(percent.change.DOC ~ s(Spectral.slope), data=microbe.df, method="REML", select= T, subset= Time.point=="T1")
 
-AIC(m1.sr.microbes, m2.sr.microbes, m3.sr.microbes)
-microbe.AIC
+microbe.sr.AIC=AIC(m1.sr.microbes, m2.sr.microbes, m3.sr.microbes)
+microbe.sr.anova=anova(m1.sr.microbes)
 # global smooth
 microbe.sr.plot=plot_smooths(
   model = m3.sr.microbes,
@@ -3126,8 +3239,8 @@ m2.sr.total=gam(percent.change.DOC ~ Treatment +s(Spectral.slope), data=total.df
 
 m3.sr.total=gam(percent.change.DOC ~ s(Spectral.slope), data=total.df, method="REML", select= T, subset= Time.point=="T1")
 
-AIC(m1.sr.total, m2.sr.total, m3.sr.total)
-microbe.AIC
+total.sr.AIC=AIC(m1.sr.total, m2.sr.total, m3.sr.total)
+total.sr.anova=anova(m1.sr.total)
 # global smooth
 total.sr.plot=plot_smooths(
   model = m3.sr.total,
@@ -3147,6 +3260,46 @@ total.sr.plot=plot_smooths(
 
 ```
 
+
+Generate dataframe for model outputs
+```{r}
+####Parametric output
+degra.sr.para.sums=as.data.frame(rbind(photo.sr.anova$pTerms.table, microbe.sr.anova$pTerms.table, total.sr.anova$pTerms.table))
+
+names(degra.sr.para.sums)[1]="df/edf"
+
+#create empty column for ref.df
+degra.sr.para.sums <- degra.sr.para.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("UV-only Model: Treatment","Microbes-only Model: Treatment","UV and microbes Model: Treatment"), .before="df/edf")%>%
+  add_column(Ref.df = "-", .after="df/edf")
+  
+
+#####Smooth output
+degra.smooth.sr.sums=as.data.frame(rbind(photo.sr.anova$s.table, microbe.sr.anova$s.table, total.sr.anova$s.table))
+names(degra.smooth.sr.sums)[1]="df/edf"
+
+
+
+#create empty column for ref.df
+degra.smooth.sr.sums <- degra.smooth.sr.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("UV-only Model: s(plant.mass):burned","UV-only Model: s(plant.mass):unburned","Microbes-only Model: s(plant.mass):burned","Microbes-only Model: s(plant.mass):unburned","UV and microbes Model: s(plant.mass):burned","UV and microbes Model: s(plant.mass):unburned"), .before="df/edf")
+
+#merge the dataframes
+degra.sr.mod.allsums=rbind(degra.sr.para.sums,degra.smooth.sr.sums)
+rownames(degra.sr.mod.allsums)<-c(1:9)
+
+write.csv(degra.sr.mod.allsums, "/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.sr.mod.allsums.csv")
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.sr.mod.allsums.pdf", width = 9, height = 3)       # Export PDF
+grid.table(degra.sr.mod.allsums)
+dev.off()
+
+
+
+```
 compile raw plots and model-diff plots for final figures
 ```{r DOC model plots compiled}
 
