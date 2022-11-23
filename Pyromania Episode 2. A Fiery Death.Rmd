@@ -1783,8 +1783,6 @@ write.csv(hix.mod.allsums, "Codys.tables/hix.mod.allsums.csv")
 ```
 
 
-
-
 HIX: compile raw plots and model-diff plots for final figures
 ```{r sr model plots compiled}
 
@@ -1808,7 +1806,6 @@ hix.mod.diffs<-plot_grid(
 hix.mod.diffs
 ggsave("figures/hix.mod.diffs.pdf", height=4, width=12)
 ```
-
 
 
 Freshness analysis and plots
@@ -2898,10 +2895,10 @@ photo.suva.plot=plot_smooths(
   ggtitle("UV-only") +
    geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab("Change DOC (%)") +
-  xlab("SUVA") +
-    coord_cartesian(ylim = c(-30,0))+
+xlab(expression('SUVA'["254"]~'(mgC'~ L^-1~m^-1*')'))+
+  coord_cartesian(ylim = c(-30,0))+
   Fig.formatting
- 
+ photo.suva.plot
 
 ###Decomposition across SUVA for microbes
 m1.suva.microbes=gam(percent.change.DOC ~ Treatment +s(SUVA, by= Treatment), data=microbe.df, method="REML", select= T, subset= Time.point=="T1")
@@ -2910,7 +2907,7 @@ m2.suva.microbes=gam(percent.change.DOC ~ Treatment +s(SUVA), data=microbe.df, m
 
 m3.suva.microbes=gam(percent.change.DOC ~ s(SUVA), data=microbe.df, method="REML", select= T, subset= Time.point=="T1")
 
-AIC(m1.suva.perc, m2.suva.perc, m3.suva.perc)
+AIC(m1.suva.microbes, m2.suva.microbes, m3.suva.microbes)
 
 # global smooth
 
@@ -2923,9 +2920,9 @@ microbe.suva.plot=plot_smooths(
    scale_color_manual(values = c("brown1", "mediumseagreen")) +
   ggtitle("microbes-only") +
    geom_hline(yintercept=0, linetype="longdash", color = "gray") +
-  ylab("Change DOC (%)") +
-  xlab("SUVA") +
-    coord_cartesian(ylim = c(-30,0))+
+  ylab("") +
+xlab(expression('SUVA'["254"]~'(mgC'~ L^-1~m^-1*')'))+
+  coord_cartesian(ylim = c(-30,0))+
   Fig.formatting
   
 microbe.suva.plot
@@ -2950,8 +2947,8 @@ total.suva.plot=plot_smooths(
   scale_fill_manual(values = c("brown1", "mediumseagreen")) +
   ggtitle("UV and microbes") +
    geom_hline(yintercept=0, linetype="longdash", color = "gray") +
-  ylab("Change DOC (%)") +
-  xlab("SUVA") +
+  ylab("") +
+ xlab(expression('SUVA'["254"]~'(mgC'~ L^-1~m^-1*')'))+
   coord_cartesian(ylim = c(-30,0))+
   Fig.formatting
  
@@ -2968,9 +2965,9 @@ microbe.suva.plot+ theme(legend.position = "none"),
 total.suva.plot+ theme(legend.position = "none"), extract.legend,
   rel_widths = c(8,8,8,3), ncol=4)
 
-degra.mod.plot
+degra.suva.mod.plot
 
-ggsave("figures/degra.mod.plot.pdf", height=4, width=12)
+ggsave("figures/degra.suva.mod.plot.pdf", height=4, width=12)
 
 ```
 
@@ -2985,9 +2982,9 @@ m2.hix.photo=gam(percent.change.DOC ~ Treatment +s(HIX), data=photo.df, method="
 m3.hix.photo=gam(percent.change.DOC ~ s(HIX), data=photo.df, method="REML", select= T, subset= Time.point=="T1")
 
 AIC(m1.hix.photo, m2.hix.photo, m3.hix.photo)
-microbe.AIC
-# global smooth
-  plot_smooths(
+
+
+photo.hix.plot=plot_smooths(
   model = m2.hix.photo,
   series = HIX,
   comparison = Treatment
@@ -2995,10 +2992,12 @@ microbe.AIC
   geom_point(data=photo.df[(photo.df$Time.point=="T1"),], 
              aes(x=HIX, y=percent.change.DOC, color=Treatment)) +
    scale_color_manual(values = c("brown1", "mediumseagreen")) +
+   scale_fill_manual(values = c("brown1", "mediumseagreen")) +
   ggtitle("UV-only") +
    geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab("Change DOC (%)") +
   xlab("HIX") +
+    coord_cartesian(ylim = c(-30,0))+
   Fig.formatting
  
 
@@ -3012,7 +3011,7 @@ m3.hix.microbes=gam(percent.change.DOC ~ s(HIX), data=microbe.df, method="REML",
 AIC(m1.hix.microbes, m2.hix.microbes, m3.hix.microbes)
 microbe.AIC
 # global smooth
-  plot_smooths(
+microbe.hix.plot=plot_smooths(
   model = m3.hix.microbes,
   series = HIX
 ) + 
@@ -3021,8 +3020,9 @@ microbe.AIC
    scale_color_manual(values = c("brown1", "mediumseagreen")) +
   ggtitle("microbes-only") +
    geom_hline(yintercept=0, linetype="longdash", color = "gray") +
-  ylab("Change DOC (%)") +
+  ylab("") +
   xlab("HIX") +
+    coord_cartesian(ylim = c(-30,0))+
   Fig.formatting
   
   ###Decomposition across HIX for microbes
@@ -3035,7 +3035,7 @@ m3.hix.total=gam(percent.change.DOC ~ s(HIX), data=total.df, method="REML", sele
 AIC(m1.hix.total, m2.hix.total, m3.hix.total)
 microbe.AIC
 # global smooth
-  plot_smooths(
+total.hix.plot=plot_smooths(
   model = m3.hix.total,
   series = HIX
 ) + 
@@ -3044,14 +3044,29 @@ microbe.AIC
    scale_color_manual(values = c("brown1", "mediumseagreen")) +
   ggtitle("UV and microbes") +
    geom_hline(yintercept=0, linetype="longdash", color = "gray") +
-  ylab("Change DOC (%)") +
+  ylab("") +
   xlab("HIX") +
+  coord_cartesian(ylim = c(-30,0))+
   Fig.formatting
  
  
 
 ```
 
+compile raw plots and model-diff plots for final figures
+```{r DOC model plots compiled}
+
+degra.hix.mod.plot<-plot_grid(
+photo.hix.plot+ theme(legend.position = "none"),
+microbe.hix.plot+ theme(legend.position = "none"),
+total.hix.plot+ theme(legend.position = "none"), extract.legend,
+  rel_widths = c(8,8,8,3), ncol=4)
+
+degra.hix.mod.plot
+
+ggsave("figures/degra.hix.mod.plot.pdf", height=4, width=12)
+
+```
 
 % change DOC across Sr (relate composition with decomposition)
 ```{r}
@@ -3065,7 +3080,7 @@ m3.sr.photo=gam(percent.change.DOC ~ s(Spectral.slope), data=photo.df, method="R
 AIC(m1.sr.photo, m2.sr.photo, m3.sr.photo)
 microbe.AIC
 # global smooth
-  plot_smooths(
+photo.sr.plot=plot_smooths(
   model = m3.sr.photo,
   series = Spectral.slope
 ) + 
@@ -3075,7 +3090,8 @@ microbe.AIC
   ggtitle("UV-only") +
    geom_hline(yintercept=0, linetype="longdash", color = "gray") +
   ylab("Change DOC (%)") +
-  xlab("Sr") +
+   xlab(expression('S'[italic(R)]))+
+  coord_cartesian(ylim = c(-30,0))+
   Fig.formatting
  
 
@@ -3089,7 +3105,7 @@ m3.sr.microbes=gam(percent.change.DOC ~ s(Spectral.slope), data=microbe.df, meth
 AIC(m1.sr.microbes, m2.sr.microbes, m3.sr.microbes)
 microbe.AIC
 # global smooth
-  plot_smooths(
+microbe.sr.plot=plot_smooths(
   model = m3.sr.microbes,
   series= Spectral.slope
 ) + 
@@ -3098,8 +3114,9 @@ microbe.AIC
    scale_color_manual(values = c("brown1", "mediumseagreen")) +
   ggtitle("microbes-only") +
    geom_hline(yintercept=0, linetype="longdash", color = "gray") +
-  ylab("Change DOC (%)") +
+  ylab("") +
   xlab("Sr") +
+    coord_cartesian(ylim = c(-30,0))+
   Fig.formatting
   
   ###Decomposition across Sr for microbes
@@ -3112,7 +3129,7 @@ m3.sr.total=gam(percent.change.DOC ~ s(Spectral.slope), data=total.df, method="R
 AIC(m1.sr.total, m2.sr.total, m3.sr.total)
 microbe.AIC
 # global smooth
-  plot_smooths(
+total.sr.plot=plot_smooths(
   model = m3.sr.total,
   series = Spectral.slope
 ) + 
@@ -3121,16 +3138,42 @@ microbe.AIC
    scale_color_manual(values = c("brown1", "mediumseagreen")) +
   ggtitle("UV and microbes") +
    geom_hline(yintercept=0, linetype="longdash", color = "gray") +
-  ylab("Change DOC (%)") +
+  ylab("") +
   xlab("Sr") +
+    coord_cartesian(ylim = c(-30,0))+
   Fig.formatting
  
  
 
 ```
 
+compile raw plots and model-diff plots for final figures
+```{r DOC model plots compiled}
 
+degra.sr.mod.plot<-plot_grid(
+photo.sr.plot+ theme(legend.position = "none"),
+microbe.sr.plot+ theme(legend.position = "none"),
+total.sr.plot+ theme(legend.position = "none"), extract.legend,
+  rel_widths = c(8,8,8,3), ncol=4)
 
+degra.sr.mod.plot
+
+ggsave("figures/degra.sr.mod.plot.pdf", height=4, width=12)
+
+```
+compile raw plots and model-diff plots for final figures
+```{r DOC model plots compiled}
+
+degra.indices.mod.plot<-plot_grid(
+degra.suva.mod.plot+ theme(legend.position = "none"),
+degra.hix.mod.plot+ theme(legend.position = "none"),
+degra.sr.mod.plot+ theme(legend.position = "none"), nrow=3, rel_widths = c(8,8,8), labels = "AUTO")
+
+degra.indices.mod.plot
+
+ggsave("figures/degra.indices.mod.plot.pdf", height=12, width=12)
+
+```
 
 
 
