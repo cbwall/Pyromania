@@ -2911,8 +2911,9 @@ m2.suva.microbes=gam(percent.change.DOC ~ Treatment +s(SUVA), data=microbe.df, m
 m3.suva.microbes=gam(percent.change.DOC ~ s(SUVA), data=microbe.df, method="REML", select= T, subset= Time.point=="T1")
 
 microbe.suva.AIC=AIC(m1.suva.microbes, m2.suva.microbes, m3.suva.microbes)
-microbe.suva.anova=anova(m1.suva.microbes)
 
+microbe.suva.anova=anova(m1.suva.microbes)
+summary(m3.suva.microbes)
 # global smooth
 
 microbe.suva.plot=plot_smooths(
@@ -3053,6 +3054,7 @@ m2.hix.photo=gam(percent.change.DOC ~ Treatment +s(HIX), data=photo.df, method="
 m3.hix.photo=gam(percent.change.DOC ~ s(HIX), data=photo.df, method="REML", select= T, subset= Time.point=="T1")
 
 photo.hix.AIC=AIC(m1.hix.photo, m2.hix.photo, m3.hix.photo)
+photo.hix.AIC
 photo.hix.anova=anova(m1.hix.photo)
 
 photo.hix.plot=plot_smooths(
