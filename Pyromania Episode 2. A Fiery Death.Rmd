@@ -3055,7 +3055,8 @@ m3.hix.photo=gam(percent.change.DOC ~ s(HIX), data=photo.df, method="REML", sele
 
 photo.hix.AIC=AIC(m1.hix.photo, m2.hix.photo, m3.hix.photo)
 photo.hix.AIC
-photo.hix.anova=anova(m1.hix.photo)
+photo.hix.anova=anova(m2.hix.photo)
+photo.hix.anova
 
 photo.hix.plot=plot_smooths(
   model = m2.hix.photo,
@@ -3358,21 +3359,32 @@ plant.df$n.delta=plant.df$delta/plant.df$plant.specific.mass..g
 plant.df$delta.trans=asin(sqrt(plant.df$n.delta))
 hist(plant.df$perc.delta)
 
+
 ###Sage
-m1.sage.gam=gam(perc.delta ~ treatment +s(plant.specific.mass..g, by= treatment), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
+m1.sage.gam=gam(delta.trans ~ treatment +s(plant.specific.mass..g, by= treatment), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
 
-hist(m1.sage.gam$residuals)
+hist(m6.sage.gam$residuals)
 
-m2.sage.gam=gam(perc.delta ~ treatment +s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
+m2.sage.gam=gam(delta.trans ~ treatment +s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
 
-m3.sage.gam=gam(perc.delta ~ s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
+m3.sage.gam=gam(delta.trans ~ s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
 
-sage.AIC=AIC(m1.sage.gam, m2.sage.gam, m3.sage.gam)
+m4.sage.gam=gam(perc.delta ~ treatment +s(plant.specific.mass..g, by= treatment), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
+
+hist(m3.sage.gam$residuals)
+
+m5.sage.gam=gam(perc.delta ~ treatment +s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
+
+m6.sage.gam=gam(perc.delta ~ s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
+
+sage.AIC=AIC(m1.sage.gam, m2.sage.gam, m3.sage.gam, m4.sage.gam, m5.sage.gam, m6.sage.gam)
 sage.AIC
 
-sage.anova=anova(m1.sage.gam)
+sage.anova=anova(m3.sage.gam)
+sage.anova
+gam.check(m6.sage.gam)
 
-qqPlot(plant.df$perc.delta)
+mean(plant.df[plant.df$plant.type=="sage",]$delta.trans)
 # global smooth
 
 # model predictions
@@ -3391,42 +3403,58 @@ draw(m3.sage.gam)
 concrvity(m3.sage.gam)
 par(mfrow = c(2, 2))
 plot(m3.sage.gam, all.terms = TRUE, page=1)
-
+qq_plot(m3.sage.gam)
 
 #plot for the model output on rawdata
 sage.mod.plot<-
   plot_smooths(
-  model = m1.sage.gam,
+  model = m3.sage.gam,
   series = plant.specific.mass..g,
-  comparison = treatment
 ) + 
   geom_point(data=plant.df[(plant.df$plant.type=="sage"),], 
              aes(x=plant.specific.mass..g, y=perc.delta, color=treatment)) +
    scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  scale_fill_manual(values = c("brown1", "mediumseagreen")) +
   ggtitle("Sage") +
   coord_cartesian(ylim = c(-80,-10))+
   ylab("Change Mass (%)") +
   xlab("plant material (g)") +
   Fig.formatting
 
+sage.mod.plot<-
+  plot_smooths(
+  model = m3.sage.gam,
+  series = plant.specific.mass..g,
+) + 
+  geom_point(data=plant.df[(plant.df$plant.type=="sage"),], 
+             aes(x=plant.specific.mass..g, y=delta.trans, color=treatment)) +
+   scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  scale_fill_manual(values = c("brown1", "mediumseagreen")) +
+  ggtitle("Sage") +
+ ylab("Mass Loss (g)") +
+  xlab("plant material (g)") +
+  coord_cartesian(ylim = c(0,1))+
+  Fig.formatting
+
 sage.mod.plot
 
 ### Willow
-m1.willow.gam=gam(perc.delta ~ treatment +s(plant.specific.mass..g, by= treatment), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
+m1.willow.gam=gam(delta.trans ~ treatment +s(plant.specific.mass..g, by= treatment), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
 
 hist(m1.willow.gam$residuals)
 
-m2.willow.gam=gam(perc.delta ~ treatment +s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
+m2.willow.gam=gam(delta.trans ~ treatment +s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
 
-m3.willow.gam=gam(perc.delta ~ s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
+m3.willow.gam=gam(delta.trans ~ s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
 
 willow.AIC=AIC(m1.willow.gam, m2.willow.gam, m3.willow.gam)
 willow.AIC
 # treatment with global smooth
 
-summary(m2.willow.gam)
+summary(m3.willow.gam)
 willow.anova=anova(m1.willow.gam)
-gam.check(m2.willow.gam, rep=1000)
+willow.anova
+gam.check(m3.willow.gam, rep=1000)
 draw(m2.willow.gam)
 concrvity(m2.willow.gam)
 par(mfrow = c(2, 2))
@@ -3443,7 +3471,7 @@ willow.diff.mod
 #plot for the model output on rawdata
 willow.mod.plot<-
   plot_smooths(
-  model = m2.willow.gam,
+  model = m3.willow.gam,
   series = plant.specific.mass..g,
   comparison = treatment
 ) + 
@@ -3456,6 +3484,22 @@ willow.mod.plot<-
     coord_cartesian(ylim = c(-80,-10))+
   ylab("Change Mass (%)") +
   xlab("plant material (g)") +
+  Fig.formatting
+
+willow.mod.plot<-
+  plot_smooths(
+  model = m1.willow.gam,
+  series = plant.specific.mass..g,
+  comparison = treatment
+) + 
+  geom_point(data=plant.df[(plant.df$plant.type=="willow"),], 
+             aes(x=plant.specific.mass..g, y=delta.trans, color=treatment)) +
+   scale_color_manual(values = c("brown1", "mediumseagreen")) +
+     scale_fill_manual(values = c("brown1", "mediumseagreen")) +
+  ggtitle("Willow") +
+  ylab("Mass Loss (g)") +
+  xlab("plant material (g)") +
+  coord_cartesian(ylim = c(0,1))+
   Fig.formatting
 
 willow.mod.plot
@@ -3483,6 +3527,8 @@ write.csv(AIC.decomp.mod, "output/AIC models/AIC.decomp.csv")
 pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/decomp.mod.AIC.pdf", width = 5.5, height = 2)       # Export PDF
 grid.table(AIC.decomp.mod)
 dev.off()
+
+
 
 
 ```
@@ -3521,7 +3567,6 @@ grid.table(decomp.mod.allsums)
 dev.off()
 
 
-T1.DOC.anova
 
 ```
 
@@ -3540,7 +3585,114 @@ ggsave("figures/decomp.mod.plot.pdf", height=4, width=12)
 
 ```
 
+comparing sage and willow by fire treatment
+```{r}
+#compare mass loss between sage and willow by fire treatment---burned
+m1.compare.burned.gam=gam(delta.trans ~ plant.type + s(plant.specific.mass..g, by=plant.type), data=plant.df, methods= "REML", select= T, subset= treatment == "burned")
 
+m2.compare.burned.gam=gam(delta.trans ~ plant.type + s(plant.specific.mass..g), data=plant.df, methods= "REML", select= T, subset= treatment == "burned")
+
+m3.compare.burned.gam=gam(delta.trans ~ s(plant.specific.mass..g), data=plant.df, methods= "REML", select= T, subset= treatment == "burned")
+
+compare.burned.AIC=AIC(m1.compare.burned.gam, m2.compare.burned.gam, m3.compare.burned.gam)
+compare.burned.AIC
+summary(m1.compare.burned.gam)
+gam.check(m1.compare.burned.gam, rep=1000)
+
+# model predictions
+compare.burned.diff.mod<-plot_difference(
+  m1.compare.burned.gam,
+  series = plant.specific.mass..g,
+  difference = list(plant.type = c("sage", "willow"))
+)
+compare.burned.diff.mod
+
+#plot for the model output on rawdata
+compare.burned.mod.plot<-
+  plot_smooths(
+  model = m1.compare.burned.gam,
+  series = plant.specific.mass..g,
+  comparison = plant.type
+) + 
+  geom_point(data=plant.df[(plant.df$treatment=="burned"),], 
+             aes(x=plant.specific.mass..g, y=delta.trans, color=plant.type)) +
+   scale_color_manual(values = c("mediumpurple4", "darkgoldenrod4")) +
+     scale_fill_manual(values = c("mediumpurple4", "darkgoldenrod4")) +
+  ggtitle("Burned Sage vs. Willow") +
+  geom_line(aes(linetype= plant.type))+
+  ylab("Mass Loss (g)") +
+  xlab("plant material (g)") +
+    coord_cartesian(ylim = c(0,1))+
+  Fig.formatting
+
+compare.burned.mod.plot
+
+
+#compare mass loss between sage and willow by fire treatment---unburned
+m1.compare.unburned.gam=gam(delta.trans ~ plant.type + s(plant.specific.mass..g, by=plant.type), data=plant.df, methods= "REML", select= T, subset= treatment == "unburned")
+
+m2.compare.unburned.gam=gam(delta.trans ~ plant.type + s(plant.specific.mass..g), data=plant.df, methods= "REML", select= T, subset= treatment == "unburned")
+
+m3.compare.unburned.gam=gam(delta.trans ~ s(plant.specific.mass..g), data=plant.df, methods= "REML", select= T, subset= treatment == "unburned")
+
+compare.unburned.AIC=AIC(m1.compare.unburned.gam, m2.compare.unburned.gam, m3.compare.unburned.gam)
+compare.unburned.AIC
+summary(m3.compare.unburned.gam)
+gam.check(m3.compare.unburned.gam, rep=1000)
+
+# model predictions
+compare.burned.diff.mod<-plot_difference(
+  m1.compare.burned.gam,
+  series = plant.specific.mass..g,
+  difference = list(plant.type = c("sage", "willow"))
+)
+compare.burned.diff.mod
+
+#plot for the model output on rawdata
+compare.unburned.mod.plot<-
+  plot_smooths(
+  model = m3.compare.unburned.gam,
+  series = plant.specific.mass..g
+) + 
+  geom_point(data=plant.df[(plant.df$treatment=="unburned"),], 
+             aes(x=plant.specific.mass..g, y=delta.trans, color=plant.type)) +
+   scale_color_manual(values = c("mediumpurple4", "darkgoldenrod4")) +
+     scale_fill_manual(values = c("mediumpurple4", "darkgoldenrod4")) +
+  ggtitle("Unburned Sage vs. Willow") +
+  ylab("Mass Loss (g)") +
+  xlab("plant material (g)") +
+  coord_cartesian(ylim = c(0,1))+
+  Fig.formatting
+
+compare.unburned.mod.plot
+
+##combine AIC
+
+mod.comapre.decomp.rep<-rep(c("Burned: plant type with by-factor smooth", 
+              "Burned: plant type with global smooth", 
+              "Burned: global smooth",
+              "Unburned: plant type with by-factor smooth", 
+              "Unburned: plant type with global smooth", 
+              "Unburned: global smooth"))
+
+mod.compare.decomp.column<- data.frame(mod.comapre.decomp.rep)
+AIC.compare.decomp<-bind_rows(compare.burned.AIC, compare.unburned.AIC)
+AIC.compare.decomp.mod<-as.data.frame(cbind(mod.compare.decomp.column, AIC.compare.decomp))
+
+names(AIC.compare.decomp.mod)[1]="Model"
+
+rownames(AIC.compare.decomp.mod)<-c(1:6)
+
+write.csv(AIC.compare.decomp.mod, "output/AIC models/AIC.comapre.decomp.csv")
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/decomp.compare.mod.AIC.pdf", width = 5.7, height = 2)       # Export PDF
+grid.table(AIC.compare.decomp.mod)
+dev.off()
+
+
+
+```
 
 
 
