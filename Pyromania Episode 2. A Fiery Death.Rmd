@@ -3338,26 +3338,28 @@ Sage and Willow Decomposition Analysis
 #load file
 plant.df=read.csv("/Users/Cody1/Desktop/GitHub/Pyromania2/data/decomp.weights.csv")
 plant.df=plant.df[-c(61:82), ]
-names(plant.df)[9]="perc.delta"
+plant.df=plant.df[-c(6, 8,9)]
 
 #make sure we have factors
 plant.df=plant.df%>%
     mutate_if(is.character,as.factor)
 
 #add propotion column so it can be arcsine transformed
-plant.df$perc.delta=(100*(plant.df[plant.df$plant.type=="sage" | plant.df$plant.type=="willow",]$dry.mass..g.bag.corrected-plant.df[plant.df$plant.type=="sage" | plant.df$plant.type=="willow",]$plant.specific.mass..g)/(plant.df[plant.df$plant.type=="sage" | plant.df$plant.type=="willow",]$plant.specific.mass..g))
+plant.df$perc.loss=(100*(plant.df[plant.df$plant.type=="sage" | plant.df$plant.type=="willow",]$plant.specific.mass..g-plant.df[plant.df$plant.type=="sage" | plant.df$plant.type=="willow",]$dry.mass..g.bag.corrected)/(plant.df[plant.df$plant.type=="sage" | plant.df$plant.type=="willow",]$plant.specific.mass..g))
 
 #remove NaN
 plant.df[is.na(plant.df)] <- 0 
 
+#calculate mass remaining
+plant.df$mass.remaining=100-plant.df$perc.loss
+hist(plant.df$mass.remaining)
+
 #add delta
-plant.df$delta=plant.df[plant.df$plant.type=="sage" | plant.df$plant.type=="willow",]$plant.specific.mass..g-plant.df[plant.df$plant.type=="sage" | plant.df$plant.type=="willow",]$dry.mass..g.bag.corrected
-
-plant.df$n.delta=plant.df$delta/plant.df$plant.specific.mass..g
-
+plant.df$delta.loss= plant.df$perc.loss/100
+  
 #arcsine
-plant.df$delta.trans=asin(sqrt(plant.df$n.delta))
-hist(plant.df$perc.delta)
+plant.df$delta.trans=asin(sqrt(plant.df$delta.loss))
+hist(plant.df$delta.trans)
 
 
 ###Sage
@@ -3369,20 +3371,20 @@ m2.sage.gam=gam(delta.trans ~ treatment +s(plant.specific.mass..g), data=plant.d
 
 m3.sage.gam=gam(delta.trans ~ s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
 
-m4.sage.gam=gam(perc.delta ~ treatment +s(plant.specific.mass..g, by= treatment), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
+m4.sage.gam=gam(perc.loss ~ treatment +s(plant.specific.mass..g, by= treatment), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
 
 hist(m3.sage.gam$residuals)
 
-m5.sage.gam=gam(perc.delta ~ treatment +s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
+m5.sage.gam=gam(perc.loss ~ treatment +s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
 
-m6.sage.gam=gam(perc.delta ~ s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
+m6.sage.gam=gam(perc.loss ~ s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
 
 sage.AIC=AIC(m1.sage.gam, m2.sage.gam, m3.sage.gam, m4.sage.gam, m5.sage.gam, m6.sage.gam)
 sage.AIC
 
-sage.anova=anova(m3.sage.gam)
+sage.anova=anova(m6.sage.gam)
 sage.anova
-gam.check(m6.sage.gam)
+gam.check(m6.sage.gam, rep=1000)
 
 mean(plant.df[plant.df$plant.type=="sage",]$delta.trans)
 # global smooth
@@ -3398,7 +3400,7 @@ sage.diff.mod
 
 summary(m1.sage.gam)
 anova.gam(m3.sage.gam)
-gam.check(m1.sage.gam, rep=1000)
+gam.check(m6.sage.gam, rep=1000)
 draw(m3.sage.gam)
 concrvity(m3.sage.gam)
 par(mfrow = c(2, 2))
@@ -3406,20 +3408,26 @@ plot(m3.sage.gam, all.terms = TRUE, page=1)
 qq_plot(m3.sage.gam)
 
 #plot for the model output on rawdata
+
+
 sage.mod.plot<-
   plot_smooths(
-  model = m3.sage.gam,
+  model = m6.sage.gam,
   series = plant.specific.mass..g,
 ) + 
   geom_point(data=plant.df[(plant.df$plant.type=="sage"),], 
-             aes(x=plant.specific.mass..g, y=perc.delta, color=treatment)) +
+             aes(x=plant.specific.mass..g, y=perc.loss, color=treatment)) +
    scale_color_manual(values = c("brown1", "mediumseagreen")) +
   scale_fill_manual(values = c("brown1", "mediumseagreen")) +
   ggtitle("Sage") +
-  coord_cartesian(ylim = c(-80,-10))+
-  ylab("Change Mass (%)") +
-  xlab("plant material (g)") +
+ ylab("Mass loss (%)") +
+    coord_cartesian(ylim = c(0,80))+
+  xlab("Plant material (g)") +
+
   Fig.formatting
+
+sage.mod.plot
+
 
 sage.mod.plot<-
   plot_smooths(
@@ -3441,13 +3449,19 @@ sage.mod.plot
 ### Willow
 m1.willow.gam=gam(delta.trans ~ treatment +s(plant.specific.mass..g, by= treatment), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
 
-hist(m1.willow.gam$residuals)
 
 m2.willow.gam=gam(delta.trans ~ treatment +s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
 
 m3.willow.gam=gam(delta.trans ~ s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
 
-willow.AIC=AIC(m1.willow.gam, m2.willow.gam, m3.willow.gam)
+m4.willow.gam=gam(perc.loss ~ treatment +s(plant.specific.mass..g, by= treatment), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
+
+
+m5.willow.gam=gam(perc.loss ~ treatment +s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
+
+m6.willow.gam=gam(perc.loss ~ s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
+
+willow.AIC=AIC(m1.willow.gam, m2.willow.gam, m3.willow.gam, m4.willow.gam,m5.willow.gam,m6.willow.gam)
 willow.AIC
 # treatment with global smooth
 
@@ -3471,19 +3485,19 @@ willow.diff.mod
 #plot for the model output on rawdata
 willow.mod.plot<-
   plot_smooths(
-  model = m3.willow.gam,
+  model = m5.willow.gam,
   series = plant.specific.mass..g,
   comparison = treatment
 ) + 
   geom_point(data=plant.df[(plant.df$plant.type=="willow"),], 
-             aes(x=plant.specific.mass..g, y=perc.delta, color=treatment)) +
+             aes(x=plant.specific.mass..g, y=perc.loss, color=treatment)) +
    scale_color_manual(values = c("brown1", "mediumseagreen")) +
      scale_fill_manual(values = c("brown1", "mediumseagreen")) +
   ggtitle("Willow") +
   geom_line(aes(linetype= treatment))+
-    coord_cartesian(ylim = c(-80,-10))+
-  ylab("Change Mass (%)") +
-  xlab("plant material (g)") +
+  ylab("Mass loss (%)") +
+  xlab("Plant material (g)") +
+  coord_cartesian(ylim = c(0,80))+
   Fig.formatting
 
 willow.mod.plot<-
@@ -3576,8 +3590,8 @@ compile raw plots and model-diff plots for final figures
 
 decomp.mod.plot<-plot_grid(
 sage.mod.plot+ theme(legend.position = "none"),
-willow.mod.plot+ theme(legend.position = "none"), extract.legend,
-  rel_widths = c(8,8,3), ncol=3, labels = "AUTO")
+willow.mod.plot+ theme(legend.position = "none"),
+  rel_widths = c(8,8), ncol=2, labels = "AUTO")
 
 decomp.mod.plot
 
@@ -3588,11 +3602,11 @@ ggsave("figures/decomp.mod.plot.pdf", height=4, width=12)
 comparing sage and willow by fire treatment
 ```{r}
 #compare mass loss between sage and willow by fire treatment---burned
-m1.compare.burned.gam=gam(delta.trans ~ plant.type + s(plant.specific.mass..g, by=plant.type), data=plant.df, methods= "REML", select= T, subset= treatment == "burned")
+m1.compare.burned.gam=gam(perc.loss ~ plant.type + s(plant.specific.mass..g, by=plant.type), data=plant.df, methods= "REML", select= T, subset= treatment == "burned")
 
-m2.compare.burned.gam=gam(delta.trans ~ plant.type + s(plant.specific.mass..g), data=plant.df, methods= "REML", select= T, subset= treatment == "burned")
+m2.compare.burned.gam=gam(perc.loss ~ plant.type + s(plant.specific.mass..g), data=plant.df, methods= "REML", select= T, subset= treatment == "burned")
 
-m3.compare.burned.gam=gam(delta.trans ~ s(plant.specific.mass..g), data=plant.df, methods= "REML", select= T, subset= treatment == "burned")
+m3.compare.burned.gam=gam(perc.loss ~ s(plant.specific.mass..g), data=plant.df, methods= "REML", select= T, subset= treatment == "burned")
 
 compare.burned.AIC=AIC(m1.compare.burned.gam, m2.compare.burned.gam, m3.compare.burned.gam)
 compare.burned.AIC
@@ -3615,25 +3629,26 @@ compare.burned.mod.plot<-
   comparison = plant.type
 ) + 
   geom_point(data=plant.df[(plant.df$treatment=="burned"),], 
-             aes(x=plant.specific.mass..g, y=delta.trans, color=plant.type)) +
+             aes(x=plant.specific.mass..g, y=perc.loss, color=plant.type)) +
    scale_color_manual(values = c("mediumpurple4", "darkgoldenrod4")) +
      scale_fill_manual(values = c("mediumpurple4", "darkgoldenrod4")) +
-  ggtitle("Burned Sage vs. Willow") +
+  ggtitle("Burned") +
   geom_line(aes(linetype= plant.type))+
-  ylab("Mass Loss (g)") +
-  xlab("plant material (g)") +
-    coord_cartesian(ylim = c(0,1))+
+  ylab("Mass loss (%)") +
+  xlab("Plant material (g)") +
+    coord_cartesian(ylim = c(0,80))+
+
   Fig.formatting
 
 compare.burned.mod.plot
 
 
 #compare mass loss between sage and willow by fire treatment---unburned
-m1.compare.unburned.gam=gam(delta.trans ~ plant.type + s(plant.specific.mass..g, by=plant.type), data=plant.df, methods= "REML", select= T, subset= treatment == "unburned")
+m1.compare.unburned.gam=gam(perc.loss ~ plant.type + s(plant.specific.mass..g, by=plant.type), data=plant.df, methods= "REML", select= T, subset= treatment == "unburned")
 
-m2.compare.unburned.gam=gam(delta.trans ~ plant.type + s(plant.specific.mass..g), data=plant.df, methods= "REML", select= T, subset= treatment == "unburned")
+m2.compare.unburned.gam=gam(perc.loss ~ plant.type + s(plant.specific.mass..g), data=plant.df, methods= "REML", select= T, subset= treatment == "unburned")
 
-m3.compare.unburned.gam=gam(delta.trans ~ s(plant.specific.mass..g), data=plant.df, methods= "REML", select= T, subset= treatment == "unburned")
+m3.compare.unburned.gam=gam(perc.loss ~ s(plant.specific.mass..g), data=plant.df, methods= "REML", select= T, subset= treatment == "unburned")
 
 compare.unburned.AIC=AIC(m1.compare.unburned.gam, m2.compare.unburned.gam, m3.compare.unburned.gam)
 compare.unburned.AIC
@@ -3655,13 +3670,13 @@ compare.unburned.mod.plot<-
   series = plant.specific.mass..g
 ) + 
   geom_point(data=plant.df[(plant.df$treatment=="unburned"),], 
-             aes(x=plant.specific.mass..g, y=delta.trans, color=plant.type)) +
+             aes(x=plant.specific.mass..g, y=perc.loss, color=plant.type)) +
    scale_color_manual(values = c("mediumpurple4", "darkgoldenrod4")) +
      scale_fill_manual(values = c("mediumpurple4", "darkgoldenrod4")) +
-  ggtitle("Unburned Sage vs. Willow") +
-  ylab("Mass Loss (g)") +
-  xlab("plant material (g)") +
-  coord_cartesian(ylim = c(0,1))+
+  ggtitle("Unburned") +
+  ylab("Mass Loss (%)") +
+  xlab("Plant material (g)") +
+  coord_cartesian(ylim = c(0,80))+
   Fig.formatting
 
 compare.unburned.mod.plot
@@ -3695,4 +3710,17 @@ dev.off()
 ```
 
 
+compile raw plots and model-diff plots for final figures
+```{r DOC model plots compiled}
+
+decomp.compare.mod.plot<-plot_grid(
+compare.burned.mod.plot+ theme(legend.position = "none"),
+compare.unburned.mod.plot+ theme(legend.position = "none"),
+ncol=2, labels = "AUTO")
+
+decomp.compare.mod.plot
+
+ggsave("figures/decomp.comapre.mod.plot.pdf", height=4, width=12)
+
+```
 
