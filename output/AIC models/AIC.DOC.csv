@@ -1,16 +1,13 @@
-"","Model","df","AIC"
-"1","T0: Treatment with by-factor smooth",5.48756721127168,3.1551586256083
-"2","T0: Treatment with global smooth",4.01646635491404,0.953729734102337
-"3","T0: global smooth",3.07975111261852,-0.786359478608921
-"4","T1: Treatment with by-factor smooth",10.8590734502957,146.823968321649
-"5","T1: Treatment with global smooth",6.5974959669992,157.793331848353
-"6","T1: global smooth",5.48070587630685,162.010920483846
-"7","T2: Treatment with by-factor smooth",12.4612157128104,117.697010130118
-"8","T2: Treatment with global smooth",6.26960209383186,159.97066319304
-"9","T2: global smooth",5.33335358298642,157.956372680794
-"10","T3: Treatment with by-factor smooth",8.24583373329259,64.0307405406757
-"11","T3: Treatment with global smooth",4.00004093385777,69.728768380503
-"12","T3: global smooth",3.00004074188526,76.1343250332004
-"13","T4: Treatment with by-factor smooth",6.32401809970381,110.85389981307
-"14","T4: Treatment with global smooth",5.38973981461766,109.293534150805
-"15","T4: global smooth",4.38458649819277,108.631071339609
+"","Model.1","Variable","Model","df","AIC"
+"m1.DOC.T1.gam","DOC concentration","DOC concentration","Day 10: Treatment with by-factor smooth",10.8590734502957,146.823968321649
+"m2.DOC.T1.gam","DOC concentration","DOC concentration","Day 10: Treatment with global smooth",6.5974959669992,157.793331848353
+"m3.DOC.T1.gam","DOC concentration","DOC concentration","Day 10: global smooth",5.48070587630685,162.010920483846
+"m1.DOC.T2.gam","DOC concentration","DOC concentration","Day 31: Treatment with by-factor smooth",12.4612157128104,117.697010130118
+"m2.DOC.T2.gam","DOC concentration","DOC concentration","Day 31: Treatment with global smooth",6.26960209383186,159.97066319304
+"m3.DOC.T2.gam","DOC concentration","DOC concentration","Day 31: global smooth",5.33335358298642,157.956372680794
+"m1.DOC.T3.gam","DOC concentration","DOC concentration","Day 59: Treatment with by-factor smooth",8.24583373329259,64.0307405406757
+"m2.DOC.T3.gam","DOC concentration","DOC concentration","Day 59: Treatment with global smooth",4.00004093385777,69.728768380503
+"m3.DOC.T3.gam","DOC concentration","DOC concentration","Day 59: global smooth",3.00004074188526,76.1343250332004
+"m1.DOC.T4.gam","DOC concentration","DOC concentration","Day 89: Treatment with by-factor smooth",6.32401809970381,110.85389981307
+"m2.DOC.T4.gam","DOC concentration","DOC concentration","Day 89: Treatment with global smooth",5.38973981461766,109.293534150805
+"m3.DOC.T4.gam","DOC concentration","DOC concentration","Day 89: global smooth",4.38458649819277,108.631071339609

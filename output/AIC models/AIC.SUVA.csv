@@ -1,16 +1,13 @@
-"","Model","df","AIC"
-"1","T0: Treatment with by-factor smooth",8.54408792518788,68.2460261635136
-"2","T0: Treatment with global smooth",4.73064905261865,70.9418704800176
-"3","T0: global smooth",3.00036371293972,81.6908765817574
-"4","T1: Treatment with by-factor smooth",11.8297900398375,16.6848382911303
-"5","T1: Treatment with global smooth",7.75869895734509,18.6092549752115
-"6","T1: global smooth",6.76272215128629,17.6811917077369
-"7","T2: Treatment with by-factor smooth",6.56091391365628,166.807209887486
-"8","T2: Treatment with global smooth",5.09561224078696,168.006341511314
-"9","T2: global smooth",4.08705155685647,167.399497043384
-"10","T3: Treatment with by-factor smooth",10.018359539731,23.8790731118478
-"11","T3: Treatment with global smooth",7.06714540724468,28.3120174134589
-"12","T3: global smooth",5.51827838406161,36.9246705463553
-"13","T4: Treatment with by-factor smooth",6.94928061876092,33.3668928436668
-"14","T4: Treatment with global smooth",5.56033516447261,38.1518182274447
-"15","T4: global smooth",4.57625686821205,36.6903490413658
+"","Variable","Model","df","AIC"
+"m1.suva.T1.gam","SUVA","Day 10: Treatment with by-factor smooth",11.8297900398375,16.6848382911303
+"m2.suva.T1.gam","SUVA","Day 10: Treatment with global smooth",7.75869895734509,18.6092549752115
+"m3.suva.T1.gam","SUVA","Day 10: global smooth",6.76272215128629,17.6811917077369
+"m1.suva.T2.gam","SUVA","Day 31: Treatment with by-factor smooth",6.56091391365628,166.807209887486
+"m2.suva.T2.gam","SUVA","Day 31: Treatment with global smooth",5.09561224078696,168.006341511314
+"m3.suva.T2.gam","SUVA","Day 31: global smooth",4.08705155685647,167.399497043384
+"m1.suva.T3.gam","SUVA","Day 59: Treatment with by-factor smooth",10.018359539731,23.8790731118478
+"m2.suva.T3.gam","SUVA","Day 59: Treatment with global smooth",7.06714540724468,28.3120174134589
+"m3.suva.T3.gam","SUVA","Day 59: global smooth",5.51827838406161,36.9246705463553
+"m1.suva.T4.gam","SUVA","Day 89: Treatment with by-factor smooth",6.94928061876092,33.3668928436668
+"m2.suva.T4.gam","SUVA","Day 89: Treatment with global smooth",5.56033516447261,38.1518182274447
+"m3.suva.T4.gam","SUVA","Day 89: global smooth",4.57625686821205,36.6903490413658
