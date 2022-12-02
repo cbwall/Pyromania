@@ -3861,12 +3861,12 @@ ggsave("figures/decomp.comapre.mod.plot.pdf", height=4, width=12)
 compile raw plots and model-diff plots for final figures
 ```{r DOC model plots compiled}
 
-decomp.combo.mod.plot<-plot_grid(
+all.decomp.mod.plot<-plot_grid(
 decomp.mod.plot+ theme(legend.position = "none"),
 decomp.compare.mod.plot+ theme(legend.position = "none"),
 nrow=2)
 
-decomp.combo.mod.plot
+all.decomp.mod.plot
 
 ggsave("figures/decomp.combo.mod.plot.pdf", height=4, width=12)
 
