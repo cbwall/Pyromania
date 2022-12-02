@@ -3689,7 +3689,7 @@ compile raw plots and model-diff plots for final figures
 decomp.mod.plot<-plot_grid(
 sage.mod.plot+ theme(legend.position = "none"),
 willow.mod.plot+ theme(legend.position = "none"),
-  rel_widths = c(8,8), ncol=2, labels = "AUTO")
+  rel_widths = c(8,8), ncol=2)
 
 decomp.mod.plot
 
@@ -3850,7 +3850,7 @@ compile raw plots and model-diff plots for final figures
 decomp.compare.mod.plot<-plot_grid(
 compare.burned.mod.plot+ theme(legend.position = "none"),
 compare.unburned.mod.plot+ theme(legend.position = "none"),
-ncol=2, labels = "AUTO")
+ncol=2)
 
 decomp.compare.mod.plot
 
@@ -3868,7 +3868,7 @@ nrow=2)
 
 all.decomp.mod.plot
 
-ggsave("figures/decomp.combo.mod.plot.pdf", height=4, width=12)
+ggsave("figures/all.decomp.mod.plot.pdf", height=8, width=8)
 
 ```
 
