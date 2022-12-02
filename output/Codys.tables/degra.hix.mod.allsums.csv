@@ -1,10 +1,10 @@
-"","Model","df/edf","Ref.df","F","p-value"
-"1","UV-only Model: Treatment",1,"-",4.44040265725164,0.045380864644007
-"2","Microbes-only Model: Treatment",1,"-",1.09660403431909,0.304588631077105
-"3","UV and microbes Model: Treatment",1,"-",0.443436437783145,0.511281447993961
-"4","UV-only Model: s(plant.mass):burned",0.734416085335845,"9",0.306395779966312,0.063977261814489
-"5","UV-only Model: s(plant.mass):unburned",2.46206903878912,"9",2.32210854028376,0.000496645846544519
-"6","Microbes-only Model: s(plant.mass):burned",1.83026672927873,"9",0.966486021117211,0.0146118633949742
-"7","Microbes-only Model: s(plant.mass):unburned",4.38921143393856e-05,"9",6.96038035509902e-07,0.830801292107113
-"8","UV and microbes Model: s(plant.mass):burned",1.76355749510056,"9",0.883125933390598,0.0181683222911686
-"9","UV and microbes Model: s(plant.mass):unburned",8.72632132035595e-05,"9",1.32040894385959e-06,0.823211365533143
+"","Variable","Model","df/edf","Ref.df","F","p-value"
+"Treatment","HIX","UV-only Model: Treatment",1,"-",4.44040265725164,0.045380864644007
+"Treatment.1","HIX","Microbes-only Model: Treatment",1,"-",1.09660403431909,0.304588631077105
+"Treatment.2","HIX","UV and microbes Model: Treatment",1,"-",0.443436437783145,0.511281447993961
+"s.HIX..Treatmentburned","HIX","UV-only Model: burned smooth",0.734416085335845,"9",0.306395779966312,0.063977261814489
+"s.HIX..Treatmentunburned","HIX","UV-only Model: unburned smooth",2.46206903878912,"9",2.32210854028376,0.000496645846544519
+"s.HIX..Treatmentburned.1","HIX","Microbes-only Model: burned smooth",1.83026672927873,"9",0.966486021117211,0.0146118633949742
+"s.HIX..Treatmentunburned.1","HIX","Microbes-only Model: unburned smooth",4.38921143393856e-05,"9",6.96038035509902e-07,0.830801292107113
+"s.HIX..Treatmentburned.2","HIX","UV and microbes Model: burned smooth",1.76355749510056,"9",0.883125933390598,0.0181683222911686
+"s.HIX..Treatmentunburned.2","HIX","UV and microbes Model: unburned smooth",8.72632132035595e-05,"9",1.32040894385959e-06,0.823211365533143

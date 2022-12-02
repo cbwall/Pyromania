@@ -392,7 +392,7 @@ AIC.DOC.mod <- AIC.DOC.mod %>%
 write.csv(AIC.DOC.mod, "output/AIC models/AIC.DOC.csv")
 
 #convert dataframe into a table for export
-pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/DOC.mod.AIC.pdf", width = 8.5, height = 3.8)       # Export PDF
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/DOC.mod.AIC.pdf", width = 6.8, height = 3.8)       # Export PDF
 grid.table(AIC.DOC.mod, rows = NULL)
 dev.off()
 
@@ -1405,11 +1405,14 @@ AIC.sr.mod<-as.data.frame(cbind(mod.sr.column, AIC.sr))
 
 names(AIC.sr.mod)[1]="Model"
 
+AIC.sr.mod <- AIC.sr.mod %>%
+  # Creating an empty column:
+  add_column(Variable= c("Slope ratio"), .before="Model")
 
 write.csv(AIC.sr.mod, "output/AIC models/AIC.sr.csv")
 
 #convert dataframe into a table for export
-pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/sr.mod.AIC.pdf", width = 5.5, height = 3.8)       # Export PDF
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/sr.mod.AIC.pdf", width = 6.3, height = 3.8)       # Export PDF
 grid.table(AIC.sr.mod, rows=NULL)
 dev.off()
 ```
@@ -2424,34 +2427,37 @@ coord_cartesian(ylim = c(0.5,2.5))+
 # no effect of treatment, smoothing significant across both treatments
 # DOC equivalent in  burned and unburned
 ##combine AIC
-mod.fl.rep<-rep(c("T0: Treatment with by-factor smooth", 
-              "T0: Treatment with global smooth", 
-              "T0: global smooth",
-              "T1: Treatment with by-factor smooth", 
-              "T1: Treatment with global smooth", 
-              "T1: global smooth",
-              "T2: Treatment with by-factor smooth", 
-              "T2: Treatment with global smooth", 
-              "T2: global smooth",
-              "T3: Treatment with by-factor smooth", 
-              "T3: Treatment with global smooth", 
-              "T3: global smooth",
-              "T4: Treatment with by-factor smooth", 
-              "T4: Treatment with global smooth", 
-              "T4: global smooth"))
+
+mod.fl.rep<-rep(c(
+              "Day 10: Treatment with by-factor smooth", 
+              "Day 10: Treatment with global smooth", 
+              "Day 10: global smooth",
+              "Day 31: Treatment with by-factor smooth", 
+              "Day 31: Treatment with global smooth", 
+              "Day 31: global smooth",
+              "Day 59: Treatment with by-factor smooth", 
+              "Day 59: Treatment with global smooth", 
+              "Day 59: global smooth",
+              "Day 89: Treatment with by-factor smooth", 
+              "Day 89: Treatment with global smooth", 
+              "Day 89: global smooth"))
 
 mod.fl.column<- data.frame(mod.fl.rep)
-AIC.fl<-bind_rows(T0.fl.AIC, T1.fl.AIC, T2.fl.AIC, T3.fl.AIC, T4.fl.AIC)
+AIC.fl<-bind_rows(T1.fl.AIC, T2.fl.AIC, T3.fl.AIC, T4.fl.AIC)
 AIC.fl.mod<-as.data.frame(cbind(mod.fl.column, AIC.fl))
 AIC.fl.mod
 names(AIC.fl.mod)[1]="Model"
-rownames(AIC.fl.mod)<-c(1:15)
+
+AIC.fl.mod <- AIC.fl.mod %>%
+  # Creating an empty column:
+  add_column(Variable= c("FI"), .before="Model")
+
 
 write.csv(AIC.fl.mod, "output/AIC models/AIC.fl.csv")
 
 #convert dataframe into a table for export
-pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/fl.mod.AIC.pdf", width = 5.5, height = 4.5)       # Export PDF
-grid.table(AIC.fl.mod)
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/fl.mod.AIC.pdf", width = 6, height = 3.8)       # Export PDF
+grid.table(AIC.fl.mod, rows=NULL)
 dev.off()
 
 
@@ -2480,7 +2486,7 @@ names(fl.smooth.sums)[1]="df/edf"
 #create empty column for ref.df
 fl.smooth.sums <- fl.smooth.sums %>%
   # Creating an empty column:
-  add_column(Model= c("Day 10 Model: s(plant.mass):burned","Day 10 Model: s(plant.mass):unburned","Day 31 Model: s(plant.mass):burned","Day 31 Model: s(plant.mass):unburned","Day 59 Model: s(plant.mass):burned","Day 59 Model: s(plant.mass):unburned","Day 89 Model: s(plant.mass):burned","Day 89 Model: s(plant.mass):unburned"), .before="df/edf")
+  add_column(Model= c("Day 10 Model: burned smooth","Day 10 Model: unburned smooth","Day 31 Model: burned smooth","Day 31 Model: unburned smooth","Day 59 Model: burned smooth","Day 59 Model: unburned smooth","Day 89 Model: burned smooth","Day 89 Model: unburned smooth"), .before="df/edf")
 
 #merge the dataframes
 fl.mod.allsums=rbind(fl.para.sums,fl.smooth.sums)
@@ -2489,10 +2495,12 @@ rownames(fl.mod.allsums)<-c(1:12)
 #create new ID column
 fl.mod.allsums <- fl.mod.allsums %>%
   # Creating an empty column:
-  add_column(Identity= c("FI"), .before="Model")
+  add_column(Variable= c("FI"), .before="Model")
 
-write.csv(fl.mod.allsums, "Codys.tables/fl.mod.allsums.csv")
 
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/fl.mod.allsums.pdf", width = 8.3, height = 3.8)       # Export PDF
+grid.table(fl.mod.allsums, rows=NULL)
+dev.off()
 
 ```
 
@@ -2540,12 +2548,21 @@ Generate dataframe for all index model outputs
 ```{r}
 library(gridExtra)
 #merge all the dataframes
-index.mod.allsums=rbind(suva.mod.allsums,sr.mod.allsums,hix.mod.allsums,fr.mod.allsums,fl.mod.allsums)
+index.mod.allsums=rbind(suva.mod.allsums,hix.mod.allsums,sr.mod.allsums,fr.mod.allsums,fl.mod.allsums)
 
 #convert dataframe into a table for export
-pdf("Codys.tables/index.mod.allsums.pdf", width = 9.5, height = 17)       # Export PDF
-grid.table(index.mod.allsums)
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/index.mod.allsums.pdf", width = 8.6, height = 17)       # Export PDF
+grid.table(index.mod.allsums, rows=NULL)
 dev.off()
+
+#merge all the dataframes
+index.mod.AIC=rbind(AIC.suva.mod,AIC.hix.mod,AIC.sr.mod,AIC.fr.mod,AIC.fl.mod)
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/index.mod.AIC.pdf", width = 6.5, height = 17)       # Export PDF
+grid.table(index.mod.AIC, rows=NULL)
+dev.off()
+
 
 
 ```
@@ -2830,13 +2847,17 @@ AIC.degra<-bind_rows(photo.AIC, microbe.AIC, total.AIC)
 AIC.degra.mod<-as.data.frame(cbind(mod.degra.column, AIC.degra))
 AIC.degra.mod
 names(AIC.degra.mod)[1]="Model"
-rownames(AIC.degra.mod)<-c(1:9)
+
+AIC.degra.mod <- AIC.degra.mod %>%
+  # Creating an empty column:
+  add_column(Variable= c("-"), .before="Model")
+
 
 write.csv(AIC.degra.mod, "output/AIC models/AIC.degra.csv")
 
 #convert dataframe into a table for export
-pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.mod.AIC.pdf", width = 6, height = 3)       # Export PDF
-grid.table(AIC.degra.mod)
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.mod.AIC.pdf", width = 6.5, height = 2.8)       # Export PDF
+grid.table(AIC.degra.mod, rows=NULL)
 dev.off()
 
 
@@ -2864,21 +2885,24 @@ names(degra.smooth.sums)[1]="df/edf"
 #create empty column for ref.df
 degra.smooth.sums <- degra.smooth.sums %>%
   # Creating an empty column:
-  add_column(Model= c("UV-only Model: s(plant.mass):burned","UV-only Model: s(plant.mass):unburned","Microbes-only Model: s(plant.mass):burned","Microbes-only Model: s(plant.mass):unburned","UV and microbes Model: s(plant.mass):burned","UV and microbes Model: s(plant.mass):unburned"), .before="df/edf")
+  add_column(Model= c("UV-only Model: burned smooth","UV-only Model: unburned smooth","Microbes-only Model: burned smooth","Microbes-only Model: unburned smooth","UV and microbes Model: burned smooth","UV and microbes Model: unburned smooth"), .before="df/edf")
 
 #merge the dataframes
 degra.mod.allsums=rbind(degra.para.sums,degra.smooth.sums)
-rownames(degra.mod.allsums)<-c(1:9)
-degra.mod.allsums
-write.csv(degra.mod.allsums, "/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.mod.allsums.csv")
+
+degra.mod.allsums <- degra.mod.allsums %>%
+  # Creating an empty column:
+  add_column(Variable= c("-"), .before="Model")
+
+
+write.csv(degra.mod.allsums,"/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.mod.allsums.csv")
 
 #convert dataframe into a table for export
-pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.mod.allsums.pdf", width = 9, height = 3)       # Export PDF
-grid.table(degra.mod.allsums)
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.mod.allsums.pdf", width = 8.5, height = 2.8)       # Export PDF
+grid.table(degra.mod.allsums, rows=NULL)
 dev.off()
 
 
-T1.DOC.anova
 
 ```
 
@@ -3003,13 +3027,15 @@ AIC.degra.suva<-bind_rows(photo.suva.AIC, microbe.suva.AIC, total.suva.AIC)
 AIC.degra.suva.mod<-as.data.frame(cbind(mod.degra.suva.column, AIC.degra.suva))
 
 names(AIC.degra.suva.mod)[1]="Model"
-rownames(AIC.degra.suva.mod)<-c(1:9)
+AIC.degra.suva.mod <- AIC.degra.suva.mod %>%
+  # Creating an empty column:
+  add_column(Variable= c("SUVA"), .before="Model")
 
 write.csv(AIC.degra.suva.mod, "output/AIC models/AIC.degra.suva.csv")
 
 #convert dataframe into a table for export
-pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.suva.mod.AIC.pdf", width = 6, height = 3)       # Export PDF
-grid.table(AIC.degra.suva.mod)
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.suva.mod.AIC.pdf", width = 6.5, height = 2.8)       # Export PDF
+grid.table(AIC.degra.suva.mod, rows=NULL)
 dev.off()
 
 ```
@@ -3037,21 +3063,22 @@ names(degra.smooth.suva.sums)[1]="df/edf"
 #create empty column for ref.df
 degra.smooth.suva.sums <- degra.smooth.suva.sums %>%
   # Creating an empty column:
-  add_column(Model= c("UV-only Model: s(plant.mass):burned","UV-only Model: s(plant.mass):unburned","Microbes-only Model: s(plant.mass):burned","Microbes-only Model: s(plant.mass):unburned","UV and microbes Model: s(plant.mass):burned","UV and microbes Model: s(plant.mass):unburned"), .before="df/edf")
+  add_column(Model= c("UV-only Model: burned smooth","UV-only Model: unburned smooth","Microbes-only Model: burned smooth","Microbes-only Model: unburned smooth","UV and microbes Model: burned smooth","UV and microbes Model: unburned smooth"), .before="df/edf")
 
 #merge the dataframes
 degra.suva.mod.allsums=rbind(degra.suva.para.sums,degra.smooth.suva.sums)
-rownames(degra.suva.mod.allsums)<-c(1:9)
 
-write.csv(degra.suva.mod.allsums, "/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.suva.mod.allsums.csv")
+degra.suva.mod.allsums <- degra.suva.mod.allsums %>%
+  # Creating an empty column:
+  add_column(Variable= c("SUVA"), .before="Model")
+
+
+write.csv(degra.suva.mod.allsums,"/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.suva.mod.allsums.csv")
 
 #convert dataframe into a table for export
-pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.suva.mod.allsums.pdf", width = 9, height = 3)       # Export PDF
-grid.table(degra.suva.mod.allsums)
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.suva.mod.allsums.pdf", width = 8.5, height = 2.8)       # Export PDF
+grid.table(degra.suva.mod.allsums, rows=NULL)
 dev.off()
-
-
-T1.DOC.anova
 
 ```
 
@@ -3082,7 +3109,7 @@ m3.hix.photo=gam(percent.change.DOC ~ s(HIX), data=photo.df, method="REML", sele
 
 photo.hix.AIC=AIC(m1.hix.photo, m2.hix.photo, m3.hix.photo)
 photo.hix.AIC
-photo.hix.anova=anova(m2.hix.photo)
+photo.hix.anova=anova(m1.hix.photo)
 photo.hix.anova
 
 photo.hix.plot=plot_smooths(
@@ -3151,6 +3178,33 @@ total.hix.plot=plot_smooths(
   xlab("HIX") +
   coord_cartesian(ylim = c(-30,0))+
   Fig.formatting
+
+##combine AIC
+mod.degra.hix.rep<-rep(c("UV-only: Treatment with by-factor smooth", 
+              "UV-only: Treatment with global smooth", 
+              "UV-only: global smooth",
+              "Microbes-only: Treatment with by-factor smooth", 
+              "Microbes-only: Treatment with global smooth", 
+              "Microbes-only: global smooth",
+              "UV and microbes: Treatment with by-factor smooth", 
+              "UV and microbes: Treatment with global smooth", 
+              "UV and microbes: global smooth"))
+
+mod.degra.hix.column<- data.frame(mod.degra.hix.rep)
+AIC.degra.hix<-bind_rows(photo.hix.AIC, microbe.hix.AIC, total.hix.AIC)
+AIC.degra.hix.mod<-as.data.frame(cbind(mod.degra.hix.column, AIC.degra.hix))
+
+names(AIC.degra.hix.mod)[1]="Model"
+AIC.degra.hix.mod <- AIC.degra.hix.mod %>%
+  # Creating an empty column:
+  add_column(Variable= c("HIX"), .before="Model")
+
+write.csv(AIC.degra.hix.mod, "output/AIC models/AIC.degra.hix.csv")
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.hix.mod.AIC.pdf", width = 6.5, height = 2.8)       # Export PDF
+grid.table(AIC.degra.hix.mod, rows=NULL)
+dev.off()
  
  
 
@@ -3180,17 +3234,21 @@ names(degra.smooth.hix.sums)[1]="df/edf"
 #create empty column for ref.df
 degra.smooth.hix.sums <- degra.smooth.hix.sums %>%
   # Creating an empty column:
-  add_column(Model= c("UV-only Model: s(plant.mass):burned","UV-only Model: s(plant.mass):unburned","Microbes-only Model: s(plant.mass):burned","Microbes-only Model: s(plant.mass):unburned","UV and microbes Model: s(plant.mass):burned","UV and microbes Model: s(plant.mass):unburned"), .before="df/edf")
+  add_column(Model= c("UV-only Model: burned smooth","UV-only Model: unburned smooth","Microbes-only Model: burned smooth","Microbes-only Model: unburned smooth","UV and microbes Model: burned smooth","UV and microbes Model: unburned smooth"), .before="df/edf")
 
 #merge the dataframes
 degra.hix.mod.allsums=rbind(degra.hix.para.sums,degra.smooth.hix.sums)
-rownames(degra.hix.mod.allsums)<-c(1:9)
+
+degra.hix.mod.allsums <- degra.hix.mod.allsums %>%
+  # Creating an empty column:
+  add_column(Variable= c("HIX"), .before="Model")
+
 
 write.csv(degra.hix.mod.allsums, "/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.hix.mod.allsums.csv")
 
 #convert dataframe into a table for export
-pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.hix.mod.allsums.pdf", width = 9, height = 3)       # Export PDF
-grid.table(degra.hix.mod.allsums)
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/degra.hix.mod.allsums.pdf", width = 8.5, height = 2.8)       # Export PDF
+grid.table(degra.hix.mod.allsums, rows=NULL)
 dev.off()
 
 
@@ -3347,18 +3405,39 @@ ggsave("figures/degra.sr.mod.plot.pdf", height=4, width=12)
 compile raw plots and model-diff plots for final figures
 ```{r DOC model plots compiled}
 
-degra.indices.mod.plot<-plot_grid(
+all.degra.mod.plots<-plot_grid(
+degra.mod.plot+ theme(legend.position = "none"),
 degra.suva.mod.plot+ theme(legend.position = "none"),
-degra.hix.mod.plot+ theme(legend.position = "none"),
-degra.sr.mod.plot+ theme(legend.position = "none"), nrow=3, rel_widths = c(8,8,8), labels = "AUTO")
+degra.hix.mod.plot+ theme(legend.position = "none"), nrow=3, rel_widths = c(8,8,8), labels = "AUTO")
 
-degra.indices.mod.plot
+all.degra.mod.plots
 
-ggsave("figures/degra.indices.mod.plot.pdf", height=12, width=12)
+ggsave("figures/all.degra.mod.plots.pdf", height=12, width=12)
 
 ```
 
+Comnine AIC and Mod sums for degradation
+```{r}
+library(gridExtra)
+#merge all the dataframes
+all.degra.mod.sums=rbind(degra.mod.allsums,degra.suva.mod.allsums,degra.hix.mod.allsums)
 
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/all.degra.mod.sums.pdf", width = 8.5, height = 7.8)       # Export PDF
+grid.table(all.degra.mod.sums, rows=NULL)
+dev.off()
+
+#merge all the dataframes
+all.degra.mod.AIC=rbind(AIC.degra.mod,AIC.degra.suva.mod,AIC.degra.hix.mod)
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/all.degra.mod.AIC.pdf", width = 6.5, height = 7.8)       # Export PDF
+grid.table(all.degra.mod.AIC, rows=NULL)
+dev.off()
+
+
+
+```
 
 Sage and Willow Decomposition Analysis
 ```{r Sage and Willow analysis and plots}
@@ -3389,246 +3468,7 @@ plant.df$delta.trans=asin(sqrt(plant.df$delta.loss))
 hist(plant.df$delta.trans)
 
 
-###Sage
-m1.sage.gam=gam(delta.trans ~ treatment +s(plant.specific.mass..g, by= treatment), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
-
-hist(m6.sage.gam$residuals)
-
-m2.sage.gam=gam(delta.trans ~ treatment +s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
-
-m3.sage.gam=gam(delta.trans ~ s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
-
-m4.sage.gam=gam(perc.loss ~ treatment +s(plant.specific.mass..g, by= treatment), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
-
-hist(m3.sage.gam$residuals)
-
-m5.sage.gam=gam(perc.loss ~ treatment +s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
-
-m6.sage.gam=gam(perc.loss ~ s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="sage")
-
-sage.AIC=AIC(m1.sage.gam, m2.sage.gam, m3.sage.gam, m4.sage.gam, m5.sage.gam, m6.sage.gam)
-sage.AIC
-
-sage.anova=anova(m6.sage.gam)
-sage.anova
-gam.check(m6.sage.gam, rep=1000)
-
-mean(plant.df[plant.df$plant.type=="sage",]$delta.trans)
-# global smooth
-
-# model predictions
-sage.diff.mod<-plot_difference(
-  m1.sage.gam,
-  series = plant.specific.mass..g,
-  difference = list(treatment = c("burned", "unburned"))
-)
-
-sage.diff.mod
-
-summary(m1.sage.gam)
-anova.gam(m3.sage.gam)
-gam.check(m6.sage.gam, rep=1000)
-draw(m3.sage.gam)
-concrvity(m3.sage.gam)
-par(mfrow = c(2, 2))
-plot(m3.sage.gam, all.terms = TRUE, page=1)
-qq_plot(m3.sage.gam)
-
-#plot for the model output on rawdata
-
-
-sage.mod.plot<-
-  plot_smooths(
-  model = m6.sage.gam,
-  series = plant.specific.mass..g,
-) + 
-  geom_point(data=plant.df[(plant.df$plant.type=="sage"),], 
-             aes(x=plant.specific.mass..g, y=perc.loss, color=treatment)) +
-   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  scale_fill_manual(values = c("brown1", "mediumseagreen")) +
-  ggtitle("Sage") +
- ylab("Mass loss (%)") +
-    coord_cartesian(ylim = c(0,80))+
-  xlab("Plant material (g)") +
-
-  Fig.formatting
-
-sage.mod.plot
-
-
-sage.mod.plot<-
-  plot_smooths(
-  model = m3.sage.gam,
-  series = plant.specific.mass..g,
-) + 
-  geom_point(data=plant.df[(plant.df$plant.type=="sage"),], 
-             aes(x=plant.specific.mass..g, y=delta.trans, color=treatment)) +
-   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  scale_fill_manual(values = c("brown1", "mediumseagreen")) +
-  ggtitle("Sage") +
- ylab("Mass Loss (g)") +
-  xlab("plant material (g)") +
-  coord_cartesian(ylim = c(0,1))+
-  Fig.formatting
-
-sage.mod.plot
-
-### Willow
-m1.willow.gam=gam(delta.trans ~ treatment +s(plant.specific.mass..g, by= treatment), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
-
-
-m2.willow.gam=gam(delta.trans ~ treatment +s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
-
-m3.willow.gam=gam(delta.trans ~ s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
-
-m4.willow.gam=gam(perc.loss ~ treatment +s(plant.specific.mass..g, by= treatment), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
-
-
-m5.willow.gam=gam(perc.loss ~ treatment +s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
-
-m6.willow.gam=gam(perc.loss ~ s(plant.specific.mass..g), data=plant.df, method="REML", select= T, subset= plant.type=="willow")
-
-willow.AIC=AIC(m1.willow.gam, m2.willow.gam, m3.willow.gam, m4.willow.gam,m5.willow.gam,m6.willow.gam)
-willow.AIC
-# treatment with global smooth
-
-summary(m3.willow.gam)
-willow.anova=anova(m1.willow.gam)
-willow.anova
-gam.check(m3.willow.gam, rep=1000)
-draw(m2.willow.gam)
-concrvity(m2.willow.gam)
-par(mfrow = c(2, 2))
-plot(m2.willow.gam, all.terms = TRUE, page=1)
-
-# model predictions
-willow.diff.mod<-plot_difference(
-  m1.willow.gam,
-  series = plant.specific.mass..g,
-  difference = list(treatment = c("burned", "unburned"))
-)
-willow.diff.mod
-
-#plot for the model output on rawdata
-willow.mod.plot<-
-  plot_smooths(
-  model = m5.willow.gam,
-  series = plant.specific.mass..g,
-  comparison = treatment
-) + 
-  geom_point(data=plant.df[(plant.df$plant.type=="willow"),], 
-             aes(x=plant.specific.mass..g, y=perc.loss, color=treatment)) +
-   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-     scale_fill_manual(values = c("brown1", "mediumseagreen")) +
-  ggtitle("Willow") +
-  geom_line(aes(linetype= treatment))+
-  ylab("Mass loss (%)") +
-  xlab("Plant material (g)") +
-  coord_cartesian(ylim = c(0,80))+
-  Fig.formatting
-
-willow.mod.plot<-
-  plot_smooths(
-  model = m1.willow.gam,
-  series = plant.specific.mass..g,
-  comparison = treatment
-) + 
-  geom_point(data=plant.df[(plant.df$plant.type=="willow"),], 
-             aes(x=plant.specific.mass..g, y=delta.trans, color=treatment)) +
-   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-     scale_fill_manual(values = c("brown1", "mediumseagreen")) +
-  ggtitle("Willow") +
-  ylab("Mass Loss (g)") +
-  xlab("plant material (g)") +
-  coord_cartesian(ylim = c(0,1))+
-  Fig.formatting
-
-willow.mod.plot
-
-##combine AIC
-
-mod.decomp.rep<-rep(c("Sage: Treatment with by-factor smooth", 
-              "Sage: Treatment with global smooth", 
-              "Sage: global smooth",
-              "Willow: Treatment with by-factor smooth", 
-              "Willow: Treatment with global smooth", 
-              "Willow: global smooth"))
-
-mod.decomp.column<- data.frame(mod.decomp.rep)
-AIC.decomp<-bind_rows(sage.AIC, willow.AIC)
-AIC.decomp.mod<-as.data.frame(cbind(mod.decomp.column, AIC.decomp))
-
-names(AIC.decomp.mod)[1]="Model"
-AIC.decomp.mod
-rownames(AIC.decomp.mod)<-c(1:6)
-
-write.csv(AIC.decomp.mod, "output/AIC models/AIC.decomp.csv")
-
-#convert dataframe into a table for export
-pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/decomp.mod.AIC.pdf", width = 5.5, height = 2)       # Export PDF
-grid.table(AIC.decomp.mod)
-dev.off()
-
-
-
-
-```
-
-Generate dataframe for model outputs
-```{r}
-####Parametric output
-decomp.para.sums=as.data.frame(rbind(sage.anova$pTerms.table, willow.anova$pTerms.table))
-names(decomp.para.sums)[1]="df/edf"
-
-#create empty column for ref.df
-decomp.para.sums <- decomp.para.sums %>%
-  # Creating an empty column:
-  add_column(Model= c("Sage Model: Treatment","Willow Model: Treatment"), .before="df/edf")%>%
-  add_column(Ref.df = "-", .after="df/edf")
-  
-
-#####Smooth output
-decomp.smooth.sums=as.data.frame(rbind(sage.anova$s.table, willow.anova$s.table))
-names(decomp.smooth.sums)[1]="df/edf"
-
-#create empty column for ref.df
-decomp.smooth.sums <- decomp.smooth.sums %>%
-  # Creating an empty column:
-  add_column(Model= c("Sage Model: s(plant.mass):burned","Sage Model: s(plant.mass):unburned","Willow Model: s(plant.mass):burned","Willow Model: s(plant.mass):unburned"), .before="df/edf")
-
-#merge the dataframes
-decomp.mod.allsums=rbind(decomp.para.sums,decomp.smooth.sums)
-rownames(decomp.mod.allsums)<-c(1:6)
-write.csv(decomp.mod.allsums, "Codys.tables/decomp.mod.allsums.csv")
-
-
-#convert dataframe into a table for export
-pdf("Codys.tables/decomp.mod.allsums.pdf", width = 9, height = 3)       # Export PDF
-grid.table(decomp.mod.allsums)
-dev.off()
-
-
-
-```
-
-
-compile raw plots and model-diff plots for final figures
-```{r DOC model plots compiled}
-
-decomp.mod.plot<-plot_grid(
-sage.mod.plot+ theme(legend.position = "none"),
-willow.mod.plot+ theme(legend.position = "none"),
-  rel_widths = c(8,8), ncol=2, labels = "AUTO")
-
-decomp.mod.plot
-
-ggsave("figures/decomp.mod.plot.pdf", height=4, width=12)
-
-```
-
-exclude outlier control tank
-```{r}
-#new dataframe to play with 
+#exclude control tank outlier
 
 plant.df2=data.frame(plant.df[plant.df$plant.specific.mass..g > 0,])
 
@@ -3650,10 +3490,10 @@ m5.sage.gam=gam(perc.loss ~ treatment +s(plant.specific.mass..g), data=plant.df2
 
 m6.sage.gam=gam(perc.loss ~ s(plant.specific.mass..g), data=plant.df2, method="REML", select= T, subset= plant.type=="sage")
 
-sage.AIC=AIC(m1.sage.gam, m2.sage.gam, m3.sage.gam, m4.sage.gam, m5.sage.gam, m6.sage.gam)
+sage.AIC=AIC(m4.sage.gam, m5.sage.gam, m6.sage.gam)
 sage.AIC
 
-sage.anova=anova(m6.sage.gam)
+sage.anova=anova(m4.sage.gam)
 sage.anova
 gam.check(m6.sage.gam, rep=1000)
 
@@ -3700,22 +3540,6 @@ sage.mod.plot<-
 sage.mod.plot
 
 
-sage.mod.plot<-
-  plot_smooths(
-  model = m3.sage.gam,
-  series = plant.specific.mass..g,
-) + 
-  geom_point(data=plant.df[(plant.df$plant.type=="sage"),], 
-             aes(x=plant.specific.mass..g, y=delta.trans, color=treatment)) +
-   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  scale_fill_manual(values = c("brown1", "mediumseagreen")) +
-  ggtitle("Sage") +
- ylab("Mass Loss (g)") +
-  xlab("plant material (g)") +
-  coord_cartesian(ylim = c(0,1))+
-  Fig.formatting
-
-sage.mod.plot
 
 ### Willow
 m1.willow.gam=gam(delta.trans ~ treatment +s(plant.specific.mass..g, by= treatment), data=plant.df2, method="REML", select= T, subset= plant.type=="willow")
@@ -3732,12 +3556,12 @@ m5.willow.gam=gam(perc.loss ~ treatment +s(plant.specific.mass..g), data=plant.d
 
 m6.willow.gam=gam(perc.loss ~ s(plant.specific.mass..g), data=plant.df2, method="REML", select= T, subset= plant.type=="willow")
 
-willow.AIC=AIC(m1.willow.gam, m2.willow.gam, m3.willow.gam, m4.willow.gam,m5.willow.gam,m6.willow.gam)
+willow.AIC=AIC( m4.willow.gam,m5.willow.gam,m6.willow.gam)
 willow.AIC
 # treatment with global smooth
 
 summary(m4.willow.gam)
-willow.anova=anova(m1.willow.gam)
+willow.anova=anova(m4.willow.gam)
 willow.anova
 gam.check(m3.willow.gam, rep=1000)
 draw(m2.willow.gam)
@@ -3774,6 +3598,88 @@ willow.mod.plot<-
 willow.mod.plot
 
 
+##combine AIC
+
+mod.decomp.rep<-rep(c("Sage: Treatment with by-factor smooth", 
+              "Sage: Treatment with global smooth", 
+              "Sage: global smooth",
+              "Willow: Treatment with by-factor smooth", 
+              "Willow: Treatment with global smooth", 
+              "Willow: global smooth"))
+
+mod.decomp.column<- data.frame(mod.decomp.rep)
+AIC.decomp<-bind_rows(sage.AIC, willow.AIC)
+AIC.decomp.mod<-as.data.frame(cbind(mod.decomp.column, AIC.decomp))
+
+names(AIC.decomp.mod)[1]="Model"
+
+
+write.csv(AIC.decomp.mod, "output/AIC models/AIC.decomp.csv")
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/decomp.mod.AIC.pdf", width = 5, height = 2)       # Export PDF
+grid.table(AIC.decomp.mod, rows=NULL)
+dev.off()
+
+
+```
+
+Generate dataframe for model outputs
+```{r}
+####Parametric output
+decomp.para.sums=as.data.frame(rbind(sage.anova$pTerms.table, willow.anova$pTerms.table))
+names(decomp.para.sums)[1]="df/edf"
+
+#create empty column for ref.df
+decomp.para.sums <- decomp.para.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Sage Model: Treatment","Willow Model: Treatment"), .before="df/edf")%>%
+  add_column(Ref.df = "-", .after="df/edf")
+  
+
+#####Smooth output
+decomp.smooth.sums=as.data.frame(rbind(sage.anova$s.table, willow.anova$s.table))
+names(decomp.smooth.sums)[1]="df/edf"
+
+#create empty column for ref.df
+decomp.smooth.sums <- decomp.smooth.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Sage Model: burned smooth","Sage Model: unburned smooth","Willow Model: burned smooth","Willow Model: unburned smooth"), .before="df/edf")
+
+#merge the dataframes
+decomp.mod.allsums=rbind(decomp.para.sums,decomp.smooth.sums)
+
+
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/decomp.mod.allsums.pdf", width = 7, height = 2)       # Export PDF
+grid.table(decomp.mod.allsums, rows=NULL)
+dev.off()
+
+
+
+
+```
+
+Comnine AIC and Mod sums for decomposition
+```{r}
+library(gridExtra)
+#merge all the dataframes
+all.decomp.mod.sums=rbind(decomp.mod.allsums,decomp.compare.mod.allsums)
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/all.decomp.mod.sums.pdf", width = 7, height = 3.7)       # Export PDF
+grid.table(all.decomp.mod.sums, rows=NULL)
+dev.off()
+
+#merge all the dataframes
+all.decomp.mod.AIC=rbind(AIC.decomp.mod, AIC.compare.decomp.mod)
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/all.decomp.mod.AIC.pdf", width = 5.3, height = 3.7)       # Export PDF
+grid.table(all.decomp.mod.AIC, rows=NULL)
+dev.off()
+
 
 
 ```
@@ -3802,7 +3708,7 @@ m2.compare.burned.gam=gam(perc.loss ~ plant.type + s(plant.specific.mass..g), da
 m3.compare.burned.gam=gam(perc.loss ~ s(plant.specific.mass..g), data=plant.df2, methods= "REML", select= T, subset= treatment == "burned")
 
 compare.burned.AIC=AIC(m1.compare.burned.gam, m2.compare.burned.gam, m3.compare.burned.gam)
-compare.burned.AIC
+compare.burned.anova=anova(m1.compare.burned.gam)
 summary(m2.compare.burned.gam)
 gam.check(m1.compare.burned.gam, rep=1000)
 
@@ -3843,7 +3749,8 @@ m2.compare.unburned.gam=gam(perc.loss ~ plant.type + s(plant.specific.mass..g), 
 m3.compare.unburned.gam=gam(perc.loss ~ s(plant.specific.mass..g), data=plant.df2, methods= "REML", select= T, subset= treatment == "unburned")
 
 compare.unburned.AIC=AIC(m1.compare.unburned.gam, m2.compare.unburned.gam, m3.compare.unburned.gam)
-compare.unburned.AIC
+compare.unburned.anova=anova(m1.compare.unburned.gam)
+compare.unburned.anova
 summary(m3.compare.unburned.gam)
 gam.check(m3.compare.unburned.gam, rep=1000)
 
@@ -3889,20 +3796,54 @@ AIC.compare.decomp.mod<-as.data.frame(cbind(mod.compare.decomp.column, AIC.compa
 
 names(AIC.compare.decomp.mod)[1]="Model"
 
-rownames(AIC.compare.decomp.mod)<-c(1:6)
 
 write.csv(AIC.compare.decomp.mod, "output/AIC models/AIC.comapre.decomp.csv")
 
 #convert dataframe into a table for export
-pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/decomp.compare.mod.AIC.pdf", width = 5.7, height = 2)       # Export PDF
-grid.table(AIC.compare.decomp.mod)
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/decomp.compare.mod.AIC.pdf", width = 5.3, height = 2)       # Export PDF
+grid.table(AIC.compare.decomp.mod, rows=NULL)
 dev.off()
 
 
 
 ```
 
+Generate dataframe for model outputs
+```{r}
+####Parametric output
+decomp.compare.para.sums=as.data.frame(rbind(compare.burned.anova$pTerms.table, compare.unburned.anova$pTerms.table))
+names(decomp.compare.para.sums)[1]="df/edf"
 
+#create empty column for ref.df
+decomp.compare.para.sums <- decomp.compare.para.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Burned: Plant type","Unburned: Plant type"), .before="df/edf")%>%
+  add_column(Ref.df = "-", .after="df/edf")
+  
+
+#####Smooth output
+decomp.compare.smooth.sums=as.data.frame(rbind(compare.burned.anova$s.table, compare.unburned.anova$s.table))
+names(decomp.compare.smooth.sums)[1]="df/edf"
+
+#create empty column for ref.df
+decomp.compare.smooth.sums <- decomp.compare.smooth.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Burned: sage smooth","Burned: willow smooth","Unburned Model: sage smooth","Unburned Model: willow smooth"), .before="df/edf")
+
+#merge the dataframes
+decomp.compare.mod.allsums=rbind(decomp.compare.para.sums,decomp.compare.smooth.sums)
+
+
+
+#convert dataframe into a table for export
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/decomp.compare.mod.allsums.pdf", width = 6.2, height = 2)       # Export PDF
+grid.table(decomp.compare.mod.allsums, rows=NULL)
+dev.off()
+
+
+
+
+```
 compile raw plots and model-diff plots for final figures
 ```{r DOC model plots compiled}
 

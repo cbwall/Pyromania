@@ -1,7 +1,7 @@
 "","Model","df","AIC"
-"1","Sage: Treatment with by-factor smooth",3.00023971945413,247.154227150525
-"2","Sage: Treatment with global smooth",3.00016724671527,247.154111113522
-"3","Sage: global smooth",2.00016839753008,245.579699679993
-"4","Willow: Treatment with by-factor smooth",3.17784271471248,251.990096348712
-"5","Willow: Treatment with global smooth",3.00017935705843,251.836379394005
-"6","Willow: global smooth",2.0001757591892,252.418031553662
+"m4.sage.gam","Sage: Treatment with by-factor smooth",9.04746111183446,167.37565125566
+"m5.sage.gam","Sage: Treatment with global smooth",6.51827921130432,181.988962103439
+"m6.sage.gam","Sage: global smooth",5.3506804310388,183.434607802098
+"m4.willow.gam","Willow: Treatment with by-factor smooth",5.78128804540485,217.146508659733
+"m5.willow.gam","Willow: Treatment with global smooth",3.00017935705843,251.836379394005
+"m6.willow.gam","Willow: global smooth",4.39994041897963,223.050002604903
