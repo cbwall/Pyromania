@@ -196,7 +196,9 @@ DOC.diff.T1<-plot_difference(
   m1.DOC.T1.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-10,13))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -245,7 +247,9 @@ DOC.diff.T2<-plot_difference(
   m1.DOC.T2.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-10,13))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -294,7 +298,9 @@ DOC.diff.T3<-plot_difference(
   m1.DOC.T3.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-10,13))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -358,7 +364,11 @@ DOC.diff.T4<-plot_difference(
   m1.DOC.T4.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-10,13))+
+  Fig.formatting
+
+DOC.diff.T4
 
 # no effect of treatment, smoothing significant across both treatments
 # DOC equivalent in  burned and unburned
@@ -855,7 +865,9 @@ suva.diff.T1<-plot_difference(
   m1.suva.T1.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-5,5))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -905,7 +917,10 @@ suva.diff.T2<-plot_difference(
   m1.suva.T2.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-5,5))+
+  Fig.formatting
+
 
 ###########  
 #plot for the model output on rawdata
@@ -956,7 +971,10 @@ suva.diff.T3<-plot_difference(
   m1.suva.T3.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-5,5))+
+  Fig.formatting
+
 
 ###########  
 #plot for the model output on rawdata
@@ -1004,7 +1022,10 @@ suva.diff.T4<-plot_difference(
   m1.suva.T4.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-5,5))+
+  Fig.formatting
+
 
 ###########  
 #plot for the model output on rawdata
@@ -1158,7 +1179,10 @@ sr.diff.T0<-plot_difference(
   m1.sr.T0.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-0.75,0.75))+
+  Fig.formatting
+
 
 ###########  
 sr.T0.mod.plot<-
@@ -1203,7 +1227,9 @@ sr.diff.T1<-plot_difference(
   m1.sr.T1.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-0.75,0.75))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -1255,7 +1281,9 @@ sr.diff.T2<-plot_difference(
   m1.sr.T2.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-0.75,0.75))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -1308,7 +1336,9 @@ sr.diff.T3<-plot_difference(
   m1.sr.T3.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-0.75,0.75))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -1359,7 +1389,9 @@ sr.diff.T4<-plot_difference(
   m1.sr.T4.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-0.75,0.75))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -1549,7 +1581,9 @@ hix.diff.T1<-plot_difference(
   m1.hix.T1.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-2.5,1.5))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -1602,7 +1636,9 @@ hix.diff.T2<-plot_difference(
   m1.hix.T2.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-2.5,1.5))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -1654,7 +1690,9 @@ hix.diff.T3<-plot_difference(
   m1.hix.T3.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-2.5,1.5))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -1702,7 +1740,9 @@ hix.diff.T4<-plot_difference(
   m1.hix.T4.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-2.5,1.5))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -1899,7 +1939,9 @@ fr.diff.T1<-plot_difference(
   m1.fr.T1.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-1,0.2))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -1952,7 +1994,9 @@ fr.diff.T2<-plot_difference(
   m1.fr.T2.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-1,0.2))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -2005,7 +2049,9 @@ fr.diff.T3<-plot_difference(
   m1.fr.T3.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-1,0.2))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -2056,7 +2102,9 @@ fr.diff.T4<-plot_difference(
   m1.fr.T4.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-1,0.2))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -2207,7 +2255,9 @@ fl.diff.T0<-plot_difference(
   m1.fl.T0.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-1.5,0.5))+
+  Fig.formatting
 
 ###########  
 fl.T0.mod.plot<-
@@ -2252,7 +2302,9 @@ fl.diff.T1<-plot_difference(
   m1.fl.T1.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-1.5,1))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -2305,7 +2357,9 @@ fl.diff.T2<-plot_difference(
   m1.fl.T2.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-1.5,1))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -2356,7 +2410,9 @@ fl.diff.T3<-plot_difference(
   m1.fl.T3.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-1.5,1))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -2403,7 +2459,9 @@ fl.diff.T4<-plot_difference(
   m1.fl.T4.gam,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
-)
+)+
+  coord_cartesian(ylim = c(-1.5,1))+
+  Fig.formatting
 
 ###########  
 #plot for the model output on rawdata
@@ -2536,7 +2594,7 @@ indices.alltimes= plot_grid(suva.alltimes, sr.alltimes, hix.alltimes, fr.alltime
 
 ggsave("figures/indices.alltimes.pdf", height=18, width=14)
 
-indices.diff.plot= plot_grid(suva.mod.diffs, sr.mod.diffs, hix.mod.diffs, fr.mod.diffs, fl.mod.diffs, nrow=5, rel_widths = c(8,8,8,8,8), labels = "AUTO")
+indices.diff.plot= plot_grid(suva.mod.diffs, sr.mod.diffs, hix.mod.diffs, fr.mod.diffs, fl.mod.diffs, nrow=5, rel_widths = c(8,8,8,8,8), labels = "auto")
 
 indices.diff.plot
 ggsave("figures/indices.diff.plot.pdf", height=18, width=14)
@@ -3709,7 +3767,7 @@ m3.compare.burned.gam=gam(perc.loss ~ s(plant.specific.mass..g), data=plant.df2,
 
 compare.burned.AIC=AIC(m1.compare.burned.gam, m2.compare.burned.gam, m3.compare.burned.gam)
 compare.burned.anova=anova(m1.compare.burned.gam)
-summary(m2.compare.burned.gam)
+compare.burned.anova
 gam.check(m1.compare.burned.gam, rep=1000)
 
 # model predictions
@@ -3754,6 +3812,8 @@ compare.unburned.anova
 summary(m3.compare.unburned.gam)
 gam.check(m3.compare.unburned.gam, rep=1000)
 
+mean(plant.df2[plant.df2$plant.type=="sage",]$perc.loss)
+mean(plant.df2[plant.df2$plant.type=="willow",]$perc.loss)
 # model predictions
 compare.burned.diff.mod<-plot_difference(
   m1.compare.burned.gam,
