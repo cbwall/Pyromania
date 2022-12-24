@@ -2601,31 +2601,84 @@ ggsave("figures/indices.diff.plot.pdf", height=18, width=14)
 
 ```
 
-
-Generate dataframe for all index model outputs
+Generate dataframe for all mean index high mass tanks
 ```{r}
-library(gridExtra)
-#merge all the dataframes
-index.mod.allsums=rbind(suva.mod.allsums,hix.mod.allsums,sr.mod.allsums,fr.mod.allsums,fl.mod.allsums)
+burned.high.mass.df=DOC.df2[DOC.df2$Treatment=="burned",]
 
-#convert dataframe into a table for export
-pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/index.mod.allsums.pdf", width = 8.6, height = 17)       # Export PDF
-grid.table(index.mod.allsums, rows=NULL)
-dev.off()
+burned.high.mass.df$mean.SUVA=mean(DOC.df2[DOC.df2$Treatment=="burned",]$SUVA)
+burned.high.mass.df$mean.sr=mean(DOC.df2[DOC.df2$Treatment=="burned",]$sr)
+burned.high.mass.df$mean.HIX=mean(DOC.df2[DOC.df2$Treatment=="burned",]$hix)
+burned.high.mass.df$mean.BIX=mean(DOC.df2[DOC.df2$Treatment=="burned",]$fr)
+burned.high.mass.df$mean.FI=mean(DOC.df2[DOC.df2$Treatment=="burned",]$fl)
 
-#merge all the dataframes
-index.mod.AIC=rbind(AIC.suva.mod,AIC.hix.mod,AIC.sr.mod,AIC.fr.mod,AIC.fl.mod)
+unburned.high.mass.df=DOC.df2[DOC.df2$Treatment=="unburned",]
+unburned.high.mass.df %>% top_n(1, replace = FALSE)
 
-#convert dataframe into a table for export
-pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/index.mod.AIC.pdf", width = 6.5, height = 17)       # Export PDF
-grid.table(index.mod.AIC, rows=NULL)
-dev.off()
+unburned.high.mass.df$mean.SUVA=mean(DOC.df2[DOC.df2$Treatment=="unburned",]$SUVA)
+unburned.high.mass.df$mean.sr=mean(DOC.df2[DOC.df2$Treatment=="unburned",]$sr)
+unburned.high.mass.df$mean.HIX=mean(DOC.df2[DOC.df2$Treatment=="unburned",]$hix)
+unburned.high.mass.df$mean.BIX=mean(DOC.df2[DOC.df2$Treatment=="unburned",]$fr)
+unburned.high.mass.df$mean.FI=mean(DOC.df2[DOC.df2$Treatment=="unburned",]$fl)
 
+
+
+mean.high.mass.index.df=data.frame(rbind(burned.high.mass.df, unburned.high.mass.df))
+
+mean.high.mass.index.df=data.frame(mean.high.mass.index.df[mean.high.mass.index.df$Time.point!="T0",])
+
+mean(mean.high.mass.index.df[mean.high.mass.index.df$Treatment=="unburned",]$fl)
+  
 
 
 ```
 
 
+New dataframe for high biomass indices
+```{r}
+DOC.df2=DOC.df[DOC.df$plant.mass..g>=200,]
+
+index.d2=index.df[index.df$plant.mass..g.>=200,]
+
+mean(DOC.df2[DOC.df2$Treatment=="unburned",]$hix)
+
+```
+
+Generate dataframe for high biomass tanks
+```{r}
+####Parametric output
+fl.para.sums=as.data.frame(rbind(T1.fl.anova$pTerms.table, T2.fl.anova$pTerms.table, T3.fl.anova$pTerms.table, T4.fl.anova$pTerms.table))
+names(fl.para.sums)[1]="df/edf"
+
+#create empty column for ref.df
+fl.para.sums <- fl.para.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Day 10 Model: Treatment","Day 31 Model: Treatment","Day 59 Model: Treatment","Day 89 Model: Treatment"), .before="df/edf")%>%
+  add_column(Ref.df = "-", .after="df/edf")
+  
+
+#####Smooth output
+fl.smooth.sums=as.data.frame(rbind(T1.fl.anova$s.table, T2.fl.anova$s.table, T3.fl.anova$s.table, T4.fl.anova$s.table))
+names(fl.smooth.sums)[1]="df/edf"
+#create empty column for ref.df
+fl.smooth.sums <- fl.smooth.sums %>%
+  # Creating an empty column:
+  add_column(Model= c("Day 10 Model: burned smooth","Day 10 Model: unburned smooth","Day 31 Model: burned smooth","Day 31 Model: unburned smooth","Day 59 Model: burned smooth","Day 59 Model: unburned smooth","Day 89 Model: burned smooth","Day 89 Model: unburned smooth"), .before="df/edf")
+
+#merge the dataframes
+fl.mod.allsums=rbind(fl.para.sums,fl.smooth.sums)
+rownames(fl.mod.allsums)<-c(1:12)
+
+#create new ID column
+fl.mod.allsums <- fl.mod.allsums %>%
+  # Creating an empty column:
+  add_column(Variable= c("FI"), .before="Model")
+
+
+pdf("/Users/Cody1/Desktop/GitHub/Pyromania2/output/Codys.tables/fl.mod.allsums.pdf", width = 8.3, height = 3.8)       # Export PDF
+grid.table(fl.mod.allsums, rows=NULL)
+dev.off()
+
+```
 Calculate photo, microbe, and total degradation:
 ```{r}
 #+UV/+Bio=A
