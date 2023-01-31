@@ -3080,30 +3080,21 @@ write.csv(AIC.phos.mod, "output/AIC models/AIC.phos.mod.csv")
 ### Greenhouse Gas Data
 Import data and clean up
 ```{r GHG data}
-GHG<-read.csv("data/GH.gases/Pyro_ghg.csv")
-trt<-read.csv("data/treatment.IDs.csv")
+GHG<-read.csv("data/GH.gases/Pyro_ghg_headspace.csv")
+GHG<-na.omit(GHG) # remove NAs
 
-GHG<-merge(GHG, trt, by="Tank", all=T)
+# set structure
+make.fac<-c("Time.point", "Treatment", "Tank", "Gas")
+GHG[make.fac] <- lapply(GHG[make.fac], factor) # make all these factors
+GHG$plant.mass..g<-as.numeric(GHG$plant.mass..g)
 
-GHG<-subset(GHG, Week!="AA")
-GHG<-subset(GHG, Week!="CH4")
-GHG<-subset(GHG, Gas=="CH4"|Gas=="CO2")
-GHG$Treatment<-as.factor(GHG$Treatment)
-
-# rename levels and then column
-GHG$Week<- revalue(GHG$Week, c("WK0"="T0", "WK1"="T1", "WK2"="T2", "WK3"="T3"))
-names(GHG)[names(GHG)=="Week"] <- "Time.point"
-
+# rename
+GHG<- GHG %>% rename("GHG.nM" = "GHGwater..nmol.GHG..L.H2O")
 
 # reorder columns and export
-GHG<- GHG %>% select(Time.point, Treatment, plant.mass..g, Tank, Gas, d13C, at.perc.13C, ppm)
+GHG<- GHG %>% select(Time.point, Treatment, plant.mass..g, Tank, Gas, GHG.nM)
 
-GHG$Plant.mass..g<-as.numeric(GHG$plant.mass..g)
-GHG$Time.point<-as.factor(GHG$Time.point)
-
-
-write.csv(GHG, "data/GH.gases/Pyro_GHG_cleaned.csv")
-#############################################
+GHG<-GHG[!(GHG$GHG.nM < 0),]
 
 ```
 
@@ -3111,19 +3102,22 @@ Make plots and run models for CO2
 ```{r CO2 model plots}
 CO2<-subset(GHG, Gas=="CO2")
 
+#convert GHG units from nM to uM
+CO2$GHG.uM<- CO2$GHG.nM/1000
+
 ############# GHG plots and modesl
 #### CO2
 #######-- T0
 
-m1.T0.CO2<- gam(ppm ~ Treatment +
+m1.T0.CO2<- gam(GHG.uM ~ Treatment +
             s(plant.mass..g, by=Treatment), subset = Time.point=="T0", data = CO2,
             method="REML", family="gaussian")
 
-m2.T0.CO2<- gam(ppm ~ Treatment +
+m2.T0.CO2<- gam(GHG.uM ~ Treatment +
             s(plant.mass..g), subset = Time.point=="T0", data = CO2,
             method="REML", family="gaussian")
 
-m3.T0.CO2<- gam(ppm ~
+m3.T0.CO2<- gam(GHG.uM ~
             s(plant.mass..g), subset = Time.point=="T0", data = CO2,
             method="REML", family="gaussian")
 
@@ -3154,12 +3148,12 @@ CO2.T0.mod.plot<-
   comparison = Treatment
 )  + theme(legend.position = "none") +
   geom_point(data=CO2[(CO2$Time.point=="T0"),], 
-             aes(x=plant.mass..g, y=ppm, color=Treatment)) +
+             aes(x=plant.mass..g, y=GHG.uM, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  ylab(expression(paste("CO2", ~(ppm), sep=""))) +
+  ylab(expression(paste("CO"[2], ~(mu*M), sep=""))) +
   xlab("plant material (g)") +
   ggtitle("Time-0") +
-  coord_cartesian(ylim=c(0, 5000)) +
+  coord_cartesian(ylim=c(0, 400)) +
   Fig.formatting +
   theme(legend.key.size = unit(1,"line"))
 
@@ -3168,15 +3162,15 @@ CO2.T0.mod.plot
 #### CO2 
 #######-- T1
 
-m1.T1.CO2<- gam(ppm ~ Treatment +
+m1.T1.CO2<- gam(GHG.uM ~ Treatment +
             s(plant.mass..g, by=Treatment), subset = Time.point=="T1", data = CO2,
             method="REML", family="gaussian")
 
-m2.T1.CO2<- gam(ppm ~ Treatment +
+m2.T1.CO2<- gam(GHG.uM ~ Treatment +
             s(plant.mass..g), subset = Time.point=="T1", data = CO2,
             method="REML", family="gaussian")
 
-m3.T1.CO2<- gam(ppm ~
+m3.T1.CO2<- gam(GHG.uM ~
             s(plant.mass..g), subset = Time.point=="T1", data = CO2,
             method="REML", family="gaussian")
 
@@ -3208,12 +3202,12 @@ CO2.T1.mod.plot<-
   comparison = Treatment
 )  + theme(legend.position = "none") +
   geom_point(data=CO2[(CO2$Time.point=="T1"),], 
-             aes(x=plant.mass..g, y=ppm, color=Treatment)) +
+             aes(x=plant.mass..g, y=GHG.uM, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  ylab(expression(paste("CO2", ~(ppm), sep=""))) +
+  ylab(expression(paste("CO"[2], ~(mu*M), sep=""))) +
   xlab("plant material (g)") +
   ggtitle("Time-1") +
-  coord_cartesian(ylim=c(0, 5000)) +
+  coord_cartesian(ylim=c(0, 400)) +
   Fig.formatting +
   theme(legend.key.size = unit(1,"line"))
 
@@ -3222,15 +3216,15 @@ CO2.T1.mod.plot
 #### CO2
 #######-- T2
 
-m1.T2.CO2<- gam(ppm ~ Treatment +
+m1.T2.CO2<- gam(GHG.uM ~ Treatment +
             s(plant.mass..g, by=Treatment), subset = Time.point=="T2", data = CO2,
             method="REML", family="gaussian")
 
-m2.T2.CO2<- gam(ppm ~ Treatment +
+m2.T2.CO2<- gam(GHG.uM ~ Treatment +
             s(plant.mass..g), subset = Time.point=="T2", data = CO2,
             method="REML", family="gaussian")
 
-m3.T2.CO2<- gam(ppm ~
+m3.T2.CO2<- gam(GHG.uM ~
             s(plant.mass..g), subset = Time.point=="T2", data = CO2,
             method="REML", family="gaussian")
 
@@ -3261,12 +3255,12 @@ CO2.T2.mod.plot<-
   comparison = Treatment
 )  + theme(legend.position = "none") +
   geom_point(data=CO2[(CO2$Time.point=="T2"),], 
-             aes(x=plant.mass..g, y=ppm, color=Treatment)) +
+             aes(x=plant.mass..g, y=GHG.uM, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  ylab(expression(paste("CO2", ~(ppm), sep=""))) +
+  ylab(expression(paste("CO"[2], ~(mu*M), sep=""))) +
   xlab("plant material (g)") +
   ggtitle("Time-2") +
-  coord_cartesian(ylim=c(0, 5000)) +
+  coord_cartesian(ylim=c(0, 400)) +
   Fig.formatting +
   theme(legend.key.size = unit(1,"line"))
 
@@ -3276,15 +3270,15 @@ CO2.T2.mod.plot
 #### CO2 
 #######-- T3
 
-m1.T3.CO2<- gam(ppm ~ Treatment +
+m1.T3.CO2<- gam(GHG.uM ~ Treatment +
             s(plant.mass..g, by=Treatment), subset = Time.point=="T3", data = CO2,
             method="REML", family="gaussian")
 
-m2.T3.CO2<- gam(ppm ~ Treatment +
+m2.T3.CO2<- gam(GHG.uM ~ Treatment +
             s(plant.mass..g), subset = Time.point=="T3", data = CO2,
             method="REML", family="gaussian")
 
-m3.T3.CO2<- gam(ppm ~
+m3.T3.CO2<- gam(GHG.uM ~
             s(plant.mass..g), subset = Time.point=="T3", data = CO2,
             method="REML", family="gaussian")
 
@@ -3315,12 +3309,12 @@ CO2.T3.mod.plot<-
   comparison = Treatment
 )  + theme(legend.position = "none") +
   geom_point(data=CO2[(CO2$Time.point=="T3"),], 
-             aes(x=plant.mass..g, y=ppm, color=Treatment)) +
+             aes(x=plant.mass..g, y=GHG.uM, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  ylab(expression(paste("CO2", ~(ppm), sep=""))) +
+  ylab(expression(paste("CO"[2], ~(mu*M), sep=""))) +
   xlab("plant material (g)") +
   ggtitle("Time-3") +
-  coord_cartesian(ylim=c(0, 5000)) +
+  coord_cartesian(ylim=c(0, 400)) +
   Fig.formatting +
   theme(legend.key.size = unit(1,"line"))
 
@@ -3361,32 +3355,32 @@ Make plots and run models for methane.
 CH4<-subset(GHG, Gas=="CH4")
 
 
-m1.T0.CH4<- gam(ppm ~ Treatment +
+m1.T0.CH4<- gam(GHG.nM ~ Treatment +
             s(plant.mass..g, by=Treatment), subset = Time.point=="T0", data = CH4,
             method="REML", family="gaussian")
 
-m2.T0.CH4<- gam(ppm ~ Treatment +
+m2.T0.CH4<- gam(GHG.nM ~ Treatment +
             s(plant.mass..g), subset = Time.point=="T0", data = CH4,
             method="REML", family="gaussian")
 
-m3.T0.CH4<- gam(ppm ~
+m3.T0.CH4<- gam(GHG.nM ~
             s(plant.mass..g), subset = Time.point=="T0", data = CH4,
             method="REML", family="gaussian")
 
 CH4.T0.AIC<-AIC(m1.T0.CH4, m2.T0.CH4, m3.T0.CH4)
-#factor by smooth best
+#factor single smooth best
 
-summary(m1.T0.CH4)
-anova.gam(m1.T0.CH4)
-gam.check(m1.T0.CH4, rep=1000)
-draw(m1.T0.CH4)
-concrvity(m1.T0.CH4)
+summary(m2.T0.CH4)
+anova.gam(m2.T0.CH4)
+gam.check(m2.T0.CH4, rep=1000)
+draw(m2.T0.CH4)
+concrvity(m2.T0.CH4)
 par(mfrow = c(1, 2))
-plot(m1.T0.CH4, all.terms = TRUE, page=1)
+plot(m2.T0.CH4, all.terms = TRUE, page=1)
 
 # model predictions
 CH4.diff.T0<-plot_difference(
-  m1.T0.CH4,
+  m2.T0.CH4,
   series = plant.mass..g,
   difference = list(Treatment = c("burned", "unburned"))
 )
@@ -3395,17 +3389,18 @@ CH4.diff.T0<-plot_difference(
 #plot for the model output on rawdata
 CH4.T0.mod.plot<-
   plot_smooths(
-  model = m1.T0.CH4,
+  model = m2.T0.CH4,
   series = plant.mass..g,
-  comparison = Treatment
+  comparison=Treatment
 )  + theme(legend.position = "none") +
   geom_point(data=CH4[(CH4$Time.point=="T0"),], 
-             aes(x=plant.mass..g, y=ppm, color=Treatment)) +
+             aes(x=plant.mass..g, y=GHG.nM, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  ylab(expression(paste("CH4", ~(ppm), sep=""))) +
+  geom_line(aes(fill=Treatment, linetype=Treatment)) +
+  ylab(expression(paste("CH"[4], ~(nM), sep=""))) +
   xlab("plant material (g)") +
   ggtitle("Time-0") +
-  coord_cartesian(ylim=c(1.5, 3)) +
+  coord_cartesian(ylim=c(0, 50)) +
   Fig.formatting +
   theme(legend.key.size = unit(1,"line"))
 
@@ -3414,15 +3409,15 @@ CH4.T0.mod.plot
 #### CH4 
 #######-- T1
 
-m1.T1.CH4<- gam(ppm ~ Treatment +
+m1.T1.CH4<- gam(GHG.nM ~ Treatment +
             s(plant.mass..g, by=Treatment), subset = Time.point=="T1", data = CH4,
             method="REML", family="gaussian")
 
-m2.T1.CH4<- gam(ppm ~ Treatment +
+m2.T1.CH4<- gam(GHG.nM ~ Treatment +
             s(plant.mass..g), subset = Time.point=="T1", data = CH4,
             method="REML", family="gaussian")
 
-m3.T1.CH4<- gam(ppm ~
+m3.T1.CH4<- gam(GHG.nM ~
             s(plant.mass..g), subset = Time.point=="T1", data = CH4,
             method="REML", family="gaussian")
 
@@ -3453,12 +3448,12 @@ CH4.T1.mod.plot<-
   comparison = Treatment
 )  + theme(legend.position = "none") +
   geom_point(data=CH4[(CH4$Time.point=="T1"),], 
-             aes(x=plant.mass..g, y=ppm, color=Treatment)) +
+             aes(x=plant.mass..g, y=GHG.nM, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  ylab(expression(paste("CH4", ~(ppm), sep=""))) +
+  ylab(expression(paste("CH"[4], ~(mu*M), sep=""))) +
   xlab("plant material (g)") +
   ggtitle("Time-1") +
-  coord_cartesian(ylim=c(1.5, 3)) +
+  coord_cartesian(ylim=c(0, 50)) +
   Fig.formatting +
   theme(legend.key.size = unit(1,"line"))
 
@@ -3467,15 +3462,15 @@ CH4.T1.mod.plot
 #### CH4
 #######-- T2
 
-m1.T2.CH4<- gam(ppm ~ Treatment +
+m1.T2.CH4<- gam(GHG.nM ~ Treatment +
             s(plant.mass..g, by=Treatment), subset = Time.point=="T2", data = CH4,
             method="REML", family="gaussian")
 
-m2.T2.CH4<- gam(ppm ~ Treatment +
+m2.T2.CH4<- gam(GHG.nM ~ Treatment +
             s(plant.mass..g), subset = Time.point=="T2", data = CH4,
             method="REML", family="gaussian")
 
-m3.T2.CH4<- gam(ppm ~
+m3.T2.CH4<- gam(GHG.nM ~
             s(plant.mass..g), subset = Time.point=="T2", data = CH4,
             method="REML", family="gaussian")
 
@@ -3505,12 +3500,12 @@ CH4.T2.mod.plot<-
   series = plant.mass..g,
 )  + theme(legend.position = "none") +
   geom_point(data=CH4[(CH4$Time.point=="T2"),], 
-             aes(x=plant.mass..g, y=ppm, color=Treatment)) +
+             aes(x=plant.mass..g, y=GHG.nM, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  ylab(expression(paste("CH4", ~(ppm), sep=""))) +
+  ylab(expression(paste("CH"[4], ~(mu*M), sep=""))) +
   xlab("plant material (g)") +
   ggtitle("Time-2") +
-  coord_cartesian(ylim=c(1.5, 3)) +
+  coord_cartesian(ylim=c(0, 50)) +
   Fig.formatting +
   theme(legend.key.size = unit(1,"line"))
 
@@ -3520,15 +3515,15 @@ CH4.T2.mod.plot
 #### CH4 
 #######-- T3
 
-m1.T3.CH4<- gam(ppm ~ Treatment +
+m1.T3.CH4<- gam(GHG.nM ~ Treatment +
             s(plant.mass..g, by=Treatment), subset = Time.point=="T3", data = CH4,
             method="REML", family="gaussian")
 
-m2.T3.CH4<- gam(ppm ~ Treatment +
+m2.T3.CH4<- gam(GHG.nM ~ Treatment +
             s(plant.mass..g), subset = Time.point=="T3", data = CH4,
             method="REML", family="gaussian")
 
-m3.T3.CH4<- gam(ppm ~
+m3.T3.CH4<- gam(GHG.nM ~
             s(plant.mass..g), subset = Time.point=="T3", data = CH4,
             method="REML", family="gaussian")
 
@@ -3559,13 +3554,13 @@ CH4.T3.mod.plot<-
   comparison=Treatment
 )  + theme(legend.position = "none") +
   geom_point(data=CH4[(CH4$Time.point=="T3"),], 
-             aes(x=plant.mass..g, y=ppm, color=Treatment)) +
+             aes(x=plant.mass..g, y=GHG.nM, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
   geom_line(aes(fill=Treatment, linetype=Treatment)) +
-  ylab(expression(paste("CH4", ~(ppm), sep=""))) +
+  ylab(expression(paste("CH"[4], ~(nM), sep=""))) +
   xlab("plant material (g)") +
   ggtitle("Time-3") +
-  coord_cartesian(ylim=c(1.5, 3)) +
+  coord_cartesian(ylim=c(0, 50)) +
   Fig.formatting +
   theme(legend.key.size = unit(1,"line"))
 
@@ -3599,11 +3594,11 @@ Compile the greenhouse gas plots
 ```{r combine GHG plots}
 
 GHG.plots<-plot_grid(CO2.model.plots, CH4.model.plots, ncol=1)
-ggsave("figures/GHG.mod.plots.pdf", height=7, width=12)
+ggsave("figures/GHG.molar.mod.plots.pdf", height=7, width=12)
 
 
 GHG.plot.diff<-plot_grid(CO2.plot.diff, CH4.plot.diff, ncol=1)
-ggsave("figures/GHG.mod.diff.pdf", height=7, width=12)
+ggsave("figures/GHG.molar.mod.diff.pdf", height=7, width=12)
 
 
 ```
