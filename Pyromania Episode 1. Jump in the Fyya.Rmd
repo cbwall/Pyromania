@@ -173,7 +173,7 @@ DOC.T0.mod.plot<-
   geom_point(data=DOC.df[(DOC.df$Time.point=="T0"),], 
              aes(x=plant.mass..g, y=DOC..mg.L, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
-  coord_cartesian(ylim=c(0, 5)) +
+  coord_cartesian(ylim=c(0, 60)) +
   ggtitle("Day-0") +
   ylab("DOC (mg/L)") +
   xlab("plant material (g)") +
@@ -418,12 +418,13 @@ extract.legend <- get_legend(
 
 
 DOC.alltimes<-plot_grid(
+  DOC.T0.mod.plot+ theme(legend.position = "none"),
   DOC.T1.mod.plot+ theme(legend.position = "none"),
   DOC.T2.mod.plot+ theme(legend.position = "none"),
   DOC.T3.mod.plot+ theme(legend.position = "none"),
   DOC.T4.mod.plot+ theme(legend.position = "none"), extract.legend,
-  rel_widths = c(8,8,8,8,3), ncol=5)
-ggsave("figures/DOC.alltimes.mod.pdf", height=4, width=12)
+  rel_widths = c(8,8,8,8,8,3), ncol=6)
+ggsave("figures/DOC.alltimes.mod.pdf", height=4, width=15)
 
 DOC.alltimes
 ```
@@ -431,12 +432,13 @@ DOC.alltimes
 Model differences between the two factor-smoothers
 ```{r DOC mod diffs}
 DOC.mod.diffs<-plot_grid(
+  DOC.diff.T0+ theme(legend.position = "none")+ ggtitle("DOC - Day-0"),
   DOC.diff.T1+ theme(legend.position = "none")+ ggtitle("DOC - Day-10"),
   DOC.diff.T2+ theme(legend.position = "none")+ ggtitle("Day-31"),
   DOC.diff.T3+ theme(legend.position = "none")+ ggtitle("Day-59"),
   DOC.diff.T4+ theme(legend.position = "none")+ ggtitle("Day-89"),
-  rel_widths = c(8,8,8,8), ncol=4)
-ggsave("figures/DOC.mod.diffs.pdf", height=4, width=12)
+  rel_widths = c(8,8,8,8,8), ncol=5)
+ggsave("figures/DOC.mod.diffs.pdf", height=4, width=14)
 
 DOC.mod.diffs
 ```
@@ -2460,9 +2462,9 @@ iso.plot.control.d15N<-ggplot(data=topes.controls,  aes(x=Type, y=d15N, fill=Typ
   geom_point(pch = 21, position = position_jitterdodge(), alpha=0.6)+
   ylab(expression(paste(delta^{15}, N, " (\u2030, air)"))) +
   scale_fill_manual(values = c("azure2", "cornflowerblue",
-                                "darkgoldenrod1", "darkgoldenrod",
-                                "darkseagreen3", "darkolivegreen3",
-                                "darkolivegreen4", "darkgreen")) +
+                                "darkgoldenrod1", "indianred2",
+                                "aquamarine3", "antiquewhite3",
+                                "darkolivegreen4", "lightsalmon")) +
   xlab("control types") +  Fig.formatting +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
 
@@ -2475,9 +2477,9 @@ iso.plot.control.CN<-ggplot(data=topes.controls.CN,  aes(x=Type, y=C.N, fill=Typ
   geom_point(pch = 21, position = position_jitterdodge(), alpha=0.6)+
   ylab("C:N") +
   scale_fill_manual(values = c("cornflowerblue",
-                                "darkgoldenrod1", "darkgoldenrod",
-                                "darkseagreen3", "darkolivegreen3",
-                                "darkolivegreen4", "darkgreen")) +
+                                "darkgoldenrod1", "indianred2",
+                                "aquamarine3", "antiquewhite3",
+                                "darkolivegreen4", "lightsalmon")) +
   xlab("control types") +  Fig.formatting +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
@@ -2507,7 +2509,7 @@ topes.trt<-droplevels(topes.trt)
 
 ### values for controls
 d15N.cont # summary mean d15N by all controls
-d15N.plant # summary by plants, # sage 296, #  willow 13
+d15N.plant # summary by plants, # stock plantkon 11, # sage 296, #  willow 13
 
 # summary mean atom percent enrichment
 F.cont<-aggregate(at.P..15N  ~ Type, topes.controls, mean)
