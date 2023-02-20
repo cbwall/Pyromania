@@ -2895,9 +2895,6 @@ multcomp::cld(posthoc, Letters=letters)
 plant.N.wil<-lm(N~treatment*type, data=will.nut)
 Anova(plant.N.wil, type=3) #  main effects
 
-posthoc<-emmeans(plant.N.wil, ~treatment)
-multcomp::cld(posthoc, Letters=letters)
-
 
 ########## %P 
 plant.P.wil<-lm(P~treatment*type, data=will.nut)
