@@ -1,7 +1,7 @@
 "","mod.CN","df","AIC"
-"m1.T1.CN","Treatment + Type + s(plant.mass..g, by=Treatment)",8.13579668481128,286.990497898675
+"m1.T1.CN","Treatment + Type + s(plant.mass..g, by=Treatment)",8.13579668481133,286.990497898675
 "m2.T1.CN","Treatment + Type + s(plant.mass..g)",7.03327236577976,291.339333030287
 "m3.T1.CN","s(plant.mass..g)",5.027366093859,289.88902386058
 "m1.T2.CN","Treatment + Type + s(plant.mass..g, by=Treatment)",12.557609166888,223.727701409719
-"m2.T2.CN","Treatment + Type + s(plant.mass..g)",8.3933796590432,261.223790057882
+"m2.T2.CN","Treatment + Type + s(plant.mass..g)",8.39337965904325,261.223790057883
 "m3.T2.CN","s(plant.mass..g)",6.02843479720665,283.613571994985
