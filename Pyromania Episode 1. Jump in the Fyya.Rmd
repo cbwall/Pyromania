@@ -2249,9 +2249,9 @@ ggsave("figures/CN.mod.plot.timepooled.pdf", height=4, width=5, encod="MacRoman"
 
 #####
 
-# mixed model approach
-CN.all.mod<-lmer(C.N~ Treatment*Type + (1|Time.point), data=topes.trt, na.action=na.exclude) 
-print(anova(CN.all.mod, type=3), digits=5)
+# linear model approach
+CN.all.mod<-lm(C.N~ Treatment+Type+Time.point, data=topes.trt, na.action=na.exclude) 
+print(Anova(CN.all.mod, type=2), digits=5)
 posthoc<-emmeans(CN.all.mod, ~Type)
 multcomp::cld(posthoc, Letters=letters)
 
@@ -2263,6 +2263,7 @@ CNbox.all.time<-ggplot(topes.trt, aes(x=Treatment, y=C.N, fill=Type)) +
   scale_fill_manual(name="Plankton", values = c("deepskyblue4", "darkseagreen"), 
                      labels = c(expression(paste("> 63"~mu,"m")), 
                                 expression(paste("< 63"~mu,"m")))) +
+  coord_cartesian(ylim=c(0, 20)) +
   ylab("C:N") +
   Fig.formatting
 
@@ -2362,7 +2363,7 @@ par(mfrow = c(1, 2))
 plot(m1.T2.CN, all.terms = TRUE, page=1)
 
 
-###########  
+ ###########  
 # model for smoothing
 msmooth.T2.CN<- gam(C.N ~ Treatment +
             s(plant.mass..g, by=Treatment), 
@@ -2647,10 +2648,8 @@ F.plant<-aggregate(at.P..15N~Plant, topes.controls, FUN=mean)
 topes.trt$percent.sage<-(topes.trt$d15N-12)/(296-12)*100
 
 # unicode text for micrometer = \u03BC, use this in legend
-
-
-
 ```
+
 
 model for % sage
 ```{r percent sage models, results ='hide', fig.show='hide'}
@@ -2959,6 +2958,282 @@ write.csv(AIC.d15N.mod, "output/AIC models/AIC.d15N.mod.csv")
 
 ```
 
+```{r TTE calc, results='hide', eval=FALSE}
+#################
+### 
+POM<-topes.trt[(topes.trt$Type=="POM"),]
+plankton<-topes.trt[(topes.trt$Type=="plankton"),]
+
+topes <- POM %>% inner_join( plankton, 
+                              by=c('Time.point','Treatment', 'plant.mass..g', 'Tank'))
+
+
+names(topes)[names(topes) == 'percent.sage.x'] <- 'POM.per.sage'
+names(topes)[names(topes) == 'percent.sage.y'] <- 'plank.per.sage'
+
+topes<- topes %>% 
+  select(Time.point, Treatment, plant.mass..g, Tank, POM.per.sage, plank.per.sage)
+
+topes$TTE.diff<- topes$POM.per.sage - topes$plank.per.sage
+topes$TTE.per <- (topes$plank.per.sage / topes$POM.per.sage)*100
+
+topes$TTE.per[topes$TTE.per < 0] <-"" # remove outlier
+topes$TTE.per<-as.numeric(topes$TTE.per)
+
+# and again...
+topes$TTE.per[topes$TTE.per > 200] <-"" # remove outlier
+topes$TTE.per<-as.numeric(topes$TTE.per)
+
+
+
+################### TTE as difference
+## run some models
+m1.T1.TTE <- gam(TTE.diff ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes, method="REML", family="gaussian")
+
+m2.T1.TTE <- gam(TTE.diff ~ Treatment +
+            s(plant.mass..g), 
+            subset = Time.point=="T1", data=topes, method="REML", family="gaussian")
+
+m3.T1.TTE <- gam(TTE.diff ~
+            s(plant.mass..g), 
+            subset = Time.point=="T1", data=topes, method="REML", family="gaussian")
+
+
+AIC.TTE.T1<-AIC(m1.T1.TTE, m2.T1.TTE, m3.T1.TTE)
+## first model best fit
+
+summary(m1.T1.TTE)
+anova.gam(m1.T1.TTE)
+gam.check(m1.T1.TTE, rep=1000)
+draw(m1.T1.TTE)
+concrvity(m1.T1.TTE)
+par(mfrow = c(1, 2))
+plot(m1.T1.TTE, all.terms = TRUE, page=1)
+
+# model predictions
+TTE.T1<-plot_difference(
+  m1.T1.TTE,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+
+###########  
+# model for smoothing
+msmooth.T1.TTE<- gam(TTE.diff ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes, method="REML", family="gaussian")
+
+#plot for the model output on rawdata
+TTE.T1.mod.plot<-
+  plot_smooths(
+  model = msmooth.T1.TTE,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=topes[(topes$Time.point=="T1"),], 
+             aes(x=plant.mass..g, y=TTE.diff, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ylab("TTE= POM %sage - Plank %sage")+
+  xlab("plant material (g)") +
+  ggtitle("Time-1") +
+  coord_cartesian(ylim=c(-10, 25)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
+
+
+################### TTE as difference TIME 2
+## run some models
+m1.T2.TTE <- gam(TTE.diff ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes, method="REML", family="gaussian")
+
+m2.T2.TTE <- gam(TTE.diff ~ Treatment +
+            s(plant.mass..g), 
+            subset = Time.point=="T2", data=topes, method="REML", family="gaussian")
+
+m3.T2.TTE <- gam(TTE.diff ~
+            s(plant.mass..g), 
+            subset = Time.point=="T2", data=topes, method="REML", family="gaussian")
+
+
+AIC.TTE.T2<-AIC(m1.T2.TTE, m2.T2.TTE, m3.T2.TTE)
+## first model best fit
+
+summary(m1.T2.TTE)
+anova.gam(m1.T2.TTE)
+gam.check(m1.T2.TTE, rep=1000)
+draw(m1.T2.TTE)
+concrvity(m1.T2.TTE)
+par(mfrow = c(1, 2))
+plot(m1.T2.TTE, all.terms = TRUE, page=1)
+
+# model predictions
+TTE.T2<-plot_difference(
+  m1.T2.TTE,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+
+###########  
+# model for smoothing
+msmooth.T2.TTE<- gam(TTE.diff ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes, method="REML", family="gaussian")
+
+#plot for the model output on rawdata
+TTE.T2.mod.plot<-
+  plot_smooths(
+  model = msmooth.T2.TTE,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=topes[(topes$Time.point=="T2"),], 
+             aes(x=plant.mass..g, y=TTE.diff, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ylab("TTE= POM %sage - Plank %sage")+
+  xlab("plant material (g)") +
+  ggtitle("Time-2") +
+  coord_cartesian(ylim=c(-10, 25)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
+
+
+
+
+
+############ as percent
+m1.T1.TTE.per <- gam(TTE.per ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes, method="REML", family="gaussian")
+
+m2.T1.TTE.per <- gam(TTE.per ~ Treatment +
+            s(plant.mass..g), 
+            subset = Time.point=="T1", data=topes, method="REML", family="gaussian")
+
+m3.T1.TTE.per <- gam(TTE.per ~
+            s(plant.mass..g), 
+            subset = Time.point=="T1", data=topes, method="REML", family="gaussian")
+
+
+AIC.TTE.per.T1<-AIC(m1.T1.TTE.per, m2.T1.TTE.per, m3.T1.TTE.per)
+## first model best fit
+
+summary(m1.T1.TTE.per)
+anova.gam(m1.T1.TTE.per)
+gam.check(m1.T1.TTE.per, rep=1000)
+draw(m1.T1.TTE.per)
+concrvity(m1.T1.TTE.per)
+par(mfrow = c(1, 2))
+plot(m1.T1.TTE.per, all.terms = TRUE, page=1)
+
+# model predictions
+TTE.per.T1<-plot_difference(
+  m1.T1.TTE.per,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+
+###########  
+# model for smoothing
+msmooth.T1.TTE.per<- gam(TTE.per ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T1", data=topes, method="REML", family="gaussian")
+
+#plot for the model output on rawdata
+TTE.per.T1.mod.plot<-
+  plot_smooths(
+  model = msmooth.T1.TTE.per,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=topes[(topes$Time.point=="T1"),], 
+             aes(x=plant.mass..g, y=TTE.per, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ylab("TTE= (plank - POM) *100")+
+  xlab("plant material (g)") +
+  ggtitle("Time-1") +
+  coord_cartesian(ylim=c(0, 200)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
+
+### Time 2
+
+m1.T2.TTE.per <- gam(TTE.per ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes, method="REML", family="gaussian")
+
+m2.T2.TTE.per <- gam(TTE.per ~ Treatment +
+            s(plant.mass..g), 
+            subset = Time.point=="T2", data=topes, method="REML", family="gaussian")
+
+m3.T2.TTE.per <- gam(TTE.per ~
+            s(plant.mass..g), 
+            subset = Time.point=="T2", data=topes, method="REML", family="gaussian")
+
+
+AIC.TTE.per.T2<-AIC(m1.T2.TTE.per, m2.T2.TTE.per, m3.T2.TTE.per)
+## first model best fit
+
+summary(m1.T2.TTE.per)
+anova.gam(m1.T2.TTE.per)
+gam.check(m1.T2.TTE.per, rep=1000)
+draw(m1.T2.TTE.per)
+concrvity(m1.T2.TTE.per)
+par(mfrow = c(1, 2))
+plot(m1.T2.TTE.per, all.terms = TRUE, page=1)
+
+# model predictions
+TTE.per.T2<-plot_difference(
+  m1.T2.TTE.per,
+  series = plant.mass..g,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+
+###########  
+# model for smoothing
+msmooth.T2.TTE.per<- gam(TTE.per ~ Treatment +
+            s(plant.mass..g, by=Treatment), 
+            subset = Time.point=="T2", data=topes, method="REML", family="gaussian")
+
+#plot for the model output on rawdata
+TTE.per.T2.mod.plot<-
+  plot_smooths(
+  model = msmooth.T2.TTE.per,
+  series = plant.mass..g,
+  comparison = Treatment
+)  + theme(legend.position = "none") +
+  geom_point(data=topes[(topes$Time.point=="T2"),], 
+             aes(x=plant.mass..g, y=TTE.per, color=Treatment)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  ylab("TTE= (plank - POM) *100")+
+  xlab("plant material (g)") +
+  ggtitle("Time-2") +
+  coord_cartesian(ylim=c(0, 200)) +
+  Fig.formatting +
+  theme(legend.key.size = unit(1,"line"))
+
+## combine 
+
+TTE.diff.plot<- plot_grid(TTE.T1.mod.plot + theme(legend.position = "none"), 
+                    TTE.T2.mod.plot + theme(legend.position = "none"),
+                    extract.legend, rel_widths = c(8,8,3), ncol=3)
+
+
+TTE.per.plot<- plot_grid(TTE.per.T1.mod.plot + theme(legend.position = "none"), 
+                    TTE.per.T2.mod.plot + theme(legend.position = "none"),
+                    extract.legend, rel_widths = c(8,8,3), ncol=3)
+
+ggsave("figures/TTE.diff.plot.pdf", encod="MacRoman", height=4, width=8)
+ggsave("figures/TTE.per.plot.pdf", encod="MacRoman", height=4, width=8)
+
+
+```
 
 
 ### Plant material

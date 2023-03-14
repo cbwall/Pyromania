@@ -1,7 +1,0 @@
-"","Model","df","AIC"
-"m1.compare.burned.gam","Burned: plant type with by-factor smooth",10.2531597732349,206.870427626895
-"m2.compare.burned.gam","Burned: plant type with global smooth",9.23912183921649,199.88128411492
-"m3.compare.burned.gam","Burned: global smooth",5.11293989634757,226.414688080957
-"m1.compare.unburned.gam","Unburned: plant type with by-factor smooth",11.7624498346251,155.384989224097
-"m2.compare.unburned.gam","Unburned: plant type with global smooth",8.54498618915543,181.54356699684
-"m3.compare.unburned.gam","Unburned: global smooth",7.00758995636698,185.979608889753
