@@ -1,0 +1,13 @@
+"","mod.RNEP","df","AIC"
+"m1.R.T1","~Treatment + s(plant.mass..g, by= Treatment)",8.00991745005403,207.947961248615
+"m2.R.T1","~Treatment + s(plant.mass..g)",6.07837907680016,203.583546949112
+"m3.R.T1","~s(plant.mass..g)",5.06784483419299,203.321338333356
+"m1.R.T2","~Treatment + s(plant.mass..g, by= Treatment)",5.00033604606181,189.613404074113
+"m2.R.T2","~Treatment + s(plant.mass..g)",9.61988068218013,173.330456296524
+"m3.R.T2","~s(plant.mass..g)",8.30884951860333,179.685447623714
+"m1.R.T3","~Treatment + s(plant.mass..g, by= Treatment)",11.57666065183,164.932373038283
+"m2.R.T3","~Treatment + s(plant.mass..g)",7.38075457226909,167.569910122527
+"m3.R.T3","~s(plant.mass..g)",6.25271302950014,170.750378522261
+"m1.R.T4","~Treatment + s(plant.mass..g, by= Treatment)",7.47061005320257,196.853559458473
+"m2.R.T4","~Treatment + s(plant.mass..g)",5.97481729305944,202.945163039815
+"m3.R.T4","~s(plant.mass..g)",4.93169105751994,203.874934311459

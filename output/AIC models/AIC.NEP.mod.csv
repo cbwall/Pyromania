@@ -1,4 +1,4 @@
-"","mod.NERNEP","df","AIC"
+"","mod.RNEP","df","AIC"
 "m1.NEP.T1","~Treatment + s(plant.mass..g, by= Treatment)",8.13603610642754,214.157119296278
 "m2.NEP.T1","~Treatment + s(plant.mass..g)",6.07714094233883,213.460961628629
 "m3.NEP.T1","~s(plant.mass..g)",5.04940190949547,214.403490242323
