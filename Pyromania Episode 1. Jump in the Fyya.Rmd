@@ -63,7 +63,7 @@ Fig.formatting<-(theme_classic()) +
         legend.text.align = 0,
         legend.text=element_text(size=10),
         #legend.title = element_blank(),
-        panel.border = element_rect(fill=NA, colour = "black", size=1),
+        panel.border = element_rect(fill=NA, colour = "black", linewidth=1),
         aspect.ratio=1, 
         axis.ticks.length=unit(0.25, "cm"),
         axis.text.y=element_text(
@@ -2660,7 +2660,7 @@ topes.trt<-droplevels(topes.trt)
 
 ### values for controls
 d15N.cont # summary mean d15N by all controls
-d15N.plant # summary by plants, # stock plantkon 11, # sage 296, #  willow 13
+d15N.plant # summary by plants, # stock plankton 11, # sage 296, #  willow 13
 
 # summary mean atom percent enrichment
 F.cont<-aggregate(at.P..15N  ~ Type, topes.controls, mean)
@@ -2672,14 +2672,14 @@ F.plant<-aggregate(at.P..15N~Plant, topes.controls, FUN=mean)
 
 # alpha = percent Sage from food web 1
 # %Sage = (d15N sample - d15N base 2 [i.e., no-label food])/ (d15N sage food 1 - source 2)
-#  d15N values of base 2 = 11 permil for algae/plankton stock/willow
-#  d15N value of base 1 = 298 permil for sage
+#  d15N values of base 2 = 11 permil for algae/plankton stock
+#  d15N value of base 1 = 296 permil for sage
 
 # framed differently from Robinson 2001, TREE
 # xtracer = frction of tracer
 # Xtracer = (d15N-sample - d15N background) / (d15N-tracer - d15N-background)
 
-topes.trt$percent.sage<-(topes.trt$d15N-12)/(296-12)*100
+topes.trt$percent.sage<-(topes.trt$d15N-12)/(296-11)*100
 
 # unicode text for micrometer = \u03BC, use this in legend
 
