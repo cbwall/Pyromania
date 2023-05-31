@@ -1029,7 +1029,7 @@ chl.plots<-plot_grid(chl.T0.mod.plot + theme(legend.position= "none"),
                      extract.legend, rel_widths = c(8,8,8,8,8,3), ncol=6, 
                      labels=c('A', 'B', 'C', 'D', 'E', ""), label_size=8)
 chl.plots
-ggsave("figures/chl.mod.plots.pdf", height=4, width=12)
+ggsave("figures/review tests/chl.mod.plots.pdf", height=4, width=12)
 
 
 #### model difference
@@ -1041,7 +1041,7 @@ mod.dif.plots<-plot_grid(chl.diff.T0 + ggtitle("Chl-Day-0"),
                      rel_widths = c(8,8,8,8,8), ncol=5, 
                      labels=c('A', 'B', 'C', 'D', 'E'), label_size=8)
 mod.dif.plots
-ggsave("figures/chl.mod.diff.pdf", height=4, width=10)
+ggsave("figures/review tests/chl.mod.diff.pdf", height=4, width=10)
 
 ```
 
@@ -1053,7 +1053,7 @@ YSI<-read.csv("data/Pyro_YSI.csv")
 
 # fix date
 YSI$Date<-as.character(YSI$Date)
-YSI$Date<-as.POSIXct(YSI$Date, format="%m/%d/%Y")
+YSI$Date<-as.POSIXct(YSI$Date, format="%m/%d/%y")
 YSI$Date<-as.Date(YSI$Date, format="%m/%d/%Y")
 
 
@@ -3296,6 +3296,8 @@ Plant material for the starting material (sage or willow, stems or sticks). This
 * We will then make a summary boxplot figure
 ```{r plant elemental, collapse=TRUE, result='hide'}
 plant.nut<-read.csv("data/Pyro_plant material_elemental.csv")
+
+plant.sum<-aggregate(N~plant+treatment, plant.nut, FUN=mean)
 
 fac<-c("Sample.Name", "type", "plant", "treatment", "rep") # make factors
 plant.nut[fac]<-lapply(plant.nut[fac],factor)

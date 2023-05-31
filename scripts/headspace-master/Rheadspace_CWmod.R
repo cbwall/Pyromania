@@ -1,8 +1,16 @@
+### Script adapted from Koschorreck et al. 2021, accessed via github https://github.com/icra/headspace
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### 
+
+# Koschorreck M, Prairie YT, Kim J, Marcé R. 2021. Technical note: CO2 is not like CH4 – limits of and corrections to the headspace method to analyse pCO2 in fresh water. Biogeosciences  18:1619–1627. DOI: 10.5194/bg-18-1619-2021.
+
+# script here will only calculate for freshwater system (option 1). An error returned in the code for option 2 an 3 led to these logical arguments being deleted in the function.
+
+
 #####################################################################
 # Rheadspace.R
 #
-# R fun ction to calculate pCO2 in a water sample (micro-atm) using a complete headspace method accounting for the 
-# carbonate ewuilibrium in the equilibration vessel. 
+# R function to calculate pCO2 in a water sample (micro-atm) using a complete headspace method accounting for the 
+# carbonate equilibrium in the equilibration vessel. 
 #
 # Authors: Rafael Marcé (Catalan Institute for Water Research - ICRA)
 #          Jihyeon Kim (Université du Québec à Montréal - UQAM) 
@@ -112,8 +120,7 @@
 
 #####################################################################
  
-dataset <- read.csv("data/GH.gases/test calc/headspace_test_pyro.csv")
-pCO2 <- Rheadspace(dataset)
+## THE FUNCTION 
 
 Rheadspace <-  function(...){
   arguments <- list(...)
@@ -165,7 +172,7 @@ Rheadspace <-  function(...){
     
     AT = alk[i]*(1e-6) #conversion to mol/L
     
-    #Constants of the carbonate ewuilibrium
+    #Constants of the carbonate equilibrium
     # Kw = the dissociation constant of H2O into H+ and OH-
     # Kh = the solubility of CO2 in water - equilibration conditions
     # Kh2 = the solubility of CO2 in water - in situ field conditions
@@ -185,12 +192,10 @@ Rheadspace <-  function(...){
       Kh = 10^((-60.2409+93.4517*(100/(273.15+temp_eq[i]))+23.3585*log((273.15+temp_eq[i])/100))/log(10)) # mol/L/atm equilibration conditions
       Kh2 = 10^((-60.2409+93.4517*(100/(273.15+temp_insitu[i]))+23.3585*log((273.15+temp_insitu[i])/100))/log(10)) # mol/L/atm original conditions
       
-
       
     HS.ratio <- vol_gas[i]/vol_water[i] #Headspace ratio (=vol of gas/vol of water)
     
-    #The following calculations assume 1 atm, this is corrected later for measured pressure in the field.
-    
+    #The following calculations assume 1 atm, this is corrected later for measured pressure in the field
     #DIC at equilibrium
     co2 <- Kh * mCO2_eq[i]/1000000
     h_all <- polyroot(c(-(2*K1*K2*co2),-(co2*K1+Kw),AT,1))
@@ -226,7 +231,7 @@ Rheadspace <-  function(...){
     
     mols_headspace <- mCO2_headspace[i]/1000000*(vol_gas[i]/1000)/(R * (temp_eq[i]+273.15)) #mol PV / RT = n
     
-    #implication: mass, concentration, and partial pressure of CO2 in the original sample (aount in sample and headspace after equilibration minus original mass in the headspace)
+    #implication: mass, concentration, and partial pressure of CO2 in the original sample (amount in sample and headspace after equilibration minus original mass in the headspace)
     Sample_CO2_mass <- CO2_solution_mass + final_C_headspace_mass - mols_headspace #mol
     Sample_CO2_conc <- Sample_CO2_mass/(vol_water[i]/1000) #mol/L
     pCO2_orig[i,6] <- Sample_CO2_conc/Kh2*1000000 #ppmv
@@ -241,4 +246,14 @@ Rheadspace <-  function(...){
   
 }
 
-write.csv(pCO2, "data/GH.gases/test calc/pCO2_calc.output.csv")
+# load the data
+dataset <- read.csv("data/GH.gases/CO2_headspace/Pyro_CO2.csv")
+
+# assume an average alkalinity for tanks based on the Miramar drinking water
+# Miramar = 112 ppm (equivalent to mgCaCO3/L), convert to Eq/L by dividing by 50 = 2.24, to mEq/L = 2240
+
+# run the function
+pCO2 <- Rheadspace(dataset)
+
+# export the data
+write.csv(pCO2, "data/GH.gases/CO2_headspace/pCO2_calc.output.csv")
