@@ -1,31 +1,26 @@
+
+
 ### Script adapted from Koschorreck et al. 2021, accessed via github https://github.com/icra/headspace
-### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### 
 
 # Koschorreck M, Prairie YT, Kim J, Marcé R. 2021. Technical note: CO2 is not like CH4 – limits of and corrections to the headspace method to analyse pCO2 in fresh water. Biogeosciences  18:1619–1627. DOI: 10.5194/bg-18-1619-2021.
 
-# script here will only calculate for freshwater system (option 1). An error returned in the code for option 2 an 3 led to these logical arguments being deleted in the function.
+# script here will only calculate for freshwater system (option 1)
+# for info on option 2 and 3 (brackish and marine waters), see Koschorreck et al. 2021
 
+# below are annotations provided by the Dr. Marcé and colleagues
 
 #####################################################################
 # Rheadspace.R
 #
-# R function to calculate pCO2 in a water sample (micro-atm) using a complete headspace method accounting for the 
-# carbonate equilibrium in the equilibration vessel. 
-#
+# R function to calculate pCO2 in a water sample (micro-atm) using a complete headspace method accounting for the carbonate equilibrium in the equilibration vessel. 
+
 # Authors: Rafael Marcé (Catalan Institute for Water Research - ICRA)
 #          Jihyeon Kim (Université du Québec à Montréal - UQAM) 
 #          Yves T. Prairie (Université du Québec à Montréal - UQAM)
 #
-# Date: December 2020
-#
-# Copyright statement: This code is shared under GNU GENERAL PUBLIC LICENSE Version 3. 
-# Refer to the LICENSE file in the Github repository for details.
-# Please, when using this software for scientific purposes, cite this work as a source:
-#
-#   Koschorreck, M., Y.T. Prairie, J. Kim, and R. Marcé. 2020. Technical note: CO2 is not like CH4 – limits of the headspace method to analyse pCO2 in water. Biogeosciences, in revision
-#
 # Contact information: Rafael Marcé (rmarce@icra.cat)
-#
+#####################################################################
+
 # INPUT: 
 #       You can either input a vector of 11 values for solving a single sample or a data frame of 11
 #       columns and an arbitrary number of rows for batch processing of several samples.
@@ -41,9 +36,11 @@
 #         7. Volume of gas in the headspace vessel (mL)
 #         8. Volume of water in the headspace vessel (mL)
 #         9. Barometric pressure at field conditions in kPa. 101.325 kPa = 1 atm 
-#        10. Set of constants for carbonate equilibrium calculations (1=Freshwater, Millero 1979; 2=Estuarine, Millero 2010; 3=Marine, Dickson et al 2007) 
+#        10. Set of constants for carbonate equilibrium calculations 
+                #(1=Freshwater, Millero 1979; 2=Estuarine, Millero 2010; 3=Marine, Dickson et al 2007) 
 #        11. Salinity (PSU) # Set to zero if option in 10 is set to 1.
 #
+###########
 #       If supplying a data frame, you can build it importing of a csv file
 #       Example: dataset <- read.csv("R_test_data.csv")
 #       The first row of this file must contain column names, then one row for each sample to be solved.
@@ -121,6 +118,10 @@
 #####################################################################
  
 ## THE FUNCTION 
+## modified by C Wall for only freshwater system (salinity = 0, constants = 1)
+## also modified to run for CO2 and CH4 from a common input csv dataframe
+
+# first, the CO2 function
 
 Rheadspace.CO2 <-  function(...){
   arguments <- list(...)
@@ -159,29 +160,27 @@ Rheadspace.CO2 <-  function(...){
     stop("You should input either a data frame or a vector of 11 values. See the readme file or comments in the function", call.=FALSE)
   }
   
+  #initialization of variables -- this will be your output file of 9 columns
+  pCO2_orig <- data.frame(matrix(NA,length(mCO2_headspace),11))
   
-  
-  #initialization of variables
-  pCO2_orig <- data.frame(matrix(NA,length(mCO2_headspace),9))
-  names(pCO2_orig) <- c("Sample.ID","mCO2 complete headspace (ppmv)","pCO2 complete headspace (micro-atm)", "CO2 concentration complete headspace (micro-mol/L)", "pH", "mCO2 simple headspace (ppmv)", "pCO2 simple headspace (micro-atm)", "CO2 concentration simple headspace (micro-mol/L)", "% error")
+  names(pCO2_orig) <- c("Sample.ID","mCO2 complete headspace (ppmv)","pCO2 complete headspace (micro-atm)", "CO2 concentration complete headspace (micro-mol/L)", "pH", "mCO2 simple headspace (ppmv)", "pCO2 simple headspace (micro-atm)", "CO2 concentration simple headspace (micro-mol/L)", "% error", "expected.Kh.of.CO2", "percent excess")
  
-  R <- 0.082057338 #L atm K-1 mol-1
+  R <- 0.082057338 #L atm K-1 mol-1, for ideal gas law PV=nRT
   
   #the function uniroot cannot handle vectors, so we need a loop
   for (i in 1:length(mCO2_headspace)){ 
     
-    AT = alk[i]*(1e-6) #conversion to mol/L
+    AT = alk[i]*(1e-6) #conversion of TA in mEq/L to mol/L
     
-    #Constants of the carbonate equilibrium
+    ##### Constants of the carbonate equilibrium
     # Kw = the dissociation constant of H2O into H+ and OH-
     # Kh = the solubility of CO2 in water - equilibration conditions
     # Kh2 = the solubility of CO2 in water - in situ field conditions
     # K1 = the equilibrium constant between CO2 and HCO3-
     # K2 = the equilibrium constant between HCO3- and CO3 2-
     
-    # Solubility coefficients from Weiss (1974) with Sal=0 for freshwater option
+    # Solubility coefficients from Weiss (1974) with Sal=0 for freshwater option, using mols/L atm-1
     # Dissociation of water from Dickson and Riley (1979)
-    
     
       #Millero, F. (1979). The thermodynamics of the carbonate system in seawater
       #Geochimica et Cosmochimica Acta 43(10), 1651 1661.  
@@ -189,8 +188,8 @@ Rheadspace.CO2 <-  function(...){
       K2=10^-(-90.18333+5143.692/(temp_eq[i]+273.15)+14.613358*log(temp_eq[i]+273.15))
       
       Kw = exp(148.9652-13847.26/(temp_eq[i]+273.15)-23.6521*log(273.15+temp_eq[i]))
-      Kh = 10^((-60.2409+93.4517*(100/(273.15+temp_eq[i]))+23.3585*log((273.15+temp_eq[i])/100))/log(10)) # mol/L/atm equilibration conditions
-      Kh2 = 10^((-60.2409+93.4517*(100/(273.15+temp_insitu[i]))+23.3585*log((273.15+temp_insitu[i])/100))/log(10)) # mol/L/atm original conditions
+      Kh = 10^((-58.0931+90.5069*(100/(273.15+temp_eq[i]))+22.294*log((273.15+temp_eq[i])/100))/log(10)) # mol/L/atm equilibration conditions
+      Kh2 = 10^((-58.0931+90.5069*(100/(273.15+temp_insitu[i]))+22.294*log((273.15+temp_insitu[i])/100))/log(10)) # mol/L/atm original conditions
       
       
     HS.ratio <- vol_gas[i]/vol_water[i] #Headspace ratio (=vol of gas/vol of water)
@@ -220,7 +219,7 @@ Rheadspace.CO2 <-  function(...){
     pCO2_orig[i,5] <- -log10( h )
     
     
-    #Calculation not accounting for alkalinity effects and associated error
+    # Calculation not accounting for alkalinity effects and associated error, this is the "simple" method
     
     #concentration and total mass in the water sample assuming ideal gas from the pCO2 measured at the headspace
     CO2_solution <- mCO2_eq[i]/1000000*Kh #mol/L
@@ -239,6 +238,13 @@ Rheadspace.CO2 <-  function(...){
     pCO2_orig[i,8] <- Sample_CO2_conc*1000000 # micro-mol/L
     #calculation of the error
     pCO2_orig[i,9] <- (pCO2_orig[i,6]-pCO2_orig[i,2])/pCO2_orig[i,2] *100  #%
+    
+    # calculate the percent excess
+    expected.uM<- Kh*(mCO2_headspace[i]) # kH in mol/L * ppm background 
+    # note: conversion above to mol would be mCO2_headspace[i]/10^6, but then * by 10^6 to umol, so 10^6 cancels.
+    pCO2_orig[i,10]<- expected.uM #umol/L
+    measured.uM<-co2*1000000  # where this value is the pCO2_orig[i,4] at umol/L
+    pCO2_orig[i,11]<- (measured.uM / expected.uM)*100 # percent excess
   }
   
   
@@ -288,13 +294,9 @@ Rheadspace.CH4 <-  function(...){
   
   
   #initialization of variables
-  pCH4_orig <- data.frame(matrix(NA,length(mCH4_headspace),12))
-  names(pCH4_orig) <- c("Sample.ID", "Kh..L.L", "Kh.moles.L", "CH4_solution..mol.L", 
-                        "CH4_solution_mass..mols", "final_C_headspace_mass", 
-                        "mols_headspace",  "Sample_CH4_mass", "Sample_CH4_moles", 
-                        "mCH4 simple headspace (ppmv)", 
-                        "pCH4 simple headspace (micro-atm)", 
-                        "CH4 concentration simple headspace (nano-mol/L)")
+  pCH4_orig <- data.frame(matrix(NA,length(mCH4_headspace),6))
+  names(pCH4_orig) <- c("Sample.ID", "mCH4 simple headspace (ppmv)", "pCH4 simple headspace (micro-atm)", 
+                        "CH4 concentration simple headspace (nano-mol/L)", "expected.Kh.of.CH4", "percent excess")
   
   R <- 0.082057338 #L atm K-1 mol-1
   
@@ -338,17 +340,17 @@ Rheadspace.CH4 <-  function(...){
     
     # build output
     pCH4_orig[i,1] <- as.character(Sample.ID[i])
-    pCH4_orig[i,2] <- Kh
-    pCH4_orig[i,3] <- Kh.moles.L
-    pCH4_orig[i,4] <- CH4_solution
-    pCH4_orig[i,5] <- CH4_solution_mass
-    pCH4_orig[i,6] <- final_CH4_headspace_mass
-    pCH4_orig[i,7] <- molsCH4_headspace
-    pCH4_orig[i,8] <- Sample_CH4_mass
-    pCH4_orig[i,9] <- Sample_CH4_conc
-    pCH4_orig[i,10] <- CH4.sample..ppm
-    pCH4_orig[i,11] <- CH4.sample..uatm
-    pCH4_orig[i,12] <- CH4..nmol.L
+    pCH4_orig[i,2] <- CH4.sample..ppm
+    pCH4_orig[i,3] <- CH4.sample..uatm
+    pCH4_orig[i,4] <- CH4..nmol.L
+    
+    # calculate the percent excess
+    expected.uM<- Kh.moles.L*(mCH4_headspace[i]) # kH in mol/L * ppm background 
+    # note: conversion above to mol would be mCO2_headspace[i]/10^6, but then * by 10^6 to umol, so 10^6 cancels.
+    expected.nM<-expected.uM*1000 #expected GHG as nmol/L, converted to nmol from above
+    pCH4_orig[i,5]<- expected.nM
+    measured.nM<- CH4..nmol.L  # where this value is the pCH4_orig[i,4] at nmol/L
+    pCH4_orig[i,6]<- (measured.nM / expected.nM )*100 # percent excess
   }
   
   
