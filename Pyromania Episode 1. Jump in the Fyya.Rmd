@@ -765,7 +765,7 @@ TN.mod.diffs
 
 #### Chlorophyll
 Added in chlorophyll data.
-```{r chlorophyll}
+```{r chlorophyll,results='hide', fig.show='hide', message=FALSE, collapse=TRUE}
 chl.df<-read.csv("data/Pyro_chl.csv")
 
 # set structure
@@ -1019,7 +1019,7 @@ write.csv(AIC.chl.mod, "output/AIC models/AIC.chl.csv")
 ```
 
 Compile the chlorophyll a plots
-```{r chl plots}
+```{r chl plots, results='hide', fig.show='hide', message=FALSE, collapse=TRUE}
 ### raw data with model fits
 chl.plots<-plot_grid(chl.T0.mod.plot + theme(legend.position= "none"), 
                      chl.T1.mod.plot + theme(legend.position= "none"),
@@ -1029,7 +1029,7 @@ chl.plots<-plot_grid(chl.T0.mod.plot + theme(legend.position= "none"),
                      extract.legend, rel_widths = c(8,8,8,8,8,3), ncol=6, 
                      labels=c('A', 'B', 'C', 'D', 'E', ""), label_size=8)
 chl.plots
-ggsave("figures/review tests/chl.mod.plots.pdf", height=4, width=12)
+ggsave("figures/chl.mod.plots.pdf", height=4, width=12)
 
 
 #### model difference
@@ -1041,7 +1041,7 @@ mod.dif.plots<-plot_grid(chl.diff.T0 + ggtitle("Chl-Day-0"),
                      rel_widths = c(8,8,8,8,8), ncol=5, 
                      labels=c('A', 'B', 'C', 'D', 'E'), label_size=8)
 mod.dif.plots
-ggsave("figures/review tests/chl.mod.diff.pdf", height=4, width=10)
+ggsave("figures/chl.mod.diff.pdf", height=4, width=10)
 
 ```
 
@@ -2113,7 +2113,7 @@ R.T1.mod.plot<-
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   coord_cartesian(ylim=c(-40, 10)) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
-  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  ylab(expression(paste("Respiration (", Delta, "O"[2],"%)"))) +
   theme(legend.position = "right") +
   Fig.formatting
 
@@ -2158,7 +2158,7 @@ R.T2.mod.plot<-
   geom_line(aes(fill=Treatment, linetype=Treatment)) +
   coord_cartesian(ylim=c(-40, 10)) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
-  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  ylab(expression(paste("Respiration (", Delta, "O"[2],"%)"))) +
   theme(legend.position = "right") +
   Fig.formatting
 
@@ -2204,7 +2204,7 @@ R.T3.mod.plot<-
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   coord_cartesian(ylim=c(-40, 10)) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
-  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  ylab(expression(paste("Respiration (", Delta, "O"[2],"%)"))) +
   theme(legend.position = "right") +
   Fig.formatting
 
@@ -2251,7 +2251,7 @@ R.T4.mod.plot<-
   scale_color_manual(values = c("brown1", "mediumseagreen")) + 
   coord_cartesian(ylim=c(-40, 10)) +
   geom_hline(yintercept=0, linetype="longdash", color = "gray") +
-  ylab(expression(paste("Net Respiration (", Delta, "O"[2],"%)"))) +
+  ylab(expression(paste("Respiration (", Delta, "O"[2],"%)"))) +
   theme(legend.position = "right") +
   Fig.formatting
 
@@ -2977,8 +2977,8 @@ plant.sum.trt<-aggregate(N~treatment, plant.nut, FUN=mean)
 
 
 
-#### test plot: looking at %N
-N.box.test<- ggplot(plant.nut, aes(x=treatment:plant, y=N, fill=treatment)) +
+#### looking at %N from elemental analysis
+N.box.percent.plant.material<- ggplot(plant.nut, aes(x=treatment:plant, y=N, fill=treatment)) +
   geom_boxplot(alpha=0.7) +
   scale_fill_manual(values = c("brown1", "mediumseagreen")) +
   geom_dotplot(binaxis='y', stackdir='center', alpha=0.5, dotsize=0.5,
@@ -2988,8 +2988,8 @@ N.box.test<- ggplot(plant.nut, aes(x=treatment:plant, y=N, fill=treatment)) +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
 
-N.box.test
-ggsave("figures/percent.N.box.alt.pdf", encod="MacRoman", height=4, width=4)
+N.box.percent.plant.material
+ggsave("figures/percent.N.box.trt.pdf", encod="MacRoman", height=4, width=4)
  
 
 ######### calculate %N from total plant biomass
@@ -3025,16 +3025,23 @@ m3.T1.sage <- gam(percent.sage ~
                     s(plant.mass..g.N), 
                   subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
-AIC.sage.T1<-AIC(m1.T1.sage.test, m2.T1.sage.test, m3.T1.sage.test)
+AIC.sage.T1<-AIC(m1.T1.sage, m2.T1.sage, m3.T1.sage)
 
 # anova for best model
-anova.gam(m1.T1.sage.test)
+anova.gam(m1.T1.sage)
 
 # smooth fit for plot
 msmooth.T1<- gam(percent.sage ~ Treatment +
                         s(plant.mass..g.N, by=Treatment), 
                       subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+# model predictions
+per.Sage.diff.T1<-plot_difference(
+  msmooth.T1,
+  series = plant.mass..g.N,
+  difference = list(Treatment = c("burned", "unburned"))
+)
 
+#plot
 per.Sage.T1.mod.plot<-
   plot_smooths(
     model = msmooth.T1,
@@ -3069,16 +3076,26 @@ m3.T2.sage <- gam(percent.sage ~
                          s(plant.mass..g.N), 
                        subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
-AIC.sage.T2<-AIC(m1.T2.sage.test, m2.T2.sage.test, m3.T2.sage.test)
+AIC.sage.T2<-AIC(m1.T2.sage, m2.T2.sage, m3.T2.sage)
 
 # anova for best model
-anova.gam(m1.T2.sage.test)
+anova.gam(m1.T2.sage)
+
 
 # smooth fit for plot
 msmooth.T2<- gam(percent.sage ~ Treatment +
                    s(plant.mass..g.N, by=Treatment), 
                  subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
+# model predictions
+per.Sage.diff.T2<-plot_difference(
+  msmooth.T2,
+  series = plant.mass..g.N,
+  difference = list(Treatment = c("burned", "unburned"))
+)
+
+
+# plot
 per.Sage.T2.mod.plot<-
   plot_smooths(
     model = msmooth.T2,
@@ -3106,9 +3123,9 @@ per.Sage.T2.mod.plot<-
 ### model plots for percent sage mixing model
 
 ## AIC table
-mod.sag.top<-rep(c( "Treatment + Type + s(plant.mass..g, by=Treatment)", 
-              "Treatment + Type + s(plant.mass..g)",
-              "s(plant.mass..g)"), times=2)
+mod.sag.top<-rep(c( "Treatment + Type + s(plant.mass..g.N, by=Treatment)", 
+              "Treatment + Type + s(plant.mass..g.N)",
+              "s(plant.mass..g.N)"), times=2)
 
 mod.sag.df<- data.frame(mod.sag.top)
 AIC.sag.topes<-bind_rows(AIC.sage.T1, AIC.sage.T2)
@@ -3953,7 +3970,7 @@ Yamamoto S, Alcauskas JB, Crozier TE. 1976. Solubility of methane in distilled w
 
 Weiss RF. 1974. Carbon dioxide in water and seawater: the solubility of a non-ideal gas. Marine chemistry 2:203–215. DOI: 10.1016/0304-4203(74)90015-2.  
 
-```{r GHG calculate}
+```{r GHG calculate, results='hide', fig.show='hide', message=FALSE, collapse=TRUE}
 ##########################################################################################
 # load the data
 #library("dplyr")
@@ -4688,7 +4705,7 @@ T3.CH4<-ggplot(data=CH4[(CH4$Time.point=="T3"),], aes(y=perc.excess.CH4, x=plant
 
 #library(gridExtra)
 line.excess<-plot_grid(T0.CO2, T1.CO2, T2.CO2, T3.CO2,
-                       T0.CH4, T1.CH4, T2.CH4, T3.CH4, labels=c('A', 'B'), label_size=8, nrow=2, ncol=4)
+                       T0.CH4, T1.CH4, T2.CH4, T3.CH4, labels=c('A', '', '', '', 'B'), label_size=8, nrow=2, ncol=4)
 
 line.excess
 ggsave("figures/GHG.excess.pdf", height=6, width=8)
