@@ -24,7 +24,12 @@ ggsave("figures/review tests/pH.plot.compare.pdf", width=6, height=4)
 ########  15N-sage and N added
 # summary from the elemental analysis
 plant.nut<-read.csv("data/Pyro_plant material_elemental.csv")
+
+cols<-c("type", "plant", "treatment") # columns to make factors
+plant.nut[cols] <- lapply(plant.nut[cols], factor) # make all these factors
+
 plant.sum.trt<-aggregate(N~treatment, plant.nut, FUN=mean)
+
 
 #### test plot: looking at %N
 N.box.test<- ggplot(plant.nut, aes(x=treatment:plant, y=N, fill=treatment)) +
@@ -41,11 +46,20 @@ N.box.test
 ggsave("figures/review tests/percent.N.box.alt.pdf", encod="MacRoman", height=4, width=4)
 
 
-#new test df
+##### new test df
 topes.trt.test<-topes.trt
 
 # if all things equal, use the %N of sage and willow (stem and leaf) to determine the g of N added
-topes.trt.test$plant.mass..g.N<- ifelse(topes.trt.test$Treatment =="burned", topes.trt.test$plant.mass..g*(1.296545/100), topes.trt.test$plant.mass..g*(1.17917/100))
+topes.trt.test$plant.mass..g.N<- ifelse(topes.trt.test$Treatment =="burned", topes.trt.test$plant.mass..g*(1.296545/100), topes.trt.test$plant.mass..g*(1.177917/100))
+
+# plot relationship
+biomass.plant.N<-ggplot(topes.trt.test, aes(x=plant.mass..g, y=plant.mass..g.N, color=Treatment))+
+  geom_point()+
+  geom_line() + theme_classic()
+
+biomass.plant.N
+ggsave("figures/review tests/biomass.plant.N.pdf", encod="MacRoman", height=3, width=4)
+  
 
 # test models T1
 m1.T1.sage.test <- gam(percent.sage ~ Treatment + Type +
@@ -83,7 +97,7 @@ per.Sage.T1.mod.plot.test<-
                                 expression(paste("< 63"~mu,"m")))) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
   ylab("% Sage")+
-  xlab("plant material (g)") +
+  xlab("plant N added (g)") +
   ggtitle("Time-1") +
   coord_cartesian(ylim=c(0, 100)) +
   Fig.formatting +
@@ -127,7 +141,7 @@ per.Sage.T2.mod.plot.test<-
                                 expression(paste("< 63"~mu,"m")))) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
   ylab("% Sage")+
-  xlab("plant material (g)") +
+  xlab("plant N added (g)") +
   ggtitle("Time-2") +
   coord_cartesian(ylim=c(0, 100)) +
   Fig.formatting +
@@ -144,6 +158,8 @@ sage.mix.model.alt
 ggsave("figures/review tests/Isotope.mixmodel.alt.pdf", encod="MacRoman", height=4, width=8)
 
 
+
+#######################################################
 ###### probe pH effects in response to loading
 # data = YSI
 
