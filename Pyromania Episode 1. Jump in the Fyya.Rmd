@@ -2933,7 +2933,7 @@ We will not use a two-member mixing model to calculate `%sage-^15^N in the plank
 - we recognize that the absolute contribution of terrestrial subsidies to plankton would be higher, since tanks received both sage and willow, but willow was not labeled.
   
 *Format and run the mixing model for % sage.*
-```{r percent sage, results='hide', collapse=TRUE, fig.show='hide'}
+```{r set up for percent sage, results='hide', collapse=TRUE, fig.show='hide'}
 # mixing model
 head(topes.trt)
 topes.trt<-droplevels(topes.trt)
@@ -2965,126 +2965,139 @@ topes.trt$percent.sage<-(topes.trt$d15N-12)/(296-11)*100
 # unicode text for micrometer = \u03BC, use this in legend
 
 
+
+########  15N-sage and N added
+# summary from the elemental analysis
+plant.nut<-read.csv("data/Pyro_plant material_elemental.csv")
+
+cols<-c("type", "plant", "treatment") # columns to make factors
+plant.nut[cols] <- lapply(plant.nut[cols], factor) # make all these factors
+
+plant.sum.trt<-aggregate(N~treatment, plant.nut, FUN=mean)
+
+
+
+#### test plot: looking at %N
+N.box.test<- ggplot(plant.nut, aes(x=treatment:plant, y=N, fill=treatment)) +
+  geom_boxplot(alpha=0.7) +
+  scale_fill_manual(values = c("brown1", "mediumseagreen")) +
+  geom_dotplot(binaxis='y', stackdir='center', alpha=0.5, dotsize=0.5,
+               position=position_dodge(0.75))+
+  xlab("Treatment")+
+  ylab("%N")+
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+N.box.test
+ggsave("figures/percent.N.box.alt.pdf", encod="MacRoman", height=4, width=4)
+ 
+
+######### calculate %N from total plant biomass
+
+# if all things equal, use the %N of sage and willow (stem and leaf) to determine the g of N added
+topes.trt$plant.mass..g.N<- ifelse(topes.trt$Treatment =="burned", topes.trt$plant.mass..g*(1.296545/100), topes.trt$plant.mass..g*(1.177917/100))
+
+
+
+######### plot relationship between N-grams and total plant biomass-grams
+biomass.plant.N<-ggplot(topes.trt, aes(x=plant.mass..g, y=plant.mass..g.N, color=Treatment))+
+  geom_point()+
+  geom_line() + theme_classic()
+
+biomass.plant.N
+ggsave("figures/biomass.plant.N.pdf", encod="MacRoman", height=3, width=4)
+```
+
+
+```{r percent sage, results='hide', collapse=TRUE, fig.show='hide'}
 ############# all plankton T1
+
+# test models T1
 m1.T1.sage <- gam(percent.sage ~ Treatment + Type +
-            s(plant.mass..g, by=Treatment), 
-            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+                    s(plant.mass..g.N, by=Treatment), 
+                  subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
 m2.T1.sage <- gam(percent.sage ~ Treatment + Type +
-            s(plant.mass..g), 
-            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+                         s(plant.mass..g.N), 
+                       subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
 m3.T1.sage <- gam(percent.sage ~
-                     s(plant.mass..g), 
-            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
+                    s(plant.mass..g.N), 
+                  subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
+AIC.sage.T1<-AIC(m1.T1.sage.test, m2.T1.sage.test, m3.T1.sage.test)
 
-AIC.sage.T1<-AIC(m1.T1.sage, m2.T1.sage, m3.T1.sage)
-## additive model best fit
+# anova for best model
+anova.gam(m1.T1.sage.test)
 
-summary(m1.T1.sage)
-anova.gam(m1.T1.sage)
-gam.check(m1.T1.sage, rep=1000)
-draw(m1.T1.sage)
-concrvity(m1.T1.sage)
-par(mfrow = c(1, 2))
-plot(m1.T1.sage, all.terms = TRUE, page=1)
+# smooth fit for plot
+msmooth.T1<- gam(percent.sage ~ Treatment +
+                        s(plant.mass..g.N, by=Treatment), 
+                      subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
 
-# model predictions
-per.Sage.diff.T1<-plot_difference(
-  m1.T1.sage,
-  series = plant.mass..g,
-  difference = list(Treatment = c("burned", "unburned"))
-)
-
-###########  
-# model for smoothing
-msmooth.T1.sage<- gam(percent.sage ~ Treatment +
-            s(plant.mass..g, by=Treatment), 
-            subset = Time.point=="T1", data=topes.trt, method="REML", family="gaussian")
-
-#plot for the model output on rawdata
 per.Sage.T1.mod.plot<-
   plot_smooths(
-  model = msmooth.T1.sage,
-  series = plant.mass..g,
-  comparison = Treatment
-)  + theme(legend.position = "none") +
+    model = msmooth.T1,
+    series = plant.mass..g.N,
+    comparison = Treatment
+  )  + theme(legend.position = "none") +
   geom_point(data=topes.trt[(topes.trt$Time.point=="T1"),], 
-             aes(x=plant.mass..g, y=percent.sage, color=Treatment, shape=Type)) +
+             aes(x=plant.mass..g.N, y=percent.sage, color=Treatment, shape=Type)) +
   scale_shape_manual(name="Plankton", values = c(17, 16), 
                      labels = c(expression(paste("> 63"~mu,"m")), 
                                 expression(paste("< 63"~mu,"m")))) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
   ylab("% Sage")+
-  xlab("plant material (g)") +
+  xlab("plant N added (g)") +
   ggtitle("Time-1") +
   coord_cartesian(ylim=c(0, 100)) +
   Fig.formatting +
   theme(legend.key.size = unit(1,"line"))
 
-# overall an effect of burning with both smoothers being significant by treatment
-# no effect of type, POM and plankton with similar d15N values
 
-
-############# all plankton T2
+### T2
+# test models
 m1.T2.sage <- gam(percent.sage ~ Treatment + Type +
-            s(plant.mass..g, by=Treatment), 
-            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+                         s(plant.mass..g.N, by=Treatment), 
+                       subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
 m2.T2.sage <- gam(percent.sage ~ Treatment + Type +
-            s(plant.mass..g), 
-            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+                         s(plant.mass..g.N), 
+                       subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
 m3.T2.sage <- gam(percent.sage ~
-                     s(plant.mass..g), 
-            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
+                         s(plant.mass..g.N), 
+                       subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
+AIC.sage.T2<-AIC(m1.T2.sage.test, m2.T2.sage.test, m3.T2.sage.test)
 
-AIC.sage.T2<-AIC(m1.T2.sage, m2.T2.sage, m3.T2.sage)
-# m2.T2.sage preferred
-# compare across
+# anova for best model
+anova.gam(m1.T2.sage.test)
 
-summary(m1.T2.sage)
-anova.gam(m1.T2.sage)
-gam.check(m1.T2.sage, rep=1000)
-draw(m1.T2.sage)
-concrvity(m1.T2.sage)
-par(mfrow = c(1, 2))
-plot(m1.T2.sage, all.terms = TRUE, page=1)
+# smooth fit for plot
+msmooth.T2<- gam(percent.sage ~ Treatment +
+                   s(plant.mass..g.N, by=Treatment), 
+                 subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
 
-# model predictions
-per.Sage.diff.T2<-plot_difference(
-  m1.T2.sage,
-  series = plant.mass..g,
-  difference = list(Treatment = c("burned", "unburned"))
-)
-
-###########  
-# model for smoothing
-msmooth.T2.sage<- gam(percent.sage ~ Treatment +
-            s(plant.mass..g, by=Treatment), 
-            subset = Time.point=="T2", data=topes.trt, method="REML", family="gaussian")
-
-#plot for the model output on rawdata
 per.Sage.T2.mod.plot<-
   plot_smooths(
-  model = msmooth.T2.sage,
-  series = plant.mass..g,
-  comparison = Treatment
-)  + theme(legend.position = "none") +
+    model = msmooth.T2,
+    series = plant.mass..g.N,
+    comparison = Treatment
+  )  + theme(legend.position = "none") +
   geom_point(data=topes.trt[(topes.trt$Time.point=="T2"),], 
-             aes(x=plant.mass..g, y=percent.sage, color=Treatment, shape=Type)) +
+             aes(x=plant.mass..g.N, y=percent.sage, color=Treatment, shape=Type)) +
   scale_shape_manual(name="Plankton", values = c(17, 16), 
                      labels = c(expression(paste("> 63"~mu,"m")), 
                                 expression(paste("< 63"~mu,"m")))) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
   ylab("% Sage")+
-  xlab("plant material (g)") +
+  xlab("plant N added (g)") +
   ggtitle("Time-2") +
   coord_cartesian(ylim=c(0, 100)) +
   Fig.formatting +
   theme(legend.key.size = unit(1,"line"))
+
 
 # effect of treatment (p<0.001) but not Type (p=0.321)
 # smoother significant for both terms
@@ -3148,6 +3161,9 @@ We also ran model fits and analysis on the raw isotope data for the plankton (δ
 ```{r d15N model plots, results='hide', fig.show='hide', collapse=TRUE}
 
 ## make d15N plots as well -- these follow the % sage, but are informative with the control plots to see the d15N of plankton and the 2 end members.
+
+#### **** this plot is with total plant biomass and d15N **** ####
+# other plot was %-sage-15N and plant-N-biomass
 
 #### d15N isotope plots for treatments
 
@@ -3302,6 +3318,14 @@ plant.sum<-aggregate(N~plant+treatment, plant.nut, FUN=mean)
 fac<-c("Sample.Name", "type", "plant", "treatment", "rep") # make factors
 plant.nut[fac]<-lapply(plant.nut[fac],factor)
 
+######### all plant N test
+plant.N<-lm(N~treatment+type, data=plant.nut)
+Anova(plant.N, type=3) # 2 way interaction and main effects
+# use the above to address differences in %N for sage-derived 15N x-axis = plant N added to tanks
+
+
+####### separate dfs by species and test elemental analysis
+
 sage.nut<-plant.nut[(plant.nut$plant=="sage"),]
 will.nut<-plant.nut[(plant.nut$plant=="willow"),]
 
@@ -3312,6 +3336,8 @@ Anova(plant.N.sag, type=3) # 2 way interaction and main effects
 
 posthoc<-emmeans(plant.N.sag, ~treatment| type)
 multcomp::cld(posthoc, Letters=letters)
+
+
 
 ########## %P 
 plant.P.sag<-lm(P~treatment*type, data=sage.nut)
@@ -3795,7 +3821,7 @@ Rheadspace.CO2 <-  function(...){
     # note: conversion above to mol would be mCO2_headspace[i]/10^6, but then * by 10^6 to umol, so 10^6 cancels.
     pCO2_orig[i,10]<- expected.uM #umol/L
     measured.uM<-co2*1000000  # where this value is the pCO2_orig[i,4] at umol/L
-    pCO2_orig[i,11]<- (measured.uM / expected.uM)*100 # percent excess
+    pCO2_orig[i,11]<- (measured.uM / expected.uM) *100 # percent excess
   }
   
   
@@ -3903,7 +3929,7 @@ Rheadspace.CH4 <-  function(...){
     expected.nM<-expected.uM*1000 #expected GHG as nmol/L, converted to nmol from above
     pCH4_orig[i,5]<- expected.nM
     measured.nM<- CH4..nmol.L  # where this value is the pCH4_orig[i,4] at nmol/L
-    pCH4_orig[i,6]<- (measured.nM / expected.nM )*100 # percent excess
+    pCH4_orig[i,6]<- (measured.nM / expected.nM) *100 # percent excess > ambient
   }
   
   return(pCH4_orig) #Output data frame
@@ -3930,7 +3956,7 @@ Weiss RF. 1974. Carbon dioxide in water and seawater: the solubility of a non-id
 ```{r GHG calculate}
 ##########################################################################################
 # load the data
-library("dplyr")
+#library("dplyr")
 dataset <- read.csv("data/GH.gases/Pyro_CO2_CH4_input.csv")
 
 # subset the metadata here to yield 11 columns that will be used to run CO2 and CH4 analysis
@@ -4016,9 +4042,12 @@ CH4.GHG<-CH4.GHG[!(CH4.GHG$CH4.nM < 0 ),]
 
 Now read in the output GHG data and run through model fitting and generate plots, statistical tests.
 ```{r CO2 model plots, results='hide', fig.show='hide', collapse=TRUE}
+
 #### Make plots and run models for CO2
 
-CO2<-CO2.GHG # dataframe in ppm and uM of CO2
+CO2<-na.omit(CO2.GHG) # dataframe in ppm and uM of CO2
+
+CO2.expect<-aggregate(CO2.expect.uM~ Time.point, data=CO2, FUN=mean) # this is for the mean of the expected CO2
 
 ############# GHG plots and modesl
 #### CO2
@@ -4064,6 +4093,7 @@ CO2.T0.mod.plot<-
 )  + theme(legend.position = "none") +
   geom_point(data=CO2[(CO2$Time.point=="T0"),], 
              aes(x=plant.mass..g, y=CO2.uM, color=Treatment)) +
+  geom_hline(yintercept= CO2.expect[1,2], linetype="longdash", color = "gray") +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
   ylab(expression(paste("CO"[2], ~(mu*M), sep=""))) +
   xlab("plant material (g)") +
@@ -4118,6 +4148,7 @@ CO2.T1.mod.plot<-
 )  + theme(legend.position = "none") +
   geom_point(data=CO2[(CO2$Time.point=="T1"),], 
              aes(x=plant.mass..g, y=CO2.uM, color=Treatment)) +
+  geom_hline(yintercept= CO2.expect[2,2], linetype="longdash", color = "gray") +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
   ylab(expression(paste("CO"[2], ~(mu*M), sep=""))) +
   xlab("plant material (g)") +
@@ -4171,6 +4202,7 @@ CO2.T2.mod.plot<-
 )  + theme(legend.position = "none") +
   geom_point(data=CO2[(CO2$Time.point=="T2"),], 
              aes(x=plant.mass..g, y=CO2.uM, color=Treatment)) +
+  geom_hline(yintercept= CO2.expect[3,2], linetype="longdash", color = "gray") +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
   ylab(expression(paste("CO"[2], ~(mu*M), sep=""))) +
   xlab("plant material (g)") +
@@ -4225,6 +4257,7 @@ CO2.T3.mod.plot<-
 )  + theme(legend.position = "none") +
   geom_point(data=CO2[(CO2$Time.point=="T3"),], 
              aes(x=plant.mass..g, y=CO2.uM, color=Treatment)) +
+  geom_hline(yintercept= CO2.expect[4,2], linetype="longdash", color = "gray") +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
   ylab(expression(paste("CO"[2], ~(mu*M), sep=""))) +
   xlab("plant material (g)") +
@@ -4286,7 +4319,9 @@ anova.gam(m1.T3.CO2)
 
 Now make plots and run models for methane.
 ```{r CH4 models, collapse=TRUE, results='hide', fig.show='hide'}
-CH4<- CH4.GHG # CH4 data in ppm and nM
+CH4<- na.omit(CH4.GHG) # CH4 data in ppm and nM
+
+CH4.expect<-aggregate(CH4.expect.nM~ Time.point, data=CH4, FUN=mean) # mean of expected CH4
 
 m1.T0.CH4<- gam(CH4.nM ~ Treatment +
             s(plant.mass..g, by=Treatment), subset = Time.point=="T0", data = CH4,
@@ -4328,6 +4363,7 @@ CH4.T0.mod.plot<-
 )  + theme(legend.position = "none") +
   geom_point(data=CH4[(CH4$Time.point=="T0"),], 
              aes(x=plant.mass..g, y=CH4.nM, color=Treatment)) +
+  geom_hline(yintercept= CH4.expect[1,2], linetype="longdash", color = "gray") +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
   geom_line(aes(fill=Treatment, linetype=Treatment)) +
   ylab(expression(paste("CH"[4], ~(nM), sep=""))) +
@@ -4382,8 +4418,9 @@ CH4.T1.mod.plot<-
 )  + theme(legend.position = "none") +
   geom_point(data=CH4[(CH4$Time.point=="T1"),], 
              aes(x=plant.mass..g, y=CH4.nM, color=Treatment)) +
+  geom_hline(yintercept= CH4.expect[2,2], linetype="longdash", color = "gray") +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  ylab(expression(paste("CH"[4], ~(mu*M), sep=""))) +
+  ylab(expression(paste("CH"[4], ~(nM), sep=""))) +
   xlab("plant material (g)") +
   ggtitle("Time-1") +
   coord_cartesian(ylim=c(0, 50)) +
@@ -4434,8 +4471,9 @@ CH4.T2.mod.plot<-
 )  + theme(legend.position = "none") +
   geom_point(data=CH4[(CH4$Time.point=="T2"),], 
              aes(x=plant.mass..g, y=CH4.nM, color=Treatment)) +
+  geom_hline(yintercept= CH4.expect[3,2], linetype="longdash", color = "gray") +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
-  ylab(expression(paste("CH"[4], ~(mu*M), sep=""))) +
+  ylab(expression(paste("CH"[4], ~(nM), sep=""))) +
   xlab("plant material (g)") +
   ggtitle("Time-2") +
   coord_cartesian(ylim=c(0, 50)) +
@@ -4489,6 +4527,7 @@ CH4.T3.mod.plot<-
   geom_point(data=CH4[(CH4$Time.point=="T3"),], 
              aes(x=plant.mass..g, y=CH4.nM, color=Treatment)) +
   scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  geom_hline(yintercept= CH4.expect[4,2], linetype="longdash", color = "gray") +
   geom_line(aes(fill=Treatment, linetype=Treatment)) +
   ylab(expression(paste("CH"[4], ~(nM), sep=""))) +
   xlab("plant material (g)") +
@@ -4555,5 +4594,103 @@ GHG.plot.diff<-plot_grid(CO2.plot.diff, CH4.plot.diff, ncol=1, labels=c('A', 'B'
 GHG.plot.diff
 ggsave("figures/GHG.molar.mod.diff.pdf", height=7, width=12)
 
+```
+
+Using the GHG data, now produce a "percent excess" to show how much more CO~2~ or CH~4~ (molar scale) is present in the mesocosms versus the atmosphere (= expected GHG concentration at equilibrium). This data is essentially the same shape and relationship as the model-fit data above, but with a more simplistic fitting via `geom_smooth` and a simple `gam` smoother function. 
+```{r GHG excess, fig.cap="**Figure** Greenhouse gas excess for (**A**) carbon dioxide (CO~2~) and (**B**) methane (CH~4~) at the beginning of the study before plant material was added (Day-0) and across three experimental time points.", fig.dim=c(8,6)}
+
+######### percent excess CO2
+
+T0.CO2<-ggplot(data=CO2[(CO2$Time.point=="T0"),], aes(y=perc.excess.CO2, x=plant.mass..g, fill=Treatment))+
+  stat_smooth(aes(y=perc.excess.CO2,x=plant.mass..g, color=Treatment, linetype=Treatment),method="gam") +
+  ylab(expression(paste("% excess CO"[2], sep=""))) +
+  coord_cartesian(ylim=c(0, 2000)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  geom_hline(yintercept= 100, linetype="longdash", color = "gray") +
+  ggtitle("Day-0")+
+  theme_classic()+
+  theme(legend.position= "none")
+
+T1.CO2<-ggplot(data=CO2[(CO2$Time.point=="T1"),], aes(y=perc.excess.CO2, x=plant.mass..g, fill=Treatment))+
+  stat_smooth(aes(y=perc.excess.CO2,x=plant.mass..g, color=Treatment, linetype=Treatment),method="gam", alpha=0.2) +
+  ylab(expression(paste("% excess CO"[2], sep=""))) +
+  coord_cartesian(ylim=c(0, 2000)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  geom_hline(yintercept= 100, linetype="longdash", color = "gray") +
+  ggtitle("Day-10")+
+  theme_classic() +
+  theme(legend.position= "none")
+
+T2.CO2<-ggplot(data=CO2[(CO2$Time.point=="T2"),], aes(y=perc.excess.CO2, x=plant.mass..g, fill=Treatment))+
+ stat_smooth(aes(y=perc.excess.CO2,x=plant.mass..g, color=Treatment, linetype=Treatment),method="gam", alpha=0.2) +
+  ylab(expression(paste("% excess CO"[2], sep=""))) +
+  coord_cartesian(ylim=c(0, 2000)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  geom_hline(yintercept= 100, linetype="longdash", color = "gray") +
+  ggtitle("Day-31")+
+  theme_classic()+
+  theme(legend.position= "none")
+
+T3.CO2<-ggplot(data=CO2[(CO2$Time.point=="T3"),], aes(y=perc.excess.CO2, x=plant.mass..g, fill=Treatment))+
+  stat_smooth(aes(y=perc.excess.CO2,x=plant.mass..g, color=Treatment, linetype=Treatment),method="gam", alpha=0.2) +
+  ylab(expression(paste("% excess CO"[2], sep=""))) +
+  coord_cartesian(ylim=c(0, 2000)) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  geom_hline(yintercept= 100, linetype="longdash", color = "gray") +
+  ggtitle("Day-59")+
+  theme_classic()+
+  theme(legend.position= "none")
+
+
+################## methane excess
+
+T0.CH4<-ggplot(data=CH4[(CH4$Time.point=="T0"),], aes(y=perc.excess.CH4, x=plant.mass..g, fill=Treatment))+
+  stat_smooth(aes(y=perc.excess.CH4,x=plant.mass..g, color=Treatment, linetype=Treatment),method="gam", alpha=0.2) +
+  ylab(expression(paste("% excess CH"[4], sep=""))) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  geom_hline(yintercept= 100, linetype="longdash", color = "gray") +
+  coord_cartesian(ylim=c(0, 1000)) +
+  ggtitle("Day-0")+
+  theme_classic()+
+  theme(legend.position= "none")
+
+T1.CH4<-ggplot(data=CH4[(CH4$Time.point=="T1"),], aes(y=perc.excess.CH4, x=plant.mass..g, fill=Treatment))+
+ stat_smooth(aes(y=perc.excess.CH4,x=plant.mass..g, color=Treatment, linetype=Treatment),method="gam", alpha=0.2) +
+  ylab(expression(paste("% excess CH"[4], sep=""))) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  geom_hline(yintercept= 100, linetype="longdash", color = "gray") +
+  coord_cartesian(ylim=c(0, 1000)) +
+  ggtitle("Day-10")+
+  theme_classic() +
+  theme(legend.position= "none")
+
+T2.CH4<-ggplot(data=CH4[(CH4$Time.point=="T2"),], aes(y=perc.excess.CH4, x=plant.mass..g, fill=Treatment))+
+  stat_smooth(aes(y=perc.excess.CH4,x=plant.mass..g, color=Treatment, linetype=Treatment),method="gam",alpha=0.2) +
+  ylab(expression(paste("% excess CH"[4], sep=""))) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  geom_hline(yintercept= 100, linetype="longdash", color = "gray") +
+  coord_cartesian(ylim=c(0, 1000)) +
+  ggtitle("Day-31")+
+  theme_classic()+
+  theme(legend.position= "none")
+
+T3.CH4<-ggplot(data=CH4[(CH4$Time.point=="T3"),], aes(y=perc.excess.CH4, x=plant.mass..g, 
+                                                      fill=Treatment))+
+  stat_smooth(aes(y=perc.excess.CH4,x=plant.mass..g, color=Treatment, linetype=Treatment), method="gam", alpha=0.2) +
+  ylab(expression(paste("% excess CO"[2], sep=""))) +
+  scale_color_manual(values = c("brown1", "mediumseagreen")) +
+  geom_hline(yintercept= 100, linetype="longdash", color = "gray") +
+  coord_cartesian(ylim=c(0, 1000)) +
+  ggtitle("Day-59")+
+  theme_classic()+
+  theme(legend.position= "none")
+
+
+#library(gridExtra)
+line.excess<-plot_grid(T0.CO2, T1.CO2, T2.CO2, T3.CO2,
+                       T0.CH4, T1.CH4, T2.CH4, T3.CH4, labels=c('A', 'B'), label_size=8, nrow=2, ncol=4)
+
+line.excess
+ggsave("figures/GHG.excess.pdf", height=6, width=8)
 ```
 
