@@ -4126,7 +4126,7 @@ ggsave("figures/GHG.molar.mod.diff.pdf", height=7, width=12)
 
 #### Percent excess GHG  
 Using the GHG data, now produce a `"percent excess"` to show how much more CO~2~ or CH~4~ (molar scale) is present in the mesocosms versus the atmosphere (= expected GHG concentration at equilibrium). This data is essentially the same shape and relationship as the model-fit data above, but with a more simplistic fitting via `geom_smooth` and a simple `gam` smoother function. 
-```{r GHG excess, fig.cap="**Figure**. Percent excess concentrations for greenhouse gasses (**A**) carbon dioxide (CO~2~) and (**B**) methane (CH~4~) in tanks receiving burned and unburned plant material at the beginning of the experiment and during three experimental time points.  Gray line indicates 100% saturation under atmospheric equilibrium.", fig.dim=c(12,5)}
+```{r GHG excess, fig.cap="**Figure**. Percent excess concentrations for greenhouse gasses (**A**) carbon dioxide (CO~2~) and (**B**) methane (CH~4~) in tanks receiving burned and unburned plant material at the beginning of the experiment and during three experimental time points.  Gray line indicates 100% saturation under atmospheric equilibrium.", fig.dim=c(10,5)}
 
 ######### percent excess CO2
 
