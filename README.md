@@ -2,16 +2,16 @@
 
 CB Wall<sup>1</sup>, CJSpiegel<sup>1</sup>, EM Diaz<sup>1</sup>, CH Tran<sup>1</sup>, A Fabiani<sup>1</sup>, TY Broe<sup>1</sup>, E Perez-Coronel<sup>1</sup>, SL Jackrel<sup>1</sup>, N Mladenov<sup>2</sup>, CC Symons<sup>3</sup>, JB Shurin<sup>1</sup>
 
-<sup>1</sup>University of California, San Diego  
-<sup>2</sup>San Diego State University 
+<sup>1</sup>University of California, San Diego   
+<sup>2</sup>San Diego State University  
 <sup>3</sup>University of California, Irvine  
-
-
-<p align="center">
-  <img align="center" src="https://github.com/cbwall/Pyromania/blob/main/output/Fig1.%20Pyro%20schematic.jpg" width="50%" height="50%">
-</p>
   
 
+<p align="center">
+  <img align="center" src="https://github.com/cbwall/Pyromania/blob/main/output/Fig1.%20Pyro%20schematic.jpg" width="70%" height="60%">
+</p>
+  
+  
 The goal of the *Pyromania project* is to test how terrestrial subsides (plant biomass loading or "browning") and burning influence aquatic productivity, water quality/chemistry, and trophic transfer. We used a manipulative experiment to assess a range of plant material quantities (0-400g per tank) and fire treatment (burned vs unburned material) and the non-linearity of these effects on aquatic systems through 4 time-point samplings. We used 400L aquatic mesocosms and ran the experiment for ~90d in 2021-2022.  
   
 
