@@ -8,7 +8,7 @@ CB Wall<sup>1</sup>, CJSpiegel<sup>1</sup>, EM Diaz<sup>1</sup>, CH Tran<sup>1</
   
 
 <p align="center">
-  <img align="center" src="https://github.com/cbwall/Pyromania/blob/main/output/Fig1.%20Pyro%20schematic.jpg" width="70%" height="60%">
+  <img align="center" src="https://github.com/cbwall/Pyromania/blob/main/output/Fig1.%20Pyro%20schematic.jpg" width="65%" height="60%">
 </p>
   
   
