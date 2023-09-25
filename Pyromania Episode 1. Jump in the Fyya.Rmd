@@ -104,6 +104,10 @@ plant.N<-lm(N~treatment+type, data=plant.nut)
 Anova(plant.N, type=3) # 2 way interaction and main effects
 # use the above to address differences in %N for sage-derived 15N x-axis = plant N added to tanks
 
+# look at mean, SE, n for the %N
+plant.mean.N<-aggregate(N~treatment, plant.nut, FUN=mean) 
+plant.SE.N<-aggregate(N~treatment, plant.nut, FUN=std.error)
+plant.n<-aggregate(N~treatment, plant.nut, FUN=length)
 
 ####### separate dfs by species and test elemental analysis
 
