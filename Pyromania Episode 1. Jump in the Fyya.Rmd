@@ -11,6 +11,8 @@ output:
   pdf_document:
     toc: yes
     toc_depth: '4'
+editor_options: 
+  chunk_output_type: console
 ---
 
 ## Project overview
@@ -94,7 +96,7 @@ Plant material for the starting material (sage or willow, stems or sticks). This
 ```{r plant elemental, collapse=TRUE, result='hide'}
 plant.nut<-read.csv("data/Pyro_plant material_elemental.csv")
 
-plant.sum<-aggregate(N~plant+treatment, plant.nut, FUN=mean)
+plant.N<-aggregate(N~plant+treatment, plant.nut, FUN=mean)
 
 fac<-c("Sample.Name", "type", "plant", "treatment", "rep") # make factors
 plant.nut[fac]<-lapply(plant.nut[fac],factor)
@@ -122,7 +124,9 @@ Anova(plant.N.sag, type=3) # 2 way interaction and main effects
 posthoc<-emmeans(plant.N.sag, ~treatment| type)
 multcomp::cld(posthoc, Letters=letters)
 
-
+plant.part.N<-aggregate(N~treatment+type, sage.nut, FUN=mean)
+#burning reduced Sage leaf N = (1.53-1.67)/1.67  = -8%
+#burning increased Sage stem N= (1.11-0.94)/0.94  = 18%
 
 ########## %P 
 plant.P.sag<-lm(P~treatment*type, data=sage.nut)
@@ -136,6 +140,8 @@ Anova(plant.K.sag, type=3) # type and treatment
 posthoc<-emmeans(plant.K.sag, ~treatment)
 multcomp::cld(posthoc, Letters=letters)
 
+plant.part.K<-aggregate(K~treatment, sage.nut, FUN=mean)
+#burning increased Sage leaf K = (2.04-1.63)/1.63  = 25%
 
 ########## %S
 plant.S.sag<-lm(S~treatment*type, data=sage.nut)
@@ -149,12 +155,16 @@ Anova(plant.ZN.sag, type=3) #no effect
 posthoc<-emmeans(plant.ZN.sag, ~treatment| type)
 multcomp::cld(posthoc, Letters=letters)
 
+
 ###############################################
 ###############################################
 ### Willow ### 
 ######### %N
 plant.N.wil<-lm(N~treatment*type, data=will.nut)
 Anova(plant.N.wil, type=3) #  main effects
+
+plant.part.Nwill<-aggregate(N~treatment+type, will.nut, FUN=mean)
+#burning increased Sage leaf K = (1.27-1.05)/1.05  = 21%
 
 
 ########## %P 
@@ -164,6 +174,9 @@ Anova(plant.P.wil, type=3) # type and treatment
 posthoc<-emmeans(plant.P.wil, ~treatment)
 multcomp::cld(posthoc, Letters=letters)
 
+plant.part.Pwill<-aggregate(P~treatment, will.nut, FUN=mean)
+#burning increased Sage leaf P = (0.20-0.14)/0.14  = 43%
+
 
 ########## %K
 plant.K.wil<-lm(K~treatment*type, data=will.nut)
@@ -171,6 +184,9 @@ Anova(plant.K.wil, type=3) # type and treatment
 
 posthoc<-emmeans(plant.K.wil, ~treatment)
 multcomp::cld(posthoc, Letters=letters)
+
+plant.part.Kwill<-aggregate(K~treatment, will.nut, FUN=mean)
+#burning increased Sage leaf K = (1.05-0.82)/0.82  = 28%
 
 
 ########## %S
@@ -180,12 +196,20 @@ Anova(plant.S.wil, type=3) # main and interactions
 posthoc<-emmeans(plant.S.wil, ~treatment| type)
 multcomp::cld(posthoc, Letters=letters)
 
+plant.part.Swill<-aggregate(S~treatment+type, will.nut, FUN=mean)
+#burning increased Sage leaf S = (0.26-0.22)/0.22  = 18%
+
+
 ############## Zn ppm
 plant.ZN.wil<-lm(ZN~treatment*type, data=will.nut)
 Anova(plant.ZN.wil, type=3) #no effect
 
 posthoc<-emmeans(plant.ZN.wil, ~treatment| type)
 multcomp::cld(posthoc, Letters=letters)
+
+plant.part.Znwill<-aggregate(ZN~treatment+type, will.nut, FUN=mean)
+#burning increased Sage leaf K = (204-82)/82  = 148%
+
 ```
 
 ```{r plant elemental figures, fig.dim=c(10,3), fig.cap="**Figure** Elemental analysis of burned and unburned plant material (leaves and stem) from sage and willow prior to being added to experimental treatments."}
@@ -1859,6 +1883,7 @@ concrvity(m2.NPP.T1)
 par(mfrow = c(2, 2))
 plot(m2.NPP.T1, all.terms = TRUE, page=1)
 
+mean.NPP.T1<-aggregate(NPP~Treatment, subset = Time.point=="T1", data = O2.tanks, FUN=mean)
 
 #### see this https://cran.r-project.org/web/packages/tidymv/vignettes/plot-smooths.html
 # The difference smooth is difference between the smooths of two conditions (two levels in a factor). 
@@ -1910,6 +1935,8 @@ concrvity(m2.NPP.T2)
 par(mfrow = c(2, 2))
 plot(m2.NPP.T2, all.terms = TRUE, page=1)
 
+mean.NPP.T2<-aggregate(NPP~Treatment, subset = Time.point=="T2", data = O2.tanks, FUN=mean)
+
 ## plot for the model output on rawdata
 # model predictions
 NPP.diff.T2<-plot_difference(
@@ -1938,7 +1965,6 @@ NPP.T2.mod.plot<-
 
 
 ####### Time 3
-
 m1.NPP.T3<-gam(NPP ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T3", data = O2.tanks, method = "REML")
 
 m2.NPP.T3<-gam(NPP ~ Treatment + s(plant.mass..g), subset = Time.point=="T3", data = O2.tanks, method = "REML")
@@ -1956,6 +1982,8 @@ draw(m2.NPP.T3)
 concrvity(m2.NPP.T3)
 par(mfrow = c(2, 2))
 plot(m2.NPP.T3, all.terms = TRUE, page=1)
+
+mean.NPP.T3<-aggregate(NPP~Treatment, subset = Time.point=="T3", data = O2.tanks, FUN=mean)
 
 # model predictions
 NPP.diff.T3<-plot_difference(
@@ -1985,7 +2013,6 @@ NPP.T3.mod.plot<-
 
 
 ####### Time 4
-
 m1.NPP.T4<-gam(NPP ~ Treatment + s(plant.mass..g, by= Treatment), subset = Time.point=="T4", data = O2.tanks, method = "REML")
 
 m2.NPP.T4<-gam(NPP ~ Treatment + s(plant.mass..g), subset = Time.point=="T4", data = O2.tanks, method = "REML")
@@ -2003,6 +2030,7 @@ draw(m1.NPP.T4)
 concrvity(m1.NPP.T4)
 par(mfrow = c(2, 2))
 plot(m1.NPP.T4, all.terms = TRUE, page=1)
+
 
 # model predictions
 NPP.diff.T4<-plot_difference(
@@ -2124,6 +2152,8 @@ draw(m2.R.T2)
 concrvity(m2.R.T2)
 par(mfrow = c(2, 2))
 plot(m2.R.T2, all.terms = TRUE, page=1)
+
+mean.R.T2<-aggregate(R~Treatment, subset = Time.point=="T2", data = O2.tanks, FUN=mean)
 
 # model predictions
 R.diff.T2<-plot_difference(
