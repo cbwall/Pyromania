@@ -1,7 +1,6 @@
-## Pyromania  
-<a href="https://zenodo.org/doi/10.5281/zenodo.10045314"><img src="https://zenodo.org/badge/435987538.svg" alt="DOI"></a>
-
-CB Wall<sup>1</sup>, CJ Spiegel<sup>1</sup>, EM Diaz<sup>1</sup>, CH Tran<sup>1</sup>, A Fabiani<sup>1</sup>, TY Broe<sup>1</sup>, E Perez-Coronel<sup>1</sup>, SL Jackrel<sup>1</sup>, N Mladenov<sup>2</sup>, CC Symons<sup>3</sup>, JB Shurin<sup>1</sup>
+## Pyromania: Fire transforms effects of terrestrial subsidies on aquatic ecosystem structure and function  
+<a href="https://zenodo.org/doi/10.5281/zenodo.10045314"><img src="https://zenodo.org/badge/435987538.svg" alt="DOI"></a>  
+CB Wall<sup>1</sup>, CJ Spiegel<sup>1</sup>, EM Diaz<sup>1</sup>, CH Tran<sup>1</sup>, A Fabiani<sup>1</sup>, TY Broe<sup>1</sup>, E Perez-Coronel<sup>1</sup>, SL Jackrel<sup>1</sup>, N Mladenov<sup>2</sup>, CC Symons<sup>3</sup>, JB Shurin<sup>1</sup>. (2023) _Global Change Biology_.  
 
 <sup>1</sup>University of California, San Diego   
 <sup>2</sup>San Diego State University  
