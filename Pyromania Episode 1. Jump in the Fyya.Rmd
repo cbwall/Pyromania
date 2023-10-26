@@ -15,7 +15,7 @@ editor_options:
   chunk_output_type: console
 ---
   
-[![DOI](https://zenodo.org/badge/435987538.svg)](https://zenodo.org/doi/10.5281/zenodo.10045314) 
+[![DOI](https://zenodo.org/badge/435987538.svg)](https://zenodo.org/doi/10.5281/zenodo.10045536) 
   
   
 ## Project overview
