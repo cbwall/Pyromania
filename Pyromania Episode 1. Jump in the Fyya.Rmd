@@ -1,6 +1,6 @@
 ---
 title: "Pyromania: Fire transforms terrestrial subsidies in aquatic ecosystems "
-author: "CB Wall et al. 2023, in review Global Change Biology"
+author: "CB Wall et al. 2023, Global Change Biology"
 date: "5/5/2023"
 output:
   html_document:

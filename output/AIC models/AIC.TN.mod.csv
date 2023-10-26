@@ -1,16 +1,16 @@
 "","mod.rep","df","AIC"
-"m1.TN.T0","~Treatment + s(plant.mass..g, by= Treatment)",5.00005336968667,-85.0965465666468
+"m1.TN.T0","~Treatment + s(plant.mass..g, by= Treatment)",5.00005336968666,-85.0965465666468
 "m2.TN.T0","~Treatment + s(plant.mass..g)",4.000081797657,-83.4200635817518
-"m3.TN.T0","~s(plant.mass..g)",3.0000821195802,-84.5357379566553
-"m1.TN.T1","~Treatment + s(plant.mass..g, by= Treatment)",8.88863730139712,-7.84113929501738
-"m2.TN.T1","~Treatment + s(plant.mass..g)",6.23932096668792,-10.6455468604675
-"m3.TN.T1","~s(plant.mass..g)",5.2640475584175,-12.6184009382583
-"m1.TN.T2","~Treatment + s(plant.mass..g, by= Treatment)",6.31317777982576,-11.718630581617
-"m2.TN.T2","~Treatment + s(plant.mass..g)",6.92085091031601,-18.0564833755344
-"m3.TN.T2","~s(plant.mass..g)",5.48837395328745,-15.0454949087951
-"m1.TN.T3","~Treatment + s(plant.mass..g, by= Treatment)",11.291013829211,-39.5614465869298
+"m3.TN.T0","~s(plant.mass..g)",3.00008211958019,-84.5357379566553
+"m1.TN.T1","~Treatment + s(plant.mass..g, by= Treatment)",8.88863730139711,-7.84113929501737
+"m2.TN.T1","~Treatment + s(plant.mass..g)",6.23932096668793,-10.6455468604674
+"m3.TN.T1","~s(plant.mass..g)",5.26404755841748,-12.6184009382583
+"m1.TN.T2","~Treatment + s(plant.mass..g, by= Treatment)",6.31317777982567,-11.718630581617
+"m2.TN.T2","~Treatment + s(plant.mass..g)",6.92085091031602,-18.0564833755344
+"m3.TN.T2","~s(plant.mass..g)",5.48837395328746,-15.0454949087951
+"m1.TN.T3","~Treatment + s(plant.mass..g, by= Treatment)",11.2910138292109,-39.5614465869298
 "m2.TN.T3","~Treatment + s(plant.mass..g)",6.12456946812122,-26.1517831630468
 "m3.TN.T3","~s(plant.mass..g)",5.10097130760298,-25.9914570496086
-"m1.TN.T4","~Treatment + s(plant.mass..g, by= Treatment)",6.97301353681312,-23.7428286611283
-"m2.TN.T4","~Treatment + s(plant.mass..g)",4.7740034973062,-20.6219815798912
-"m3.TN.T4","~s(plant.mass..g)",3.58413046155532,-17.3550774356102
+"m1.TN.T4","~Treatment + s(plant.mass..g, by= Treatment)",6.97301353681311,-23.7428286611283
+"m2.TN.T4","~Treatment + s(plant.mass..g)",4.77400349730621,-20.6219815798912
+"m3.TN.T4","~s(plant.mass..g)",3.58413046155531,-17.3550774356102

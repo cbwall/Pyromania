@@ -1,7 +1,7 @@
 "","mod.d15N","df","AIC"
-"m1.T1.d15N","Treatment + Type + s(plant.mass..g, by=Treatment)",12.8620281851787,479.353271509984
-"m2.T1.d15N","Treatment + Type + s(plant.mass..g)",8.71008315323447,485.104337721813
-"m3.T1.d15N","s(plant.mass..g)",6.03167832846547,506.070073182112
+"m1.T1.d15N","Treatment + Type + s(plant.mass..g, by=Treatment)",12.8620281851788,479.353271509984
+"m2.T1.d15N","Treatment + Type + s(plant.mass..g)",8.71008315323444,485.104337721813
+"m3.T1.d15N","s(plant.mass..g)",6.03167832846549,506.070073182112
 "m1.T2.d15N","Treatment + Type + s(plant.mass..g, by=Treatment)",12.7580230681878,492.727298465176
-"m2.T2.d15N","Treatment + Type + s(plant.mass..g)",8.2136488643733,510.840538566846
+"m2.T2.d15N","Treatment + Type + s(plant.mass..g)",8.21364886437328,510.840538566846
 "m3.T2.d15N","s(plant.mass..g)",6.11582903206394,516.845546019628

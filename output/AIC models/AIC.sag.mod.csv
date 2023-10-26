@@ -1,7 +1,7 @@
 "","mod.sag.top","df","AIC"
 "m1.T1.sage","Treatment + Type + s(plant.mass..g.N, by=Treatment)",12.5236722453587,353.771316493668
-"m2.T1.sage","Treatment + Type + s(plant.mass..g.N)",9.65562741766425,362.402483228082
+"m2.T1.sage","Treatment + Type + s(plant.mass..g.N)",9.65562741766429,362.402483228082
 "m3.T1.sage","s(plant.mass..g.N)",6.87601024718879,393.253153077799
-"m1.T2.sage","Treatment + Type + s(plant.mass..g.N, by=Treatment)",12.6660636131805,367.097721172187
+"m1.T2.sage","Treatment + Type + s(plant.mass..g.N, by=Treatment)",12.6660636131806,367.097721172187
 "m2.T2.sage","Treatment + Type + s(plant.mass..g.N)",10.7795879527343,373.070184910054
-"m3.T2.sage","s(plant.mass..g.N)",9.14203802205545,384.061740418355
+"m3.T2.sage","s(plant.mass..g.N)",9.14203802205549,384.061740418355

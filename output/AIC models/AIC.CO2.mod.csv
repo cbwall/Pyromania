@@ -1,13 +1,13 @@
 "","mod.ghg","df","AIC"
 "m1.T0.CO2","Treatment +s(plant.mass..g, by=Treatment)",8.81527396077127,153.051607606364
 "m2.T0.CO2","Treatment + s(plant.mass..g)",4.00002967121536,168.018207539157
-"m3.T0.CO2","s(plant.mass..g)",3.00031922299775,173.414997459187
+"m3.T0.CO2","s(plant.mass..g)",3.00031922299776,173.414997459187
 "m1.T1.CO2","Treatment +s(plant.mass..g, by=Treatment)",9.30333501721473,269.440947308573
-"m2.T1.CO2","Treatment + s(plant.mass..g)",6.68765775457081,272.229863127184
+"m2.T1.CO2","Treatment + s(plant.mass..g)",6.68765775457082,272.229863127184
 "m3.T1.CO2","s(plant.mass..g)",5.45105789731957,278.558394814555
 "m1.T2.CO2","Treatment +s(plant.mass..g, by=Treatment)",10.5288785828425,266.586826456092
 "m2.T2.CO2","Treatment + s(plant.mass..g)",4.00018467964578,284.229110449716
-"m3.T2.CO2","s(plant.mass..g)",3.00019602794015,282.398563486626
+"m3.T2.CO2","s(plant.mass..g)",3.00019602794016,282.398563486626
 "m1.T3.CO2","Treatment +s(plant.mass..g, by=Treatment)",7.14883248826221,270.206214694958
-"m2.T3.CO2","Treatment + s(plant.mass..g)",5.54844849850997,280.25913357641
-"m3.T3.CO2","s(plant.mass..g)",4.52873600720271,280.158413646956
+"m2.T3.CO2","Treatment + s(plant.mass..g)",5.54844849850996,280.25913357641
+"m3.T3.CO2","s(plant.mass..g)",4.5287360072027,280.158413646956
