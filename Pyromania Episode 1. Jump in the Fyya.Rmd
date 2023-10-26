@@ -14,7 +14,10 @@ output:
 editor_options: 
   chunk_output_type: console
 ---
-
+  
+[![DOI](https://zenodo.org/badge/435987538.svg)](https://zenodo.org/doi/10.5281/zenodo.10045314) 
+  
+  
 ## Project overview
 The goal of the *Pyromania project* is to test how terrestrial subsides (plant biomass loading or "browning") and burning influence aquatic productivity, water quality/chemistry, and trophic transfer. We used a manipulative experiment to assess a range of plant material quantities (0-400g per tank) and fire treatment (burned vs unburned material) and the non-linearity of these effects on aquatic systems through 4 time-point samplings. We used 400L aquatic mesocosms and ran the experiment for ~90d in 2021-2022.  
 
