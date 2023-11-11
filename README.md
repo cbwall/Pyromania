@@ -28,4 +28,11 @@ The file directory contains folders and scripts (Rmd) to be run in RStudio. The 
      - *scripts* = contains pieces of scripts useful in analyses, generally integrated into Rmd
 
 ## Metadata
-Important data files to generate maps, figures, and run models can be foudn in the *data folder*. The key data files are:  
+Important data files to generate maps, figures, and run models can be found in the *data folder*. The key data files are:  
+  - *data/DOC.TN/* The csv files here show the DOC and TN data for each time point 
+  - *data/GHG.gases/* The csv files here show the input greenhouse gas (GHG) data input for the script and the output with calculated concentrations 
+  - *data/Isotopes/* The csv files here show the replicate samples and the isotope data for C and N
+  - *Pyro_plant material_elemental.csv* for the burned and unburned plant material elemental analysis prior to adding detritus to tanks
+  - *Pyro_water.phosph.csv* for the phosphate analysis of water
+  - *Pyro_YSI.csv* is the YSI data for oxygen, temperature, and pH of tank water
+  - *treatment.IDs.csv* are the tank identity with regards to treatments
